@@ -1,0 +1,18 @@
+# Fichiers et dossiers à ignorer dans le dossier client
+/client/node_modules
+/client/.env
+/client/package-lock.json
+/client/.DS_Store
+/client/build
+/client/dist
+
+# Fichiers et dossiers à ignorer dans le dossier server
+/server/node_modules
+/server/.env
+/server/package-lock.json
+/server/.DS_Store
+/server/build
+/server/dist
+
+# Fichiers globaux
+.DS_Store
