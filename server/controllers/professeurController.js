@@ -69,6 +69,30 @@ const professeurController = {
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
+  },
+
+  // Mettre à jour la disponibilité d'un professeur
+  updateDisponibilite: async (req, res) => {
+    try {
+      const { disponibilite } = req.body;
+      console.log('Mise à jour disponibilité pour prof:', req.params.id);
+      console.log('Nouvelles disponibilités:', disponibilite);
+
+      const updatedProf = await Professeur.findByIdAndUpdate(
+        req.params.id,
+        { disponibilite },
+        { new: true }
+      );
+
+      if (!updatedProf) {
+        return res.status(404).json({ message: "Professeur non trouvé" });
+      }
+
+      res.json(updatedProf);
+    } catch (err) {
+      console.error('Erreur mise à jour disponibilité:', err);
+      res.status(500).json({ message: err.message });
+    }
   }
 };
 

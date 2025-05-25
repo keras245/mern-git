@@ -5,11 +5,13 @@ import { ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
 
 const menuItems = [
   { title: 'Tableau de bord', path: '/admin/dashboard', icon: '📊' },
+  { title: 'Utilisateurs', path: '/admin/management', icon: '⚙️' },
+  { title: 'Pédagogie', path: '/admin/pedagogie', icon: '🎓' },
   { title: 'Emplois du temps', path: '/admin/schedules', icon: '📅' },
   { title: 'Présences', path: '/admin/attendance', icon: '✅' },
   { title: 'Feedback', path: '/admin/feedback', icon: '💬' },
   { title: 'Notifications', path: '/admin/notifications', icon: '🔔' },
-  { title: 'Gestion', path: '/admin/management', icon: '⚙️' },
+  
 ];
 
 export default function AdminLayout() {

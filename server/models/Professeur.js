@@ -29,13 +29,11 @@ const professeurSchema = new mongoose.Schema({
   disponibilite: [{
     jour: {
       type: String,
-      enum: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
-      required: true
+      enum: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
     },
     creneaux: [{
       type: String,
-      enum: ['08h30 - 11h30', '12h00 - 15h00', '15h30 - 18h30'],
-      required: true
+      enum: ['08h30 - 11h30', '12h00 - 15h00', '15h30 - 18h30']
     }]
   }]
 });

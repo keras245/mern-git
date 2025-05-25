@@ -1,12 +1,21 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
+import DisponibiliteProf from '../../components/admin/emploiDuTemps/DisponibiliteProf';
+import ImportDonnees from '../../components/admin/emploiDuTemps/ImportDonnees';
+import GenererEmploi from '../../components/admin/emploiDuTemps/GenererEmploi';
+import ModificationEDT from '../../components/admin/emploiDuTemps/ModificationEDT';
+import CreneauxLibres from '../../components/admin/emploiDuTemps/CreneauxLibres';
+import { useNotification } from '../../context/NotificationContext';
 
 const EmploiDuTemps = () => {
   const [activeSection, setActiveSection] = useState('disponibilite');
+  const { showNotification } = useNotification();
 
   const sections = [
     {
       id: 'disponibilite',
-      title: '1. Gestion de la disponibilité des professeurs',
+      title: '1. Disponibilité',
+      fullTitle: 'Gestion de la disponibilité des professeurs',
       description: 'Définir les créneaux horaires disponibles pour chaque professeur',
       features: [
         'Sélection des professeurs',
@@ -16,7 +25,8 @@ const EmploiDuTemps = () => {
     },
     {
       id: 'import',
-      title: '2. Intégration des données de la scolarité',
+      title: '2. Import',
+      fullTitle: 'Intégration des données de la scolarité',
       description: 'Import des données concernant les salles disponibles',
       features: [
         'Import manuel des données',
@@ -26,11 +36,12 @@ const EmploiDuTemps = () => {
     },
     {
       id: 'attribution',
-      title: '3. Attribution des cours',
-      description: 'Gestion automatique et manuelle des attributions',
+      title: '3. Générer l\'emploi du temps',
+      fullTitle: 'Génération des emplois du temps',
+      description: 'Gestion automatique et manuelle des emplois du temps',
       features: [
-        'Attribution automatique selon disponibilités',
-        'Attribution manuelle personnalisée',
+        'Génération automatique selon disponibilités',
+        'Génération manuelle personnalisée',
         'Vérification des conflits'
       ]
     },
@@ -58,44 +69,56 @@ const EmploiDuTemps = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Gestion des Emplois du Temps</h1>
-      
-      <div className="grid gap-6">
-        {sections.map((section) => (
-          <div 
-            key={section.id}
-            className={`p-6 rounded-lg border ${
-              activeSection === section.id 
-                ? 'border-blue-500 bg-blue-50' 
-                : 'border-gray-200 hover:border-blue-300'
-            } cursor-pointer transition-all`}
-            onClick={() => setActiveSection(section.id)}
-          >
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+      <h1 className="text-2xl font-bold mb-6">Gestion des Emplois du Temps</h1>
+
+      {/* Navigation en onglets */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="-mb-px flex space-x-8">
+          {sections.map((section) => (
+            <button
+              key={section.id}
+              onClick={() => setActiveSection(section.id)}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeSection === section.id
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
               {section.title}
-            </h2>
-            <p className="text-gray-600 mb-4">{section.description}</p>
-            
-            {activeSection === section.id && (
-              <div className="mt-4 space-y-2">
-                <h3 className="font-medium text-gray-700">Fonctionnalités :</h3>
-                <ul className="list-disc list-inside space-y-1 text-gray-600">
-                  {section.features.map((feature, index) => (
-                    <li key={index}>{feature}</li>
-                  ))}
-                </ul>
-                
-                {section.id === 'disponibilite' && (
-                  <div className="mt-6 p-4 bg-white rounded border border-gray-200">
-                    {/* Ici on mettra le composant de gestion des disponibilités */}
-                    <p className="text-gray-500 italic">Fonctionnalité en cours d'implémentation...</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
+            </button>
+          ))}
+        </nav>
       </div>
+
+      {/* Contenu de la section active */}
+      {sections.map((section) => (
+        activeSection === section.id && (
+          <motion.div
+            key={section.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white p-6 rounded-lg shadow"
+          >
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">{section.fullTitle}</h2>
+            <p className="text-gray-600 mb-6">{section.description}</p>
+            
+            <div className="space-y-4">
+              <h3 className="font-medium text-gray-700">Fonctionnalités :</h3>
+              <ul className="list-disc list-inside space-y-1 text-gray-600">
+                {section.features.map((feature, index) => (
+                  <li key={index}>{feature}</li>
+                ))}
+              </ul>
+              
+              {section.id === 'disponibilite' && <DisponibiliteProf />}
+              {section.id === 'import' && <ImportDonnees />}
+              {section.id === 'attribution' && <GenererEmploi />}
+              {section.id === 'modification' && <ModificationEDT />}
+              {section.id === 'creneaux' && <CreneauxLibres />}
+            </div>
+          </motion.div>
+        )
+      ))}
     </div>
   );
 };

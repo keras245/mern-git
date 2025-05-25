@@ -4,15 +4,13 @@ import About from './pages/About';
 import Login from './pages/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import Management from './pages/admin/Management';
-import ChefDashboard from './pages/chef/Dashboard';
-import ProfDashboard from './pages/prof/Dashboard';
 import AppLayout from './components/layout/AppLayout';
 import { NotificationProvider } from './context/NotificationContext';
 import AdminLayout from './components/layout/AdminLayout';
-import ChefLayout from './components/layout/ChefLayout';
-import ProfLayout from './components/layout/ProfLayout';
 import Contact from './pages/Contact';
 import EmploiDuTemps from './pages/admin/EmploiDuTemps';
+import Pedagogie from './pages/admin/Pedagogie';
+import CoursManagement from './components/admin/pedagogie/CoursManagement';
 
 const PrivateRoute = ({ children, role }) => {
   const token = localStorage.getItem('token');
@@ -51,34 +49,9 @@ function App() {
           >
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="management" element={<Management />} />
+            <Route path="cours" element={<CoursManagement />} />
             <Route path="schedules" element={<EmploiDuTemps />} />
-            {/* Autres routes admin */}
-          </Route>
-
-          {/* Espace professeur avec sidebar */}
-          <Route
-            path="/prof/*"
-            element={
-              <PrivateRoute role="prof">
-                <ProfLayout />
-              </PrivateRoute>
-            }
-          >
-            <Route path="dashboard" element={<ProfDashboard />} />
-            {/* Autres routes prof */}
-          </Route>
-
-          {/* Espace chef avec sidebar */}
-          <Route
-            path="/chef/*"
-            element={
-              <PrivateRoute role="chef">
-                <ChefLayout />
-              </PrivateRoute>
-            }
-          >
-            <Route path="dashboard" element={<ChefDashboard />} />
-            {/* Autres routes chef */}
+            <Route path="pedagogie" element={<Pedagogie />} />
           </Route>
         </Routes>
       </Router>

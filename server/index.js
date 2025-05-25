@@ -18,8 +18,8 @@ app.use('/api/administrateurs', adminRoutes);
 const chefRoutes = require('./routes/chefDeClasseRoutes');
 app.use('/api/chefdeclasses', chefRoutes);
 
-const courRoutes = require('./routes/courRoutes');
-app.use('/api/cours', courRoutes);
+const coursRoutes = require('./routes/coursRoutes');
+app.use('/api/cours', coursRoutes);
 
 const emploiRoutes = require('./routes/emploiDuTempsRoutes');
 app.use('/api/emplois', emploiRoutes);
@@ -35,6 +35,9 @@ app.use('/api/professeurs', profRoutes);
 
 const salleRoutes = require('./routes/salleRoutes');
 app.use('/api/salles', salleRoutes);
+
+const programmeRoutes = require('./routes/programmeRoutes');
+app.use('/api/programmes', programmeRoutes);
 
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);

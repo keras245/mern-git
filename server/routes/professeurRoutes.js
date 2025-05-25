@@ -10,5 +10,6 @@ router.get('/', auth, profController.getAllProfs);
 router.get('/:id', auth, profController.getProfById);
 router.put('/:id', auth, profController.updateProf);
 router.delete('/:id', auth, profController.deleteProf);
+router.put('/:id/disponibilite', auth, profController.updateDisponibilite);
 
 module.exports = router;
