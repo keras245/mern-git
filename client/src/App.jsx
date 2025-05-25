@@ -11,6 +11,7 @@ import { NotificationProvider } from './context/NotificationContext';
 import AdminLayout from './components/layout/AdminLayout';
 import ChefLayout from './components/layout/ChefLayout';
 import ProfLayout from './components/layout/ProfLayout';
+import Contact from './pages/Contact';
 
 const PrivateRoute = ({ children, role }) => {
   const token = localStorage.getItem('token');
@@ -35,6 +36,7 @@ function App() {
           {/* Pages publiques */}
           <Route path="/" element={<AppLayout><Home /></AppLayout>} />
           <Route path="/about" element={<AppLayout><About /></AppLayout>} />
+          <Route path="/contact" element={<AppLayout><Contact /></AppLayout>} />
           <Route path="/login" element={<AppLayout><Login /></AppLayout>} />
 
           {/* Espace admin avec sidebar */}
