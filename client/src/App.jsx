@@ -12,6 +12,7 @@ import AdminLayout from './components/layout/AdminLayout';
 import ChefLayout from './components/layout/ChefLayout';
 import ProfLayout from './components/layout/ProfLayout';
 import Contact from './pages/Contact';
+import EmploiDuTemps from './pages/admin/EmploiDuTemps';
 
 const PrivateRoute = ({ children, role }) => {
   const token = localStorage.getItem('token');
@@ -50,6 +51,7 @@ function App() {
           >
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="management" element={<Management />} />
+            <Route path="schedules" element={<EmploiDuTemps />} />
             {/* Autres routes admin */}
           </Route>
 

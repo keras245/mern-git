@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
 const professeurSchema = new mongoose.Schema({
   id_prof: {
@@ -27,18 +26,18 @@ const professeurSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  disponibilite: {
-    type: [String],
-    required: true
-  }
-});
-
-// Hook de pré-sauvegarde pour hasher le mot de passe
-professeurSchema.pre('save', async function(next) {
-  if (this.isModified('mot_de_passe')) {
-    this.mot_de_passe = await bcrypt.hash(this.mot_de_passe, 10);
-  }
-  next();
+  disponibilite: [{
+    jour: {
+      type: String,
+      enum: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+      required: true
+    },
+    creneaux: [{
+      type: String,
+      enum: ['08h30 - 11h30', '12h00 - 15h00', '15h30 - 18h30'],
+      required: true
+    }]
+  }]
 });
 
 module.exports = mongoose.model('Professeur', professeurSchema);
