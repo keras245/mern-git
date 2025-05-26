@@ -5,7 +5,7 @@ const coursController = {
     try {
       console.log('Données reçues:', req.body);
 
-      const { nom_matiere, duree, programme, professeurs } = req.body;
+      const { nom_matiere, duree, id_programme, id_prof } = req.body;
 
       // Vérifier si un cours avec le même nom existe déjà
       const coursExistant = await Cours.findOne({ nom_matiere: nom_matiere?.trim() });
@@ -20,8 +20,8 @@ const coursController = {
       const coursData = {
         nom_matiere: nom_matiere?.trim(),
         duree: duree ? parseInt(duree) : undefined,
-        programme: programme,
-        professeurs: Array.isArray(professeurs) ? professeurs : []
+        id_programme: id_programme,
+        id_prof: Array.isArray(id_prof) ? id_prof : []
       };
 
       const cours = new Cours(coursData);
@@ -29,8 +29,8 @@ const coursController = {
 
       // Récupération avec populate
       const coursComplet = await Cours.findById(nouveauCours._id)
-        .populate('programme', 'nom niveau groupe')
-        .populate('professeurs', 'nom prenom');
+        .populate('id_programme', 'nom licence groupe')
+        .populate('id_prof', 'nom prenom');
 
       res.status(201).json(coursComplet);
 
@@ -74,8 +74,8 @@ const coursController = {
   getAllCours: async (req, res) => {
     try {
       const cours = await Cours.find()
-        .populate('programme', 'nom niveau groupe')
-        .populate('professeurs', 'nom prenom');
+        .populate('id_programme', 'nom licence groupe')
+        .populate('id_prof', 'nom prenom');
       res.status(200).json(cours);
     } catch (error) {
       console.error('Erreur récupération cours:', error);
@@ -86,8 +86,8 @@ const coursController = {
   getCoursById: async (req, res) => {
     try {
       const cours = await Cours.findById(req.params.id)
-        .populate('programme', 'nom niveau groupe')
-        .populate('professeurs', 'nom prenom');
+        .populate('id_programme', 'nom licence groupe')
+        .populate('id_prof', 'nom prenom');
       if (!cours) {
         return res.status(404).json({ message: "Cours non trouvé" });
       }
@@ -100,7 +100,7 @@ const coursController = {
 
   updateCours: async (req, res) => {
     try {
-      const { nom_matiere, duree, programme, professeurs } = req.body;
+      const { nom_matiere, duree, id_programme, id_prof } = req.body;
 
       // Si le nom est modifié, vérifier qu'il n'existe pas déjà (sauf pour le cours actuel)
       if (nom_matiere) {
@@ -121,8 +121,8 @@ const coursController = {
       const updateData = {};
       if (nom_matiere) updateData.nom_matiere = nom_matiere.trim();
       if (duree) updateData.duree = parseInt(duree);
-      if (programme) updateData.programme = programme;
-      if (professeurs) updateData.professeurs = Array.isArray(professeurs) ? professeurs : [];
+      if (id_programme) updateData.id_programme = id_programme;
+      if (id_prof) updateData.id_prof = Array.isArray(id_prof) ? id_prof : [];
 
       const cours = await Cours.findByIdAndUpdate(
         req.params.id,
@@ -131,8 +131,8 @@ const coursController = {
           new: true, 
           runValidators: true 
         }
-      ).populate('programme', 'nom niveau groupe')
-        .populate('professeurs', 'nom prenom');
+      ).populate('id_programme', 'nom licence groupe')
+        .populate('id_prof', 'nom prenom');
 
       if (!cours) {
         return res.status(404).json({ message: "Cours non trouvé" });

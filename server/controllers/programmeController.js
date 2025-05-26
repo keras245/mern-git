@@ -4,21 +4,21 @@ const programmeController = {
   // Créer un nouveau programme
   creerProgramme: async (req, res) => {
     try {
-      const { nom, niveau, semestre, groupe, description } = req.body;
+      const { nom, licence, semestre, groupe, description } = req.body;
 
       // Validation des données requises
-      if (!nom || !niveau || !semestre || !groupe || !description) {
+      if (!nom || !licence || !semestre || !groupe || !description) {
         return res.status(400).json({ 
-          message: "Tous les champs sont requis (nom, niveau, semestre, groupe, description)" 
+          message: "Tous les champs sont requis (nom, licence, semestre, groupe, description)" 
         });
       }
 
-      // Vérifier si le niveau et le semestre sont des nombres
-      const niveauNum = parseInt(niveau);
+      // Vérifier si la licence et le semestre sont des nombres
+      const licenceNum = parseInt(licence);
       const semestreNum = parseInt(semestre);
-      if (isNaN(niveauNum) || isNaN(semestreNum)) {
+      if (isNaN(licenceNum) || isNaN(semestreNum)) {
         return res.status(400).json({ 
-          message: "Le niveau et le semestre doivent être des nombres" 
+          message: "La licence et le semestre doivent être des nombres" 
         });
       }
 
@@ -29,12 +29,12 @@ const programmeController = {
         .join('')
         .toUpperCase();
       
-      const id_programme = `PRG-${nomCourt}-${niveauNum}-${groupe}`;
+      const id_programme = `PRG-${nomCourt}-${licenceNum}-${groupe}`;
 
       const programme = new Programme({
         id_programme,
         nom,
-        niveau: niveauNum,
+        licence: licenceNum,
         semestre: semestreNum,
         groupe,
         description
@@ -89,14 +89,40 @@ const programmeController = {
   // Mettre à jour un programme
   updateProgramme: async (req, res) => {
     try {
-      const { nom, niveau, description } = req.body;
-      const niveauNum = parseInt(niveau);
+      const { nom, licence, semestre, groupe, description } = req.body;
+      
+      // Validation des données requises
+      if (!nom || !licence || !semestre || !groupe || !description) {
+        return res.status(400).json({ 
+          message: "Tous les champs sont requis (nom, licence, semestre, groupe, description)" 
+        });
+      }
+
+      // Conversion en nombres
+      const licenceNum = parseInt(licence);
+      const semestreNum = parseInt(semestre);
+      
+      if (isNaN(licenceNum) || isNaN(semestreNum)) {
+        return res.status(400).json({ 
+          message: "La licence et le semestre doivent être des nombres" 
+        });
+      }
+
+      console.log('Mise à jour programme avec:', {
+        nom,
+        licence: licenceNum,
+        semestre: semestreNum,
+        groupe,
+        description
+      });
 
       const programme = await Programme.findByIdAndUpdate(
         req.params.id,
         {
           nom,
-          niveau: niveauNum,
+          licence: licenceNum,
+          semestre: semestreNum,
+          groupe,
           description
         },
         { new: true, runValidators: true }
@@ -105,6 +131,8 @@ const programmeController = {
       if (!programme) {
         return res.status(404).json({ message: "Programme non trouvé" });
       }
+      
+      console.log('Programme mis à jour:', programme);
       res.status(200).json(programme);
     } catch (error) {
       console.error('Erreur mise à jour programme:', error);

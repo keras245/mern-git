@@ -6,6 +6,9 @@ const auth = require('../middleware/auth');
 // Route publique pour l'authentification
 router.post("/login", chefController.login);
 
+// Route temporaire pour créer le premier chef (NON PROTÉGÉE)
+router.post("/creer-premier", chefController.creerChef);
+
 // Routes protégées
 router.post("/creer", auth, chefController.creerChef);
 router.get("/", auth, chefController.getAllChefs);

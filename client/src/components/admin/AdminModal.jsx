@@ -3,7 +3,6 @@ import axios from 'axios';
 import { X, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNotification } from '../../context/NotificationContext';
-import bcrypt from 'bcryptjs';
 
 const AdminModal = ({ admin, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -37,10 +36,7 @@ const AdminModal = ({ admin, onClose, onSuccess }) => {
     const token = localStorage.getItem('token');
     try {
       const dataToSend = { ...formData };
-      if (!admin || (admin && formData.mot_de_passe)) {
-        const salt = await bcrypt.genSalt(10);
-        dataToSend.mot_de_passe = await bcrypt.hash(formData.mot_de_passe, salt);
-      } else {
+      if (admin && !formData.mot_de_passe) {
         delete dataToSend.mot_de_passe;
       }
 

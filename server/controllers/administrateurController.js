@@ -5,24 +5,41 @@ const jwt = require('jsonwebtoken');
 const administrateurController = {
   login: async (req, res) => {
     try {
+      console.log('Tentative de connexion administrateur:', req.body);
       const { email, mot_de_passe } = req.body;
+      
+      // Validation des champs requis
+      if (!email || !mot_de_passe) {
+        console.log('Champs manquants:', { email: !!email, mot_de_passe: !!mot_de_passe });
+        return res.status(400).json({ message: "Email et mot de passe requis" });
+      }
+      
+      console.log('Recherche administrateur avec email:', email);
       const admin = await Administrateur.findOne({ email });
 
       if (!admin) {
-        return res.status(400).json({ message: "Administrateur non trouvé" });
+        console.log('Administrateur non trouvé pour email:', email);
+        return res.status(401).json({ message: "Email ou mot de passe incorrect" });
       }
 
+      console.log('Administrateur trouvé:', admin.email);
+      console.log('Comparaison mot de passe...');
       const isMatch = await bcrypt.compare(mot_de_passe, admin.mot_de_passe);
+      console.log('Résultat comparaison:', isMatch);
+      
       if (!isMatch) {
-        return res.status(400).json({ message: "Mot de passe incorrect" });
+        console.log('Mot de passe incorrect pour:', email);
+        return res.status(401).json({ message: "Email ou mot de passe incorrect" });
       }
 
+      console.log('Génération du token...');
       const token = jwt.sign(
-        { id: admin._id, role: admin.role },
+        { id: admin._id, role: 'admin' },
         process.env.JWT_SECRET,
         { expiresIn: '1d' }
       );
 
+      console.log('Connexion réussie pour:', email);
       res.json({
         token,
         admin: {
@@ -83,12 +100,33 @@ const administrateurController = {
   updateAdmin: async (req, res) => {
     try {
       const { nom, prenom, adresse, email, telephone, mot_de_passe } = req.body;
-      const updatedAdmin = await Administrateur.findByIdAndUpdate(
-        req.params.id,
-        { nom, prenom, adresse, email, telephone, mot_de_passe },
-        { new: true }
-      );
-      res.json(updatedAdmin);
+      
+      // Utiliser findById puis save() pour déclencher les hooks
+      const admin = await Administrateur.findById(req.params.id);
+      if (!admin) {
+        return res.status(404).json({ message: "Administrateur non trouvé" });
+      }
+
+      // Mettre à jour les champs
+      admin.nom = nom;
+      admin.prenom = prenom;
+      admin.adresse = adresse;
+      admin.email = email;
+      admin.telephone = telephone;
+      
+      // Mettre à jour le mot de passe seulement s'il est fourni
+      if (mot_de_passe) {
+        admin.mot_de_passe = mot_de_passe;
+      }
+
+      // Sauvegarder (déclenche le hook pre('save'))
+      const updatedAdmin = await admin.save();
+      
+      // Retourner sans le mot de passe
+      const adminResponse = updatedAdmin.toObject();
+      delete adminResponse.mot_de_passe;
+      
+      res.json(adminResponse);
     } catch (err) {
       res.status(500).json({ message: err.message });
     }

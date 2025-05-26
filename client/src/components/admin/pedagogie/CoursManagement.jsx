@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Users } from 'lucide-react';
 import { useNotification } from '../../../context/NotificationContext';
 import CoursModal from './CoursModal';
 
@@ -46,6 +46,42 @@ const CoursManagement = () => {
     }
   };
 
+  // Fonction pour formater l'affichage des professeurs
+  const formatProfesseurs = (professeurs) => {
+    if (!professeurs || professeurs.length === 0) {
+      return (
+        <span className="text-gray-400 italic">
+          <Users className="inline w-4 h-4 mr-1" />
+          Aucun professeur assigné
+        </span>
+      );
+    }
+
+    if (professeurs.length === 1) {
+      const prof = professeurs[0];
+      return (
+        <span className="text-green-600">
+          <Users className="inline w-4 h-4 mr-1" />
+          {prof.prenom} {prof.nom}
+        </span>
+      );
+    }
+
+    return (
+      <div className="text-blue-600">
+        <Users className="inline w-4 h-4 mr-1" />
+        <span className="font-medium">{professeurs.length} professeurs:</span>
+        <div className="text-sm mt-1 space-y-1">
+          {professeurs.map((prof, index) => (
+            <div key={prof._id || index} className="text-gray-600">
+              • {prof.prenom} {prof.nom}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -71,27 +107,48 @@ const CoursManagement = () => {
         {cours.map((cours) => (
           <div
             key={cours._id}
-            className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+            className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
           >
-            <h3 className="font-semibold text-lg mb-2">{cours.nom_matiere}</h3>
-            <p className="text-gray-600 mb-2">Durée: {cours.duree}h</p>
-            <p className="text-gray-600 mb-2">
-              Programme: {cours.programme?.nom || 'Non assigné'}
-            </p>
-            <p className="text-gray-600 mb-2">
-              Professeurs: {cours.professeurs?.length || 0}
-            </p>
+            <div className="mb-3">
+              <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                {cours.id_cours}
+              </span>
+            </div>
             
-            <div className="flex justify-end space-x-2">
+            <h3 className="font-semibold text-lg mb-3 text-gray-800">{cours.nom_matiere}</h3>
+            
+            <div className="space-y-2 mb-4">
+              <p className="text-gray-600 flex items-center">
+                <span className="font-medium mr-2">Durée:</span>
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                  {cours.duree}h
+                </span>
+              </p>
+              
+              <p className="text-gray-600">
+                <span className="font-medium">Programme:</span> 
+                <span className="ml-2 text-purple-600">
+                  {cours.id_programme?.nom || 'Non assigné'}
+                </span>
+              </p>
+              
+              <div className="pt-2 border-t border-gray-100">
+                {formatProfesseurs(cours.id_prof)}
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-2 pt-3 border-t border-gray-100">
               <button
                 onClick={() => handleEdit(cours)}
-                className="text-blue-600 hover:text-blue-800"
+                className="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors"
+                title="Modifier"
               >
                 <Pencil size={18} />
               </button>
               <button
                 onClick={() => handleDelete(cours._id)}
-                className="text-red-600 hover:text-red-800"
+                className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
+                title="Supprimer"
               >
                 <Trash2 size={18} />
               </button>
@@ -99,6 +156,16 @@ const CoursManagement = () => {
           </div>
         ))}
       </div>
+
+      {cours.length === 0 && (
+        <div className="text-center py-12">
+          <div className="text-gray-400 mb-4">
+            <Users className="mx-auto h-12 w-12" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun cours</h3>
+          <p className="text-gray-500">Commencez par créer votre premier cours.</p>
+        </div>
+      )}
 
       <CoursModal
         isOpen={isModalOpen}

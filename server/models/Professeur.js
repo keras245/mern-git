@@ -22,10 +22,6 @@ const professeurSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  matiere: {
-    type: String,
-    required: true
-  },
   disponibilite: [{
     jour: {
       type: String,

@@ -7,8 +7,8 @@ const CoursModal = ({ isOpen, onClose, cours, onSuccess }) => {
   const [formData, setFormData] = useState({
     nom_matiere: '',
     duree: '',
-    programme: '',
-    professeurs: []
+    id_programme: '',
+    id_prof: []
   });
   const [programmes, setProgrammes] = useState([]);
   const [professeurs, setProfesseurs] = useState([]);
@@ -24,15 +24,15 @@ const CoursModal = ({ isOpen, onClose, cours, onSuccess }) => {
       setFormData({
         nom_matiere: cours.nom_matiere,
         duree: cours.duree,
-        programme: cours.programme?._id || '',
-        professeurs: cours.professeurs?.map(p => p._id) || []
+        id_programme: cours.id_programme?._id || '',
+        id_prof: cours.id_prof?.map(p => p._id) || []
       });
     } else {
       setFormData({
         nom_matiere: '',
         duree: '',
-        programme: '',
-        professeurs: []
+        id_programme: '',
+        id_prof: []
       });
     }
   }, [cours]);
@@ -65,7 +65,7 @@ const CoursModal = ({ isOpen, onClose, cours, onSuccess }) => {
     e.preventDefault();
     
     try {
-      if (!formData.nom_matiere || !formData.duree || !formData.programme) {
+      if (!formData.nom_matiere || !formData.duree || !formData.id_programme) {
         showNotification('Tous les champs sont requis', 'error');
         return;
       }
@@ -74,8 +74,8 @@ const CoursModal = ({ isOpen, onClose, cours, onSuccess }) => {
       const data = {
         nom_matiere: formData.nom_matiere,
         duree: parseInt(formData.duree),
-        programme: formData.programme,
-        professeurs: formData.professeurs
+        id_programme: formData.id_programme,
+        id_prof: formData.id_prof
       };
 
       if (cours) {
@@ -147,15 +147,15 @@ const CoursModal = ({ isOpen, onClose, cours, onSuccess }) => {
               Programme
             </label>
             <select
-              value={formData.programme}
-              onChange={(e) => setFormData({ ...formData, programme: e.target.value })}
+              value={formData.id_programme}
+              onChange={(e) => setFormData({ ...formData, id_programme: e.target.value })}
               className="w-full px-3 py-2 border rounded-lg"
               required
             >
               <option value="">Sélectionner un programme</option>
               {programmes.map((prog) => (
                 <option key={prog._id} value={prog._id}>
-                  {prog.nom} - Niveau {prog.niveau} - Groupe {prog.groupe}
+                  {prog.nom} - Licence {prog.licence} - Groupe {prog.groupe}
                 </option>
               ))}
             </select>
@@ -167,10 +167,10 @@ const CoursModal = ({ isOpen, onClose, cours, onSuccess }) => {
             </label>
             <select
               multiple
-              value={formData.professeurs}
+              value={formData.id_prof}
               onChange={(e) => setFormData({
                 ...formData,
-                professeurs: Array.from(e.target.selectedOptions, option => option.value)
+                id_prof: Array.from(e.target.selectedOptions, option => option.value)
               })}
               className="w-full px-3 py-2 border rounded-lg"
               size="4"

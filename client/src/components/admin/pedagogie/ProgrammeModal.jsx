@@ -6,7 +6,7 @@ import { useNotification } from '../../../context/NotificationContext';
 const ProgrammeModal = ({ isOpen, onClose, programme, onSuccess }) => {
   const [formData, setFormData] = useState({
     nom: '',
-    niveau: '',
+    licence: '',
     semestre: '',
     groupe: '',
     description: ''
@@ -17,7 +17,7 @@ const ProgrammeModal = ({ isOpen, onClose, programme, onSuccess }) => {
     if (programme) {
       setFormData({
         nom: programme.nom,
-        niveau: programme.niveau,
+        licence: programme.licence,
         semestre: programme.semestre,
         groupe: programme.groupe,
         description: programme.description
@@ -25,7 +25,7 @@ const ProgrammeModal = ({ isOpen, onClose, programme, onSuccess }) => {
     } else {
       setFormData({
         nom: '',
-        niveau: '',
+        licence: '',
         semestre: '',
         groupe: '',
         description: ''
@@ -37,7 +37,7 @@ const ProgrammeModal = ({ isOpen, onClose, programme, onSuccess }) => {
     e.preventDefault();
     
     try {
-      if (!formData.nom || !formData.niveau || !formData.semestre || !formData.groupe || !formData.description) {
+      if (!formData.nom || !formData.licence || !formData.semestre || !formData.groupe || !formData.description) {
         showNotification('Tous les champs sont requis', 'error');
         return;
       }
@@ -45,9 +45,9 @@ const ProgrammeModal = ({ isOpen, onClose, programme, onSuccess }) => {
       const token = localStorage.getItem('token');
       const data = {
         nom: formData.nom,
-        niveau: parseInt(formData.niveau),
+        licence: parseInt(formData.licence),
         semestre: parseInt(formData.semestre),
-        groupe: formData.groupe,
+        groupe: parseInt(formData.groupe),
         description: formData.description
       };
 
@@ -113,11 +113,11 @@ const ProgrammeModal = ({ isOpen, onClose, programme, onSuccess }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Niveau
+              Licence
             </label>
             <select
-              value={formData.niveau}
-              onChange={(e) => setFormData({ ...formData, niveau: Number(e.target.value) })}
+              value={formData.licence}
+              onChange={(e) => setFormData({ ...formData, licence: Number(e.target.value) })}
               className="w-full px-3 py-2 border rounded-lg"
               required
             >
@@ -125,7 +125,7 @@ const ProgrammeModal = ({ isOpen, onClose, programme, onSuccess }) => {
               <option value="1">Licence 1</option>
               <option value="2">Licence 2</option>
               <option value="3">Licence 3</option>
-              <option value="4">Master 1</option>
+              <option value="4">Licence 4</option>
             </select>
           </div>
 
@@ -135,7 +135,7 @@ const ProgrammeModal = ({ isOpen, onClose, programme, onSuccess }) => {
             </label>
             <select
               value={formData.semestre}
-              onChange={(e) => setFormData({ ...formData, semestre: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, semestre: Number(e.target.value) })}
               className="w-full px-3 py-2 border rounded-lg"
               required
             >
@@ -154,7 +154,7 @@ const ProgrammeModal = ({ isOpen, onClose, programme, onSuccess }) => {
               type="number"
               min="1"
               value={formData.groupe}
-              onChange={(e) => setFormData({ ...formData, groupe: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, groupe: Number(e.target.value) })}
               className="w-full px-3 py-2 border rounded-lg"
               required
             />

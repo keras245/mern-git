@@ -5,14 +5,13 @@ const professeurController = {
   // Créer un professeur
   creerProf: async (req, res) => {
     try {
-      const { id_prof, nom, prenom, adresse, telephone, matiere, disponibilite } = req.body;
+      const { id_prof, nom, prenom, adresse, telephone, disponibilite } = req.body;
       const newProf = new Professeur({
         id_prof,
         nom,
         prenom,
         adresse,
         telephone,
-        matiere,
         disponibilite
       });
 
@@ -49,10 +48,10 @@ const professeurController = {
   // Mettre à jour un professeur
   updateProf: async (req, res) => {
     try {
-      const { nom, prenom, adresse, telephone, matiere, disponibilite } = req.body;
+      const { nom, prenom, adresse, telephone, disponibilite } = req.body;
       const updatedProf = await Professeur.findByIdAndUpdate(
         req.params.id,
-        { nom, prenom, adresse, telephone, matiere, disponibilite },
+        { nom, prenom, adresse, telephone, disponibilite },
         { new: true }
       );
       res.json(updatedProf);

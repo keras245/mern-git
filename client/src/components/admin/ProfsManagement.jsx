@@ -73,7 +73,7 @@ const ProfsManagement = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Prof</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prénom</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matière</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adresse</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Téléphone</th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
@@ -84,7 +84,7 @@ const ProfsManagement = () => {
                 <td className="px-6 py-4 whitespace-nowrap">{prof.id_prof}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{prof.nom}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{prof.prenom}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{prof.matiere}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{prof.adresse}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{prof.telephone}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">
                   <button

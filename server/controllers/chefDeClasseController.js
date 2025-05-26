@@ -84,15 +84,14 @@ exports.login = async (req, res) => {
 
         res.status(200).json({
             token,
-            user: {
+            chef: {
                 matricule: chef.matricule,
                 nom: chef.nom,
                 prenom: chef.prenom,
                 adresse: chef.adresse,
                 telephone: chef.telephone,
                 email: chef.email,
-                classe: chef.classe,
-                mot_de_passe: chef.mot_de_passe
+                classe: chef.classe
             }
         });
     } catch (error) {

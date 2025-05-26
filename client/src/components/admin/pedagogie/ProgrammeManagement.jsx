@@ -75,7 +75,7 @@ const ProgrammeManagement = () => {
               className="border rounded-lg p-4 hover:shadow-md transition-shadow"
             >
               <h3 className="font-semibold text-lg mb-2">{programme.nom}</h3>
-              <p className="text-gray-600 mb-2">Niveau: {programme.niveau}</p>
+              <p className="text-gray-600 mb-2">Licence: {programme.licence}</p>
               <p className="text-gray-600 mb-2">Semestre: {programme.semestre}</p>
               <p className="text-gray-600 mb-2">Groupe: {programme.groupe}</p>
               <p className="text-gray-600 mb-4">{programme.description}</p>

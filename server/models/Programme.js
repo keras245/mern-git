@@ -18,7 +18,7 @@ const programmeSchema = new mongoose.Schema({
       'Génie Electronique'
     ]
   },
-  niveau: {
+  licence: {
     type: Number,
     required: true,
     enum: [1, 2, 3, 4],

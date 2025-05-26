@@ -11,7 +11,6 @@ const ProfModal = ({ prof, onClose, onSuccess }) => {
     prenom: '',
     adresse: '',
     telephone: '',
-    matiere: '',
     disponibilite: []
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -25,7 +24,6 @@ const ProfModal = ({ prof, onClose, onSuccess }) => {
         prenom: prof.prenom || '',
         adresse: prof.adresse || '',
         telephone: prof.telephone || '',
-        matiere: prof.matiere || '',
         disponibilite: prof.disponibilite || []
       });
     }
@@ -116,22 +114,12 @@ const ProfModal = ({ prof, onClose, onSuccess }) => {
               required
             />
           </div>
-          <div>
+          <div className="md:col-span-2">
             <label className="text-sm font-bold text-gray-800 mb-2 block">Téléphone</label>
             <input
               type="tel"
               value={formData.telephone}
               onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-bold text-gray-800 mb-2 block">Matière</label>
-            <input
-              type="text"
-              value={formData.matiere}
-              onChange={(e) => setFormData({ ...formData, matiere: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
