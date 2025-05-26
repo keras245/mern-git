@@ -15,5 +15,10 @@ router.delete('/:id', auth, salleController.deleteSalle);
 // Routes d'import
 router.post('/import-manual', salleController.importManual);
 router.post('/import-file', upload.single('file'), salleController.importFile);
+router.post('/preview-file', upload.single('file'), salleController.previewFile);
+
+// Nouvelles routes
+router.post('/update-disponibilites', auth, salleController.updateDisponibilites);
+router.post('/preview-file', auth, upload.single('file'), salleController.previewFile);
 
 module.exports = router;
