@@ -36,13 +36,25 @@ const chefDeClasseSchema = new mongoose.Schema({
     type: String,
     required: true
   }
+}, {
+  timestamps: true
 });
-//Hook de pré-sauvegarde pour hasher le mot de passe
+
+// Hook de pré-sauvegarde pour hasher le mot de passe
 chefDeClasseSchema.pre('save', async function(next) {
-  if (this.isModified('mot_de_passe')) {
-    this.mot_de_passe = await bcrypt.hash(this.mot_de_passe, 10);
+  // Ne hasher que si le mot de passe a été modifié (ou est nouveau)
+  if (!this.isModified('mot_de_passe')) return next();
+  
+  try {
+    console.log('Hachage du mot de passe pour:', this.email);
+    const salt = await bcrypt.genSalt(10);
+    this.mot_de_passe = await bcrypt.hash(this.mot_de_passe, salt);
+    console.log('Mot de passe haché avec succès');
+    next();
+  } catch (error) {
+    console.error('Erreur hachage mot de passe:', error);
+    next(error);
   }
-  next();
 });
 
 module.exports = mongoose.model('ChefDeClasse', chefDeClasseSchema);

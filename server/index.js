@@ -39,6 +39,9 @@ app.use('/api/salles', salleRoutes);
 const programmeRoutes = require('./routes/programmeRoutes');
 app.use('/api/programmes', programmeRoutes);
 
+const notificationRoutes = require('./routes/notificationRoutes');
+app.use('/api/notifications', notificationRoutes);
+
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);
 });

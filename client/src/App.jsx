@@ -7,10 +7,16 @@ import Management from './pages/admin/Management';
 import AppLayout from './components/layout/AppLayout';
 import { NotificationProvider } from './context/NotificationContext';
 import AdminLayout from './components/layout/AdminLayout';
+import ChefLayout from './components/layout/ChefLayout';
 import Contact from './pages/Contact';
 import EmploiDuTemps from './pages/admin/EmploiDuTemps';
 import Pedagogie from './pages/admin/Pedagogie';
 import CoursManagement from './components/admin/pedagogie/CoursManagement';
+import ChefDashboard from './pages/chef/Dashboard';
+import ChefEmploiDuTemps from './pages/chef/EmploiDuTemps';
+import ChefPresences from './pages/chef/Presences';
+import ChefFeedback from './pages/chef/Feedback';
+import ChefNotifications from './pages/chef/Notifications';
 
 const PrivateRoute = ({ children, role }) => {
   const token = localStorage.getItem('token');
@@ -52,6 +58,22 @@ function App() {
             <Route path="cours" element={<CoursManagement />} />
             <Route path="schedules" element={<EmploiDuTemps />} />
             <Route path="pedagogie" element={<Pedagogie />} />
+          </Route>
+
+          {/* Espace chef de classe avec sidebar */}
+          <Route
+            path="/chef/*"
+            element={
+              <PrivateRoute role="chef">
+                <ChefLayout />
+              </PrivateRoute>
+            }
+          >
+            <Route path="dashboard" element={<ChefDashboard />} />
+            <Route path="emploi-temps" element={<ChefEmploiDuTemps />} />
+            <Route path="presences" element={<ChefPresences />} />
+            <Route path="feedback" element={<ChefFeedback />} />
+            <Route path="notifications" element={<ChefNotifications />} />
           </Route>
         </Routes>
       </Router>
