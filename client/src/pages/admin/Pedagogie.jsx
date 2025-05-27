@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { BookOpen, GraduationCap, Building2 } from 'lucide-react';
+import { BookOpen, GraduationCap, Building2, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 import ProgrammeManagement from '../../components/admin/pedagogie/ProgrammeManagement';
 import CoursManagement from '../../components/admin/pedagogie/CoursManagement';
 import SalleManagement from '../../components/admin/pedagogie/SalleManagement';
@@ -8,45 +9,125 @@ const Pedagogie = () => {
   const [activeTab, setActiveTab] = useState('programmes');
 
   const tabs = [
-    { id: 'programmes', label: 'Programmes', icon: GraduationCap },
-    { id: 'cours', label: 'Cours', icon: BookOpen },
-    { id: 'salles', label: 'Salles', icon: Building2 }
+    { 
+      id: 'programmes', 
+      label: 'Programmes', 
+      icon: GraduationCap,
+      color: 'from-blue-500 to-indigo-600',
+      description: 'Gérer les programmes de formation'
+    },
+    { 
+      id: 'cours', 
+      label: 'Cours', 
+      icon: BookOpen,
+      color: 'from-emerald-500 to-teal-600',
+      description: 'Organiser les cours et matières'
+    },
+    { 
+      id: 'salles', 
+      label: 'Salles', 
+      icon: Building2,
+      color: 'from-purple-500 to-violet-600',
+      description: 'Administrer les espaces de cours'
+    }
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Gestion Pédagogique</h1>
-        <p className="mt-2 text-gray-600">Gérez les programmes, cours et salles</p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+      <div className="container mx-auto px-6 py-8">
+        {/* En-tête avec gradient */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-2xl">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                <Sparkles className="w-8 h-8" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold mb-2">Gestion Pédagogique</h1>
+                <p className="text-xl text-indigo-100">
+                  Orchestrez l'excellence académique avec nos outils de gestion
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm inline-flex items-center
-                  ${activeTab === tab.id
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }
-                `}
+        {/* Navigation par onglets moderne */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white rounded-2xl shadow-xl overflow-hidden"
+        >
+          <div className="border-b border-gray-100">
+            <nav className="flex" aria-label="Tabs">
+              {tabs.map((tab, index) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`
+                      flex-1 relative py-6 px-8 text-center transition-all duration-300 border-b-4
+                      ${isActive
+                        ? `bg-gradient-to-r ${tab.color} text-white shadow-lg border-transparent`
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-transparent hover:border-gray-200'
+                      }
+                    `}
+                  >
+                    <div className="flex flex-col items-center space-y-2">
+                      <tab.icon className="w-6 h-6" />
+                      <span className="font-semibold text-lg">{tab.label}</span>
+                      <span className={`text-sm ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
+                        {tab.description}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Contenu des onglets */}
+          <div className="p-8">
+            {activeTab === 'programmes' && (
+              <motion.div
+                key="programmes"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
               >
-                {<tab.icon className="h-5 w-5 mr-2" />}
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        <div className="p-6">
-          {activeTab === 'programmes' && <ProgrammeManagement />}
-          {activeTab === 'cours' && <CoursManagement />}
-          {activeTab === 'salles' && <SalleManagement />}
-        </div>
+                <ProgrammeManagement />
+              </motion.div>
+            )}
+            
+            {activeTab === 'cours' && (
+              <motion.div
+                key="cours"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <CoursManagement />
+              </motion.div>
+            )}
+            
+            {activeTab === 'salles' && (
+              <motion.div
+                key="salles"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <SalleManagement />
+              </motion.div>
+            )}
+          </div>
+        </motion.div>
       </div>
     </div>
   );

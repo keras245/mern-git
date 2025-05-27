@@ -7,31 +7,40 @@ const coursController = {
 
       const { nom_matiere, duree, id_programme, id_prof } = req.body;
 
-      // Vérifier si un cours avec le même nom existe déjà
-      const coursExistant = await Cours.findOne({ nom_matiere: nom_matiere?.trim() });
+      // Vérifier si un cours avec le même nom existe déjà DANS LE MÊME PROGRAMME
+      // (Un même cours peut exister dans différents programmes)
+      const coursExistant = await Cours.findOne({ 
+        nom_matiere: nom_matiere?.trim(),
+        id_programme: id_programme
+      });
+      
       if (coursExistant) {
+        console.log('Cours existant trouvé:', coursExistant);
         return res.status(400).json({
-          message: "Un cours avec ce nom existe déjà",
-          details: "Veuillez choisir un nom différent"
+          message: "Un cours avec ce nom existe déjà dans ce programme",
+          details: "Veuillez choisir un nom différent ou sélectionner un autre programme"
         });
       }
 
-      // Création du cours
+      // Création du cours (id_cours sera généré automatiquement)
       const coursData = {
         nom_matiere: nom_matiere?.trim(),
         duree: duree ? parseInt(duree) : undefined,
         id_programme: id_programme,
-        id_prof: Array.isArray(id_prof) ? id_prof : []
+        id_prof: Array.isArray(id_prof) ? id_prof : (id_prof ? [id_prof] : [])
       };
+
+      console.log('Données du cours à créer:', coursData);
 
       const cours = new Cours(coursData);
       const nouveauCours = await cours.save();
 
       // Récupération avec populate
       const coursComplet = await Cours.findById(nouveauCours._id)
-        .populate('id_programme', 'nom licence groupe')
-        .populate('id_prof', 'nom prenom');
+        .populate('id_programme', 'nom licence semestre groupe')
+        .populate('id_prof', 'nom prenom id_prof');
 
+      console.log('Cours créé avec succès:', coursComplet);
       res.status(201).json(coursComplet);
 
     } catch (error) {
@@ -55,12 +64,20 @@ const coursController = {
         });
       }
 
-      // Erreur de duplication
+      // Erreur de duplication (au niveau de la base de données)
       if (error.code === 11000) {
-        return res.status(400).json({
-          message: "Un cours avec ce nom existe déjà",
-          details: "Veuillez choisir un nom différent"
-        });
+        // Vérifier si c'est une duplication sur id_cours ou sur nom_matiere+id_programme
+        if (error.message.includes('id_cours')) {
+          return res.status(400).json({
+            message: "Erreur de génération d'identifiant",
+            details: "Veuillez réessayer"
+          });
+        } else {
+          return res.status(400).json({
+            message: "Un cours avec ce nom existe déjà dans ce programme",
+            details: "Veuillez choisir un nom différent"
+          });
+        }
       }
 
       // Autres erreurs
@@ -74,8 +91,8 @@ const coursController = {
   getAllCours: async (req, res) => {
     try {
       const cours = await Cours.find()
-        .populate('id_programme', 'nom licence groupe')
-        .populate('id_prof', 'nom prenom');
+        .populate('id_programme', 'nom licence semestre groupe')
+        .populate('id_prof', 'nom prenom id_prof');
       res.status(200).json(cours);
     } catch (error) {
       console.error('Erreur récupération cours:', error);
@@ -86,8 +103,8 @@ const coursController = {
   getCoursById: async (req, res) => {
     try {
       const cours = await Cours.findById(req.params.id)
-        .populate('id_programme', 'nom licence groupe')
-        .populate('id_prof', 'nom prenom');
+        .populate('id_programme', 'nom licence semestre groupe')
+        .populate('id_prof', 'nom prenom id_prof');
       if (!cours) {
         return res.status(404).json({ message: "Cours non trouvé" });
       }
@@ -102,27 +119,28 @@ const coursController = {
     try {
       const { nom_matiere, duree, id_programme, id_prof } = req.body;
 
-      // Si le nom est modifié, vérifier qu'il n'existe pas déjà (sauf pour le cours actuel)
-      if (nom_matiere) {
+      // Si le nom ou le programme est modifié, vérifier qu'il n'existe pas déjà dans ce programme
+      if (nom_matiere || id_programme) {
         const coursExistant = await Cours.findOne({
-          nom_matiere: nom_matiere.trim(),
+          nom_matiere: nom_matiere ? nom_matiere.trim() : undefined,
+          id_programme: id_programme,
           _id: { $ne: req.params.id } // Exclure le cours actuel de la recherche
         });
 
         if (coursExistant) {
           return res.status(400).json({
-            message: "Un cours avec ce nom existe déjà",
-            details: "Veuillez choisir un nom différent"
+            message: "Un cours avec ce nom existe déjà dans ce programme",
+            details: "Veuillez choisir un nom différent ou sélectionner un autre programme"
           });
         }
       }
 
-      // Préparer les données à mettre à jour
+      // Préparer les données à mettre à jour (sans toucher à id_cours)
       const updateData = {};
       if (nom_matiere) updateData.nom_matiere = nom_matiere.trim();
       if (duree) updateData.duree = parseInt(duree);
       if (id_programme) updateData.id_programme = id_programme;
-      if (id_prof) updateData.id_prof = Array.isArray(id_prof) ? id_prof : [];
+      if (id_prof) updateData.id_prof = Array.isArray(id_prof) ? id_prof : (id_prof ? [id_prof] : []);
 
       const cours = await Cours.findByIdAndUpdate(
         req.params.id,
@@ -131,8 +149,8 @@ const coursController = {
           new: true, 
           runValidators: true 
         }
-      ).populate('id_programme', 'nom licence groupe')
-        .populate('id_prof', 'nom prenom');
+      ).populate('id_programme', 'nom licence semestre groupe')
+        .populate('id_prof', 'nom prenom id_prof');
 
       if (!cours) {
         return res.status(404).json({ message: "Cours non trouvé" });
@@ -159,7 +177,7 @@ const coursController = {
 
       if (error.code === 11000) {
         return res.status(400).json({
-          message: "Un cours avec ce nom existe déjà",
+          message: "Un cours avec ce nom existe déjà dans ce programme",
           details: "Veuillez choisir un nom différent"
         });
       }

@@ -180,11 +180,11 @@ const AdminDashboard = () => {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <motion.div
-              key={stat.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+          <motion.div
+            key={stat.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
               className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-4">
@@ -202,8 +202,8 @@ const AdminDashboard = () => {
                 <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
                 <p className="text-gray-600 text-sm">{stat.title}</p>
                 <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
-              </div>
-            </motion.div>
+            </div>
+          </motion.div>
           );
         })}
       </div>
@@ -300,13 +300,13 @@ const AdminDashboard = () => {
                 >
                   <div className={`p-2 rounded-lg bg-gray-100`}>
                     <Icon className={`w-4 h-4 ${activity.color}`} />
-                  </div>
+            </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {activity.message}
                     </p>
                     <p className="text-xs text-gray-500">{activity.time}</p>
-                  </div>
+            </div>
                 </motion.div>
               );
             })}
@@ -357,7 +357,7 @@ const AdminDashboard = () => {
                 <span className="text-sm font-bold text-gray-900">{item.value}%</span>
               </div>
             ))}
-          </div>
+        </div>
         </div>
       </motion.div>
     </div>

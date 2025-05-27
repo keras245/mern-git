@@ -103,7 +103,7 @@ const administrateurController = {
       
       // Utiliser findById puis save() pour déclencher les hooks
       const admin = await Administrateur.findById(req.params.id);
-      if (!admin) {
+        if (!admin) {
         return res.status(404).json({ message: "Administrateur non trouvé" });
       }
 

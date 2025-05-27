@@ -93,7 +93,7 @@ const GenererEmploi = () => {
       setCours(coursRes.data);
       setProfesseurs(profRes.data);
       setSalles(salleRes.data);
-    } catch (error) {
+      } catch (error) {
       showNotification('Erreur lors du chargement des données', 'error');
     }
   };
@@ -173,7 +173,7 @@ const GenererEmploi = () => {
       const response = await axios.post(
         'http://localhost:3832/api/emplois/generer-automatique',
         { 
-          programme: selectedProgramme, 
+        programme: selectedProgramme,
           groupe: parseInt(selectedGroupe)
         },
         { headers: { 'Authorization': `Bearer ${token}` } }
@@ -430,13 +430,13 @@ const GenererEmploi = () => {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r">
                   Horaire
                 </th>
-                {jours.map(jour => (
+              {jours.map(jour => (
                   <th key={jour} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r">
                     {jour}
                   </th>
-                ))}
-              </tr>
-            </thead>
+              ))}
+            </tr>
+          </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {creneaux.map((creneau, creneauIndex) => (
                 <tr key={creneau} className={creneauIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
@@ -446,14 +446,14 @@ const GenererEmploi = () => {
                       {creneau}
                     </div>
                   </td>
-                  {jours.map(jour => {
+                {jours.map(jour => {
                     const seance = emploiDuTemps.seances?.find(
-                      s => s.jour === jour && s.creneau === creneau
-                    );
+                    s => s.jour === jour && s.creneau === creneau
+                  );
                     
-                    return (
+                  return (
                       <td key={`${jour}-${creneau}`} className="px-2 py-2 border-r relative group">
-                        {seance ? (
+                      {seance ? (
                           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 min-h-[100px] relative hover:bg-blue-100 transition-colors">
                             <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <div className="flex space-x-1">
@@ -498,13 +498,13 @@ const GenererEmploi = () => {
                             </button>
                           </div>
                         )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
         </div>
 
         {conflits.length > 0 && (
@@ -671,25 +671,25 @@ const GenererEmploi = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Programme
                 </label>
-                <select
-                  value={selectedProgramme}
-                  onChange={(e) => setSelectedProgramme(e.target.value)}
+        <select
+          value={selectedProgramme}
+          onChange={(e) => setSelectedProgramme(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Sélectionner un programme</option>
-                  {programmes.map(prog => (
-                    <option key={prog._id} value={prog._id}>
+        >
+          <option value="">Sélectionner un programme</option>
+          {programmes.map(prog => (
+            <option key={prog._id} value={prog._id}>
                       {prog.nom} - L{prog.licence} S{prog.semestre}
-                    </option>
-                  ))}
-                </select>
+            </option>
+          ))}
+        </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Groupe
                 </label>
-                <select
+        <select
                   value={selectedGroupe || ""}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -704,7 +704,7 @@ const GenererEmploi = () => {
                       Groupe {groupe}
                     </option>
                   ))}
-                </select>
+        </select>
               </div>
 
               <div className="flex items-end">
@@ -737,9 +737,9 @@ const GenererEmploi = () => {
                 </p>
                 
                 <div className="flex space-x-3">
-                  <button
-                    onClick={genererEmploiAutomatique}
-                    disabled={!selectedProgramme || loading}
+        <button
+          onClick={genererEmploiAutomatique}
+          disabled={!selectedProgramme || loading}
                     className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
                   >
                     {loading ? (
@@ -799,7 +799,7 @@ const GenererEmploi = () => {
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Créer un emploi du temps vide
-                  </button>
+        </button>
                 )}
               </div>
             </div>
