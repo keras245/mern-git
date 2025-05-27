@@ -7,6 +7,11 @@ const auth = require('../middleware/auth');
 // Route pour récupérer les groupes d'un programme
 router.get('/groupes/:programmeId', auth, emploiDuTempsController.getGroupesProgramme);
 
+// Nouvelles routes pour les attributions temporaires (AVANT les routes génériques)
+router.get('/attributions-temporaires', auth, emploiDuTempsController.getAttributionsTemporaires);
+router.post('/attribuer-temporaire', auth, emploiDuTempsController.attribuerTemporaire);
+router.delete('/attributions-temporaires/:id', auth, emploiDuTempsController.supprimerAttributionTemporaire);
+
 // Routes pour la génération et gestion des emplois du temps
 router.post('/generer-automatique', auth, emploiDuTempsController.genererEmploiAutomatique);
 router.post('/attribution-manuelle', auth, emploiDuTempsController.attribuerCoursManuel);
@@ -15,6 +20,11 @@ router.post('/ajouter-seance', auth, emploiDuTempsController.ajouterSeance);
 router.put('/modifier-seance', auth, emploiDuTempsController.modifierSeance);
 router.delete('/supprimer-seance', auth, emploiDuTempsController.supprimerSeance);
 router.post('/exporter/:format', auth, emploiDuTempsController.exporterEmploi);
+
+// Routes pour la gestion des créneaux libres
+router.post('/analyser-creneaux-libres', auth, emploiDuTempsController.analyserCreneauxLibres);
+router.post('/proposer-creneau', auth, emploiDuTempsController.proposerCreneau);
+router.post('/reserver-creneau', auth, emploiDuTempsController.reserverCreneau);
 
 // Routes avec paramètres génériques DOIVENT être à la fin
 router.get('/:programmeId/:groupe', auth, emploiDuTempsController.getEmploiByProgrammeAndGroupe);

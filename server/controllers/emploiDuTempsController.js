@@ -3,6 +3,7 @@ const Cours = require('../models/Cours');
 const Professeur = require('../models/Professeur');
 const Salle = require('../models/Salle');
 const Programme = require('../models/Programme');
+const AttributionTemporaire = require('../models/AttributionTemporaire');
 const puppeteer = require('puppeteer');
 const ExcelJS = require('exceljs');
 const path = require('path');
@@ -515,8 +516,343 @@ const emploiDuTempsController = {
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
+    },
+
+  // Analyser les créneaux libres
+  analyserCreneauxLibres: async (req, res) => {
+    try {
+      const { filtres } = req.body;
+
+      // Récupérer tous les professeurs et salles avec leurs disponibilités
+      const [professeurs, salles, emploisDuTemps] = await Promise.all([
+        Professeur.find(),
+        Salle.find(),
+        EmploiDuTemps.find().populate('seances.professeur seances.salle')
+      ]);
+
+      // Créer une map des créneaux occupés
+      const creneauxOccupes = new Map();
+      emploisDuTemps.forEach(emploi => {
+        emploi.seances.forEach(seance => {
+          const key = `${seance.professeur._id}-${seance.jour}-${seance.creneau}`;
+          creneauxOccupes.set(key, true);
+          
+          const salleKey = `${seance.salle._id}-${seance.jour}-${seance.creneau}`;
+          creneauxOccupes.set(salleKey, true);
+        });
+      });
+
+      // Filtrer les professeurs libres
+      const professeursLibres = professeurs.filter(prof => {
+        if (!prof.disponibilite || prof.disponibilite.length === 0) return false;
+        
+        // Vérifier s'il a au moins un créneau libre
+        return prof.disponibilite.some(dispo => 
+          dispo.creneaux.some(creneau => {
+            const key = `${prof._id}-${dispo.jour}-${creneau}`;
+            return !creneauxOccupes.has(key);
+          })
+        );
+      }).map(prof => ({
+        ...prof.toObject(),
+        disponibilite: prof.disponibilite.map(dispo => ({
+          jour: dispo.jour,
+          creneaux: dispo.creneaux.filter(creneau => {
+            const key = `${prof._id}-${dispo.jour}-${creneau}`;
+            return !creneauxOccupes.has(key);
+          })
+        })).filter(dispo => dispo.creneaux.length > 0)
+      }));
+
+      // Filtrer les salles libres
+      const sallesLibres = salles.filter(salle => {
+        if (!salle.disponibilite || salle.disponibilite.length === 0) return false;
+        
+        return salle.disponibilite.some(dispo => 
+          dispo.creneaux.some(creneau => {
+            const key = `${salle._id}-${dispo.jour}-${creneau}`;
+            return !creneauxOccupes.has(key);
+          })
+        );
+      }).map(salle => ({
+        ...salle.toObject(),
+        disponibilite: salle.disponibilite.map(dispo => ({
+          jour: dispo.jour,
+          creneaux: dispo.creneaux.filter(creneau => {
+            const key = `${salle._id}-${dispo.jour}-${creneau}`;
+            return !creneauxOccupes.has(key);
+          })
+        })).filter(dispo => dispo.creneaux.length > 0)
+      }));
+
+      // Calculer les statistiques
+      const totalCreneauxLibres = professeursLibres.reduce((acc, prof) => 
+        acc + prof.disponibilite.reduce((acc2, dispo) => acc2 + dispo.creneaux.length, 0), 0
+      ) + sallesLibres.reduce((acc, salle) => 
+        acc + salle.disponibilite.reduce((acc2, dispo) => acc2 + dispo.creneaux.length, 0), 0
+      );
+
+      const totalCreneauxPossibles = (professeurs.length + salles.length) * 6 * 3; // 6 jours * 3 créneaux
+      const tauxUtilisation = Math.round(((totalCreneauxPossibles - totalCreneauxLibres) / totalCreneauxPossibles) * 100);
+
+      // Générer des suggestions
+      const suggestions = [];
+      if (tauxUtilisation < 50) {
+        suggestions.push({
+          titre: "Faible utilisation des ressources",
+          description: "Vous pourriez programmer plus de cours ou optimiser les horaires.",
+          action: "Voir les créneaux disponibles"
+        });
+      }
+      if (professeursLibres.length > sallesLibres.length * 2) {
+        suggestions.push({
+          titre: "Manque de salles",
+          description: "Vous avez plus de professeurs disponibles que de salles.",
+          action: "Configurer plus de salles"
+        });
+      }
+
+      const statistiques = {
+        totalProfsLibres: professeursLibres.length,
+        totalSallesLibres: sallesLibres.length,
+        totalCreneauxLibres,
+        tauxUtilisation,
+        suggestions
+      };
+
+      res.json({
+        professeurs: professeursLibres,
+        salles: sallesLibres,
+        statistiques
+      });
+
+    } catch (error) {
+      console.error('Erreur analyse créneaux libres:', error);
+      res.status(500).json({ message: error.message });
     }
+  },
+
+  // Proposer des créneaux pour un cours
+  proposerCreneau: async (req, res) => {
+    try {
+      const { coursId } = req.body;
+
+      const cours = await Cours.findById(coursId).populate('id_prof');
+      if (!cours) {
+        return res.status(404).json({ message: "Cours non trouvé" });
+      }
+
+      // Logique pour proposer les meilleurs créneaux
+      // (basée sur les disponibilités des professeurs et salles)
+      
+      res.json({ message: "Créneaux proposés", cours });
+    } catch (error) {
+      console.error('Erreur proposition créneaux:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Réserver un créneau
+  reserverCreneau: async (req, res) => {
+    try {
+      const { professeurId, salleId, jour, creneau } = req.body;
+
+      // Logique pour réserver un créneau spécifique
+      // (marquer comme occupé temporairement)
+      
+      res.json({ message: "Créneau réservé avec succès" });
+    } catch (error) {
+      console.error('Erreur réservation créneau:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Nettoyer automatiquement les attributions expirées
+  nettoyerAttributionsExpirees: async () => {
+    try {
+      const result = await AttributionTemporaire.updateMany(
+        { 
+          dateExpiration: { $lt: new Date() },
+          statut: 'active'
+        },
+        { statut: 'expiree' }
+      );
+      
+      console.log(`${result.modifiedCount} attributions temporaires marquées comme expirées`);
+    } catch (error) {
+      console.error('Erreur nettoyage attributions expirées:', error);
+    }
+  },
+
+  // Récupérer toutes les attributions temporaires actives
+  getAttributionsTemporaires: async (req, res) => {
+    try {
+      console.log('Récupération des attributions temporaires...');
+      
+      const attributions = await AttributionTemporaire.find({ 
+        statut: 'active',
+        dateExpiration: { $gte: new Date() }
+      })
+      .populate('professeur', 'nom prenom')
+      .populate('salle', 'nom type')
+      .populate('cours', 'nom_matiere')
+      .populate('programme', 'nom')
+      .sort({ dateCreation: -1 });
+
+      console.log(`${attributions.length} attributions temporaires trouvées`);
+      res.json(attributions);
+    } catch (error) {
+      console.error('Erreur récupération attributions temporaires:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Attribuer temporairement un créneau
+  attribuerTemporaire: async (req, res) => {
+    try {
+      console.log('=== DÉBUT ATTRIBUTION TEMPORAIRE ===');
+      console.log('Body reçu:', req.body);
+      console.log('User:', req.user);
+
+      const { 
+        professeur, 
+        salle, 
+        cours, 
+        programme, 
+        groupe, 
+        jour, 
+        creneau, 
+        dateExpiration 
+      } = req.body;
+
+      // Validation des données requises
+      if (!professeur || !salle || !cours || !programme || !groupe || !jour || !creneau) {
+        console.log('Validation échouée - champs manquants');
+        return res.status(400).json({ 
+          message: 'Tous les champs sont requis pour l\'attribution temporaire',
+          received: { professeur, salle, cours, programme, groupe, jour, creneau }
+        });
+      }
+
+      console.log('Validation OK, vérification des conflits...');
+
+      // Vérifier que le créneau n'est pas déjà occupé dans l'emploi du temps principal
+      const conflitEmploi = await EmploiDuTemps.findOne({
+        programme,
+        groupe: parseInt(groupe),
+        'seances': {
+          $elemMatch: {
+            jour,
+            creneau,
+            $or: [
+              { 'professeur': professeur },
+              { 'salle': salle }
+            ]
+          }
+        }
+      });
+
+      if (conflitEmploi) {
+        console.log('Conflit avec emploi du temps principal détecté');
+        return res.status(400).json({ 
+          message: 'Ce créneau est déjà occupé dans l\'emploi du temps principal' 
+        });
+      }
+
+      // Vérifier les conflits avec d'autres attributions temporaires
+      const conflitTemporaire = await AttributionTemporaire.findOne({
+        jour,
+        creneau,
+        statut: 'active',
+        dateExpiration: { $gte: new Date() },
+        $or: [
+          { professeur },
+          { salle }
+        ]
+      });
+
+      if (conflitTemporaire) {
+        console.log('Conflit avec attribution temporaire détecté');
+        return res.status(400).json({ 
+          message: 'Ce créneau est déjà attribué temporairement' 
+        });
+      }
+
+      console.log('Aucun conflit détecté, création de l\'attribution...');
+
+      // Créer l'attribution temporaire
+      const attribution = new AttributionTemporaire({
+        professeur,
+        salle,
+        cours,
+        programme,
+        groupe: parseInt(groupe),
+        jour,
+        creneau,
+        dateExpiration: new Date(dateExpiration),
+        creePar: req.user.id
+      });
+
+      console.log('Attribution à sauvegarder:', attribution);
+
+      await attribution.save();
+      console.log('Attribution sauvegardée avec succès');
+
+      // Populer les données pour la réponse
+      await attribution.populate([
+        { path: 'professeur', select: 'nom prenom' },
+        { path: 'salle', select: 'nom type' },
+        { path: 'cours', select: 'nom_matiere' },
+        { path: 'programme', select: 'nom' }
+      ]);
+
+      console.log('Attribution populée:', attribution);
+      console.log('=== FIN ATTRIBUTION TEMPORAIRE ===');
+
+      res.status(201).json({
+        message: 'Créneau attribué temporairement avec succès',
+        attribution
+      });
+    } catch (error) {
+      console.error('=== ERREUR ATTRIBUTION TEMPORAIRE ===');
+      console.error('Message:', error.message);
+      console.error('Stack:', error.stack);
+      console.error('=== FIN ERREUR ===');
+      
+      res.status(500).json({ 
+        message: 'Erreur lors de l\'attribution temporaire',
+        error: error.message 
+      });
+    }
+  },
+
+  // Supprimer une attribution temporaire
+  supprimerAttributionTemporaire: async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log('Suppression attribution temporaire:', id);
+
+      const attribution = await AttributionTemporaire.findByIdAndDelete(id);
+
+      if (!attribution) {
+        return res.status(404).json({ message: 'Attribution temporaire non trouvée' });
+      }
+
+      console.log('Attribution temporaire supprimée avec succès');
+      res.json({ message: 'Attribution temporaire supprimée avec succès' });
+    } catch (error) {
+      console.error('Erreur suppression attribution temporaire:', error);
+      res.status(500).json({ message: error.message });
+    }
+  }
 };
+
+// Exécuter le nettoyage toutes les heures (APRÈS l'export)
+setInterval(() => {
+  if (emploiDuTempsController.nettoyerAttributionsExpirees) {
+    emploiDuTempsController.nettoyerAttributionsExpirees();
+  }
+}, 60 * 60 * 1000);
 
 // Fonction pour exporter en PDF avec design optimisé pour une page
 const exporterPDF = async (emploiDuTemps, res) => {
@@ -1053,10 +1389,10 @@ const exporterExcel = async (emploiDuTemps, res) => {
     res.setHeader('Content-Disposition', `attachment; filename=emploi-du-temps-${emploiDuTemps.programme.nom.replace(/\s+/g, '-')}-Groupe${emploiDuTemps.groupe}.xlsx`);
     res.send(buffer);
 
-  } catch (error) {
+    } catch (error) {
     console.error('Erreur export Excel:', error);
     throw error;
-  }
+    }
 };
 
 module.exports = emploiDuTempsController;

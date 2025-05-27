@@ -47,22 +47,24 @@ const EmploiDuTemps = () => {
     },
     {
       id: 'modification',
-      title: '4. Modification de l\'emploi du temps',
-      description: 'Interface de modification des emplois du temps',
+      title: '4. Modification',
+      fullTitle: 'Modification de l\'emploi du temps',
+      description: 'Modifiez manuellement les créneaux avec drag-and-drop',
       features: [
-        'Vue hebdomadaire',
-        'Modification par drag-and-drop',
-        'Gestion des conflits'
+        'Interface drag-and-drop intuitive',
+        'Modification en temps réel',
+        'Historique des modifications'
       ]
     },
     {
       id: 'creneaux',
-      title: '5. Gestion des créneaux libres',
-      description: 'Suivi et réutilisation des créneaux non utilisés',
+      title: '5. Créneaux libres',
+      fullTitle: 'Gestion des créneaux libres',
+      description: 'Visualisez et optimisez l\'utilisation des ressources',
       features: [
-        'Visualisation des créneaux disponibles',
-        'Réutilisation des créneaux',
-        'Suggestions automatiques'
+        'Analyse des disponibilités',
+        'Suggestions d\'optimisation',
+        'Réutilisation intelligente'
       ]
     }
   ];
