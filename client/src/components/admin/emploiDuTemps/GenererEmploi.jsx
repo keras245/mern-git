@@ -32,7 +32,8 @@ const GenererEmploi = () => {
   const [professeurs, setProfesseurs] = useState([]);
   const [salles, setSalles] = useState([]);
   const [selectedProgramme, setSelectedProgramme] = useState('');
-  const [selectedGroupe, setSelectedGroupe] = useState(1);
+  const [selectedGroupe, setSelectedGroupe] = useState('');
+  const [groupesDisponibles, setGroupesDisponibles] = useState([]);
   const [emploiDuTemps, setEmploiDuTemps] = useState(null);
   const [loading, setLoading] = useState(false);
   const [analyseDonnees, setAnalyseDonnees] = useState(null);
@@ -57,6 +58,25 @@ const GenererEmploi = () => {
     chargerDonneesInitiales();
   }, []);
 
+  // Charger les groupes quand un programme est sélectionné
+  useEffect(() => {
+    if (selectedProgramme) {
+      chargerGroupesProgramme();
+    } else {
+      setGroupesDisponibles([]);
+      setSelectedGroupe('');
+    }
+  }, [selectedProgramme]);
+
+  // Ajouter un effet pour réinitialiser l'emploi du temps quand on change de programme/groupe
+  useEffect(() => {
+    // Réinitialiser l'emploi du temps quand on change de programme ou groupe
+    setEmploiDuTemps(null);
+    setConflits([]);
+    setAnalyseDonnees(null);
+    setShowAnalyse(false);
+  }, [selectedProgramme, selectedGroupe]);
+
   const chargerDonneesInitiales = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -75,6 +95,39 @@ const GenererEmploi = () => {
       setSalles(salleRes.data);
     } catch (error) {
       showNotification('Erreur lors du chargement des données', 'error');
+    }
+  };
+
+  const chargerGroupesProgramme = async () => {
+    if (!selectedProgramme) {
+      setGroupesDisponibles([]);
+      setSelectedGroupe('');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      
+      console.log('Chargement groupes pour programme:', selectedProgramme);
+      
+      const response = await axios.get(
+        `http://localhost:3832/api/emplois/groupes/${selectedProgramme}`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      console.log('Groupes reçus:', response.data);
+      setGroupesDisponibles(response.data.groupes);
+      
+      if (response.data.groupes && response.data.groupes.length > 0) {
+        setSelectedGroupe(response.data.groupes[0]);
+      } else {
+        setSelectedGroupe('');
+      }
+    } catch (error) {
+      console.error('Erreur chargement groupes:', error);
+      showNotification('Erreur lors du chargement des groupes', 'error');
+      setGroupesDisponibles([1]); // Fallback
+      setSelectedGroupe(1);
     }
   };
 
@@ -106,8 +159,8 @@ const GenererEmploi = () => {
 
   // Générer l'emploi du temps automatiquement
   const genererEmploiAutomatique = async () => {
-    if (!selectedProgramme) {
-      showNotification('Veuillez sélectionner un programme', 'error');
+    if (!selectedProgramme || !selectedGroupe) {
+      showNotification('Veuillez sélectionner un programme et un groupe', 'error');
       return;
     }
 
@@ -115,17 +168,32 @@ const GenererEmploi = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       
+      console.log('Génération avec:', { programme: selectedProgramme, groupe: selectedGroupe });
+      
       const response = await axios.post(
         'http://localhost:3832/api/emplois/generer-automatique',
-        { programme: selectedProgramme, groupe: selectedGroupe },
+        { 
+          programme: selectedProgramme, 
+          groupe: parseInt(selectedGroupe)
+        },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
       setEmploiDuTemps(response.data);
       setConflits(response.data.conflits || []);
-      showNotification('Emploi du temps généré avec succès', 'success');
+      
+      if (response.data.conflits && response.data.conflits.length > 0) {
+        showNotification(
+          `Emploi du temps généré avec ${response.data.conflits.length} conflit(s)`, 
+          'warning'
+        );
+      } else {
+        showNotification('Emploi du temps généré avec succès !', 'success');
+      }
     } catch (error) {
-      showNotification(error.response?.data?.message || 'Erreur lors de la génération', 'error');
+      console.error('Erreur génération:', error);
+      const message = error.response?.data?.message || 'Erreur lors de la génération';
+      showNotification(message, 'error');
     } finally {
       setLoading(false);
     }
@@ -247,9 +315,9 @@ const GenererEmploi = () => {
     }
   };
 
-  // Filtrer les cours disponibles
+  // Filtrer les cours disponibles pour le programme sélectionné
   const coursFiltres = cours.filter(c => 
-    c.programme === selectedProgramme &&
+    c.id_programme?._id === selectedProgramme &&
     (!filtres.matiere || c.nom_matiere.toLowerCase().includes(filtres.matiere.toLowerCase()))
   );
 
@@ -622,12 +690,20 @@ const GenererEmploi = () => {
                   Groupe
                 </label>
                 <select
-                  value={selectedGroupe}
-                  onChange={(e) => setSelectedGroupe(parseInt(e.target.value))}
+                  value={selectedGroupe || ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSelectedGroupe(value ? parseInt(value) : "");
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  disabled={!selectedProgramme}
                 >
-                  <option value="1">Groupe 1</option>
-                  <option value="2">Groupe 2</option>
+                  <option value="">Sélectionner un groupe</option>
+                  {groupesDisponibles.map(groupe => (
+                    <option key={groupe} value={groupe}>
+                      Groupe {groupe}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -685,6 +761,20 @@ const GenererEmploi = () => {
                   )}
                 </div>
               </div>
+
+              {conflits.length > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
+                  <h4 className="font-medium text-yellow-800 mb-2 flex items-center">
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    Conflits détectés ({conflits.length})
+                  </h4>
+                  <ul className="text-sm text-yellow-700 space-y-1">
+                    {conflits.map((conflit, index) => (
+                      <li key={index}>• {conflit}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 

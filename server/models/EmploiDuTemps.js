@@ -39,17 +39,30 @@ const emploiDuTempsSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
-  seances: [seanceSchema]
+  seances: [seanceSchema],
+  dateCreation: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-// Middleware pour générer automatiquement l'id_edt
+// Supprimer le middleware problématique ou le corriger
+// Si vous voulez garder un ID unique, voici une version corrigée :
 emploiDuTempsSchema.pre('save', function(next) {
   if (!this.id_edt) {
-    // Format: EDT-[ID_PROGRAMME]-[SEMESTRE]-[ANNÉE]
-    const annee = this.annee_academique.split('-')[0];
-    this.id_edt = `EDT-${this.programme}-S${this.semestre}-${annee}`;
+    // Format simple: EDT-[TIMESTAMP]
+    const timestamp = Date.now();
+    this.id_edt = `EDT-${timestamp}`;
   }
   next();
+});
+
+// Ajouter le champ id_edt au schéma si nécessaire
+emploiDuTempsSchema.add({
+  id_edt: {
+    type: String,
+    unique: true
+  }
 });
 
 module.exports = mongoose.model('EmploiDuTemps', emploiDuTempsSchema);
