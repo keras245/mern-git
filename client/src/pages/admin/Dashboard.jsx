@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Calendar,
@@ -7,7 +7,15 @@ import {
   Bell,
   BarChart2,
   Settings,
-  LogOut,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Plus,
+  ArrowRight,
+  Eye
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -22,214 +30,336 @@ import {
   LineChart,
   Line,
   Area,
+  AreaChart,
+  PieChart,
+  Pie,
+  Cell
 } from "recharts";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("emploi-du-temps");
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
-  };
-
-  const tabs = [
-    { id: "emploi-du-temps", label: "Emploi du temps", icon: Calendar },
-    { id: "presences", label: "Présences", icon: Users },
-    { id: "feedback", label: "Feedback", icon: BookOpen },
-    { id: "notifications", label: "Notifications", icon: Bell },
-    { id: "statistiques", label: "Statistiques", icon: BarChart2 },
-    { id: "parametres", label: "Paramètres", icon: Settings },
-  ];
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const stats = [
-    { title: "Classes", value: "12", icon: "📚" },
-    { title: "Enseignants", value: "45", icon: "🏫" },
-    { title: "Étudiants", value: "1200", icon: "👨‍🎓" },
-    { title: "Cours", value: "156", icon: "📝" },
+    { 
+      title: "Total Programmes", 
+      value: "12", 
+      change: "+2.5%", 
+      trend: "up",
+      icon: BookOpen, 
+      color: "from-blue-500 to-blue-600",
+      bgColor: "bg-blue-50",
+      description: "Programmes actifs"
+    },
+    { 
+      title: "Professeurs", 
+      value: "45", 
+      change: "+5.2%", 
+      trend: "up",
+      icon: Users, 
+      color: "from-green-500 to-green-600",
+      bgColor: "bg-green-50",
+      description: "Enseignants actifs"
+    },
+    { 
+      title: "Étudiants", 
+      value: "1,247", 
+      change: "+12.3%", 
+      trend: "up",
+      icon: Users, 
+      color: "from-purple-500 to-purple-600",
+      bgColor: "bg-purple-50",
+      description: "Étudiants inscrits"
+    },
+    { 
+      title: "Cours Planifiés", 
+      value: "156", 
+      change: "-2.1%", 
+      trend: "down",
+      icon: Calendar, 
+      color: "from-orange-500 to-orange-600",
+      bgColor: "bg-orange-50",
+      description: "Cette semaine"
+    },
   ];
 
-  // Exemple de données
-  const profData = [
-    { name: "Oumar Bah", semaine: 5, mois: 18 },
-    { name: "Tamba Tonguino Sylla", semaine: 3, mois: 12 },
-    { name: "Nouhou Sow", semaine: 4, mois: 15 },
-    { name: "Diaby Kalil", semaine: 2, mois: 8 },
+  const quickActions = [
+    { title: "Nouvel emploi du temps", icon: Calendar, color: "bg-blue-500", path: "/admin/schedules" },
+    { title: "Ajouter un professeur", icon: Users, color: "bg-green-500", path: "/admin/management" },
+    { title: "Gérer les présences", icon: CheckCircle, color: "bg-purple-500", path: "/admin/attendance" },
+    { title: "Voir les feedbacks", icon: BookOpen, color: "bg-orange-500", path: "/admin/feedback" },
   ];
 
-  // Exemple de données (à remplacer par tes vraies stats)
-  const presenceEvolution = [
-    { semaine: "Semaine 1", taux: 85 },
-    { semaine: "Semaine 2", taux: 90 },
-    { semaine: "Semaine 3", taux: 80 },
-    { semaine: "Semaine 4", taux: 95 },
+  const recentActivities = [
+    { 
+      type: "success", 
+      message: "Emploi du temps L1 Info mis à jour", 
+      time: "Il y a 5 min",
+      icon: CheckCircle,
+      color: "text-green-600"
+    },
+    { 
+      type: "info", 
+      message: "Nouveau feedback reçu - Mathématiques", 
+      time: "Il y a 15 min",
+      icon: Bell,
+      color: "text-blue-600"
+    },
+    { 
+      type: "warning", 
+      message: "Absence signalée - Prof. Diallo", 
+      time: "Il y a 30 min",
+      icon: AlertTriangle,
+      color: "text-yellow-600"
+    },
+    { 
+      type: "info", 
+      message: "Nouvelle inscription - L2 Génie Civil", 
+      time: "Il y a 1h",
+      icon: Users,
+      color: "text-blue-600"
+    },
+  ];
+
+  const presenceData = [
+    { name: "Lun", present: 42, absent: 3 },
+    { name: "Mar", present: 40, absent: 5 },
+    { name: "Mer", present: 44, absent: 1 },
+    { name: "Jeu", present: 43, absent: 2 },
+    { name: "Ven", present: 41, absent: 4 },
+    { name: "Sam", present: 38, absent: 7 },
+  ];
+
+  const coursesDistribution = [
+    { name: "Informatique", value: 35, color: "#3B82F6" },
+    { name: "Génie Civil", value: 25, color: "#10B981" },
+    { name: "Électronique", value: 20, color: "#F59E0B" },
+    { name: "Mécanique", value: 20, color: "#EF4444" },
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="space-y-8">
+      {/* En-tête avec heure */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex justify-between items-start"
+      >
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Tableau de bord
+          </h1>
+          <p className="text-gray-600">
+            Bienvenue dans votre espace de gestion - Université Nongo Conakry
+          </p>
+        </div>
+        <div className="text-right">
+          <div className="text-2xl font-bold text-gray-900">
+            {currentTime.toLocaleTimeString('fr-FR', { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
+          </div>
+          <div className="text-sm text-gray-500">
+            {currentTime.toLocaleDateString('fr-FR', { 
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long'
+            })}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Statistiques principales */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <motion.div
+              key={stat.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 rounded-xl ${stat.bgColor}`}>
+                  <Icon className={`w-6 h-6 bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`} />
+                </div>
+                <div className={`flex items-center text-sm font-medium ${
+                  stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {stat.trend === 'up' ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
+                  {stat.change}
+                </div>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
+                <p className="text-gray-600 text-sm">{stat.title}</p>
+                <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Actions rapides */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
+        transition={{ delay: 0.2 }}
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
       >
-        <h1 className="text-3xl font-bold text-gray-900">
-          Tableau de bord administrateur
-        </h1>
-        <p className="mt-2 text-gray-600">
-          Bienvenue dans votre espace de gestion
-        </p>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-gray-900">Actions rapides</h2>
+          <button className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center">
+            Voir tout <ArrowRight className="w-4 h-4 ml-1" />
+          </button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {quickActions.map((action, index) => {
+            const Icon = action.icon;
+            return (
+              <motion.button
+                key={action.title}
+                onClick={() => navigate(action.path)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="flex items-center p-4 rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 group"
+              >
+                <div className={`p-3 rounded-lg ${action.color} text-white mr-4 group-hover:scale-110 transition-transform duration-200`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-gray-900 text-sm">{action.title}</p>
+                  <p className="text-xs text-gray-500">Cliquez pour accéder</p>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <motion.div
-            key={stat.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-lg shadow-md p-6"
-          >
-            <div className="flex items-center">
-              <div className="text-3xl mr-4">{stat.icon}</div>
-              <div>
-                <p className="text-sm text-gray-500">{stat.title}</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {stat.value}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Graphiques et activités */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Présences de la semaine */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white rounded-lg shadow-md p-6"
+          transition={{ delay: 0.3 }}
+          className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
         >
-          <h2 className="text-xl font-semibold mb-4">Activités récentes</h2>
-          <div className="space-y-4">
-            <div className="flex items-center">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-              <p className="text-gray-600">
-                Mise à jour de l'emploi du temps - L1 Info
-              </p>
-            </div>
-            <div className="flex items-center">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-              <p className="text-gray-600">
-                Nouveau feedback reçu - Mathématiques
-              </p>
-            </div>
-            <div className="flex items-center">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
-              <p className="text-gray-600">Absence signalée - Physique</p>
-            </div>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-gray-900">Présences cette semaine</h3>
+            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center">
+              <Eye className="w-4 h-4 mr-1" /> Détails
+            </button>
           </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={presenceData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="name" stroke="#6b7280" />
+              <YAxis stroke="#6b7280" />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'white', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                }}
+              />
+              <Bar dataKey="present" fill="#10B981" radius={[4, 4, 0, 0]} name="Présents" />
+              <Bar dataKey="absent" fill="#EF4444" radius={[4, 4, 0, 0]} name="Absents" />
+            </BarChart>
+          </ResponsiveContainer>
         </motion.div>
 
+        {/* Activités récentes */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white rounded-lg shadow-md p-6"
+          transition={{ delay: 0.4 }}
+          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
         >
-          <h2 className="text-xl font-semibold mb-4">Tâches prioritaires</h2>
+          <h3 className="text-lg font-bold text-gray-900 mb-6">Activités récentes</h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-gray-600">
-                Vérifier les présences de la semaine
-              </p>
-              <span className="text-sm text-red-500">Urgent</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <p className="text-gray-600">Mettre à jour l'emploi du temps</p>
-              <span className="text-sm text-yellow-500">En cours</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <p className="text-gray-600">Répondre aux feedbacks</p>
-              <span className="text-sm text-green-500">En attente</span>
-            </div>
+            {recentActivities.map((activity, index) => {
+              const Icon = activity.icon;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 + index * 0.1 }}
+                  className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                >
+                  <div className={`p-2 rounded-lg bg-gray-100`}>
+                    <Icon className={`w-4 h-4 ${activity.color}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {activity.message}
+                    </p>
+                    <p className="text-xs text-gray-500">{activity.time}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
+          <button className="w-full mt-4 text-blue-600 hover:text-blue-700 text-sm font-medium py-2 hover:bg-blue-50 rounded-lg transition-colors duration-200">
+            Voir toutes les activités
+          </button>
         </motion.div>
       </div>
 
-      {/* Graphes statistiques */}
-      <div className="mt-12">
-        <h2 className="text-2xl font-bold mb-4">
-          Statistiques de présence des professeurs
-        </h2>
-        <div className="bg-white rounded-xl shadow p-6 mb-8">
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart
-              data={profData}
-              margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
+      {/* Distribution des cours */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+      >
+        <h3 className="text-lg font-bold text-gray-900 mb-6">Répartition des cours par filière</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={coursesDistribution}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={100}
+                paddingAngle={5}
+                dataKey="value"
+              >
+                {coursesDistribution.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
               <Tooltip />
-              <Legend />
-              <Bar
-                dataKey="semaine"
-                fill="#3b82f6"
-                name="Présences cette semaine"
-              />
-              <Bar dataKey="mois" fill="#10b981" name="Présences ce mois" />
-            </BarChart>
+            </PieChart>
           </ResponsiveContainer>
+          <div className="flex flex-col justify-center space-y-4">
+            {coursesDistribution.map((item, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div 
+                    className="w-4 h-4 rounded-full mr-3"
+                    style={{ backgroundColor: item.color }}
+                  ></div>
+                  <span className="text-sm font-medium text-gray-700">{item.name}</span>
+                </div>
+                <span className="text-sm font-bold text-gray-900">{item.value}%</span>
+              </div>
+            ))}
+          </div>
         </div>
-
-        {/* Courbe d'évolution */}
-        <div className="bg-white rounded-xl shadow p-6">
-          <h3 className="text-xl font-semibold mb-4">
-            Évolution du taux de présence des professeurs (ce mois)
-          </h3>
-          <ResponsiveContainer width="100%" height={320}>
-            <LineChart
-              data={presenceEvolution}
-              margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-            >
-              <defs>
-                <linearGradient id="colorTaux" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="semaine" />
-              <YAxis domain={[0, 100]} tickFormatter={(tick) => `${tick}%`} />
-              <Tooltip formatter={(value) => `${value}%`} />
-              <Legend />
-              {/* Area pour le gradient sous la courbe */}
-              <Area
-                type="monotone"
-                dataKey="taux"
-                stroke="none"
-                fill="url(#colorTaux)"
-                isAnimationActive={true}
-                animationDuration={1800}
-              />
-              <Line
-                type="monotone"
-                dataKey="taux"
-                stroke="#6366f1"
-                strokeWidth={3}
-                dot={{ r: 7, stroke: "#fff", strokeWidth: 2 }}
-                activeDot={{
-                  r: 10,
-                  fill: "#6366f1",
-                  stroke: "#fff",
-                  strokeWidth: 3,
-                }}
-                isAnimationActive={true}
-                animationDuration={1800}
-                name="Taux de présence"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
