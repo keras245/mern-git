@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { useNotification } from '../../../context/NotificationContext';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Upload, 
   FileText, 
@@ -208,17 +209,20 @@ const ImportDonnees = () => {
         }
       );
 
-      setPreview(response.data.salles);
-      setShowPreview(true);
       setFile(selectedFile);
+      setPreview(response.data.salles || []);
+      setShowPreview(true);
+      showNotification('Fichier traité avec succès', 'success');
     } catch (error) {
-      showNotification('Erreur lors de la lecture du fichier', 'error');
+      console.error('Erreur traitement fichier:', error);
+      showNotification('Erreur lors du traitement du fichier', 'error');
+      setFile(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Importer les données (mettre à jour les disponibilités)
+  // Importer les données
   const importerDonnees = async () => {
     try {
       setIsLoading(true);
@@ -228,75 +232,66 @@ const ImportDonnees = () => {
       
       if (activeTab === 'manual') {
         dataToImport = sallesSelectionnees;
-      } else if (activeTab === 'text') {
-        dataToImport = preview;
       } else {
-        // Import fichier
         dataToImport = preview;
       }
 
-      console.log('Données à importer:', dataToImport); // Debug
-
-      // Mettre à jour les disponibilités des salles
+      // Utiliser l'endpoint correct pour mettre à jour les disponibilités
       const response = await axios.post(
         'http://localhost:3832/api/salles/update-disponibilites',
         { salles: dataToImport },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
-      console.log('Réponse serveur:', response.data); // Debug
-
+      setImportedData(dataToImport);
+      setShowImportedData(true);
       showNotification('Disponibilités mises à jour avec succès', 'success');
       
-      // Stocker les données importées pour visualisation
-      const sallesImportees = response.data.salles || dataToImport;
-      console.log('Salles importées pour visualisation:', sallesImportees); // Debug
-      
-      setImportedData(sallesImportees);
-      setShowImportedData(true);
-      
       // Reset
-      setSallesSelectionnees([]);
-      setManualData('');
-      setPreview([]);
-      setShowPreview(false);
-      setFile(null);
-      setSalleSelectionnee('');
+      if (activeTab === 'manual') {
+        setSallesSelectionnees([]);
+        setSalleSelectionnee('');
+      } else {
+        setPreview([]);
+        setShowPreview(false);
+        setManualData('');
+        setFile(null);
+      }
       
     } catch (error) {
-      console.error('Erreur import:', error);
-      showNotification('Erreur lors de l\'import', 'error');
+      console.error('Erreur lors de la mise à jour:', error);
+      showNotification('Erreur lors de la mise à jour', 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Télécharger le template CSV
+  // Télécharger template CSV
   const telechargerTemplateCSV = () => {
-    const csvContent = `nom_salle,disponibilite
-Salle_101,"[{""jour"":""Lundi"",""creneaux"":[""08h30 - 11h30"",""12h00 - 15h00""]}]"
-Salle_Machine_01,"[{""jour"":""Mardi"",""creneaux"":[""15h30 - 18h30""]}]"`;
+    const csvContent = `Nom_Salle,Jour_Creneau,Jour_Creneau,...
+Salle_101,Lundi 08h30 - 11h30,Mardi 12h00 - 15h00
+Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'template_disponibilites_salles.csv';
+    a.download = 'template_disponibilites.csv';
     a.click();
     window.URL.revokeObjectURL(url);
   };
 
-  // Télécharger le template Excel
+  // Télécharger template Excel
   const telechargerTemplateExcel = () => {
-    const excelContent = `nom_salle\tdisponibilite
-Salle_101\t"[{""jour"":""Lundi"",""creneaux"":[""08h30 - 11h30"",""12h00 - 15h00""]}]"
-Salle_Machine_01\t"[{""jour"":""Mardi"",""creneaux"":[""15h30 - 18h30""]}]"`;
+    const csvContent = `Nom_Salle,Jour_Creneau,Jour_Creneau,...
+Salle_101,Lundi 08h30 - 11h30,Mardi 12h00 - 15h00
+Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
     
-    const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
+    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'template_disponibilites_salles.xlsx';
+    a.download = 'template_disponibilites.xlsx';
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -306,379 +301,595 @@ Salle_Machine_01\t"[{""jour"":""Mardi"",""creneaux"":[""15h30 - 18h30""]}]"`;
     return sallesExistantes.find(s => s.id_salle === salleSelectionnee);
   };
 
-  return (
-    <div className="space-y-6">
-      {/* En-tête */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">
-          Import des créneaux de disponibilité
-        </h2>
-        <p className="text-gray-600">
-          Définissez les créneaux de disponibilité pour les salles existantes
-        </p>
-      </div>
+  const tabs = [
+    { 
+      id: 'manual', 
+      label: 'Sélection manuelle', 
+      icon: MapPin,
+      color: 'from-blue-500 to-indigo-600',
+      bgColor: 'bg-blue-50',
+      description: 'Configuration interactive des créneaux'
+    },
+    { 
+      id: 'text', 
+      label: 'Copier/Coller', 
+      icon: FileText,
+      color: 'from-purple-500 to-violet-600',
+      bgColor: 'bg-purple-50',
+      description: 'Import par saisie de texte formaté'
+    },
+    { 
+      id: 'file', 
+      label: 'Import fichier', 
+      icon: Upload,
+      color: 'from-green-500 to-emerald-600',
+      bgColor: 'bg-green-50',
+      description: 'Upload de fichiers CSV/Excel'
+    }
+  ];
 
-      {/* Onglets */}
-      <div className="bg-white rounded-lg shadow-sm border">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            {[
-              { id: 'manual', label: 'Sélection manuelle', icon: MapPin },
-              { id: 'text', label: 'Copier/Coller', icon: FileText },
-              { id: 'file', label: 'Import fichier', icon: Upload }
-            ].map((tab) => (
-              <button
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+      <div className="max-w-6xl mx-auto p-6">
+        {/* Navigation par onglets modernes */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {tabs.map((tab, index) => (
+              <motion.button
                 key={tab.id}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                className={`relative p-6 rounded-2xl border-2 transition-all duration-300 ${
                   activeTab === tab.id
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? `${tab.bgColor} border-green-200 shadow-lg`
+                    : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'
                 }`}
               >
-                <tab.icon className="w-4 h-4 mr-2" />
-                {tab.label}
-              </button>
+                <div className="text-center">
+                  <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center ${
+                    activeTab === tab.id 
+                      ? `bg-gradient-to-r ${tab.color}` 
+                      : 'bg-gray-100'
+                  }`}>
+                    <tab.icon className={`w-8 h-8 ${
+                      activeTab === tab.id ? 'text-white' : 'text-gray-600'
+                    }`} />
+                  </div>
+                  <h3 className={`font-bold text-lg mb-2 ${
+                    activeTab === tab.id ? 'text-green-700' : 'text-gray-700'
+                  }`}>
+                    {tab.label}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {tab.description}
+                  </p>
+                </div>
+                
+                {/* Indicateur actif */}
+                {activeTab === tab.id && (
+                  <motion.div
+                    layoutId="activeTabIndicator"
+                    className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg"
+                  >
+                    <span className="text-white text-sm">✓</span>
+                  </motion.div>
+                )}
+              </motion.button>
             ))}
-          </nav>
-        </div>
+          </div>
+        </motion.div>
 
-        <div className="p-6">
-          {/* Sélection manuelle */}
-          {activeTab === 'manual' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium mb-4">Sélectionner une salle et ses créneaux</h3>
+        {/* Contenu des onglets */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
+          >
+            {/* Sélection manuelle */}
+            {activeTab === 'manual' && (
+              <div className="p-8">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                    <MapPin className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">Configuration Interactive</h3>
+                    <p className="text-gray-600">Sélectionnez une salle et définissez ses créneaux de disponibilité</p>
+                  </div>
+                </div>
                 
                 {/* Recherche et sélection de salle */}
-                <div className="mb-6">
-                  <div className="flex space-x-4">
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Rechercher une salle
-                      </label>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                          type="text"
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-                          placeholder="Rechercher par nom ou ID..."
-                        />
-                      </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      🔍 Rechercher une salle
+                    </label>
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
+                        placeholder="Rechercher par nom ou ID..."
+                      />
                     </div>
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Sélectionner une salle
-                      </label>
-                      <select
-                        value={salleSelectionnee}
-                        onChange={(e) => setSalleSelectionnee(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-                      >
-                        <option value="">Choisir une salle...</option>
-                        {sallesFiltrees.map((salle) => (
-                          <option key={salle._id} value={salle.id_salle}>
-                            {salle.id_salle} - {salle.nom} ({salle.type}, {salle.capacite} places)
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      🏢 Sélectionner une salle
+                    </label>
+                    <select
+                      value={salleSelectionnee}
+                      onChange={(e) => setSalleSelectionnee(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="">Choisir une salle...</option>
+                      {sallesFiltrees.map((salle) => (
+                        <option key={salle._id} value={salle.id_salle}>
+                          {salle.id_salle} - {salle.nom} ({salle.type}, {salle.capacite} places)
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
                 {/* Configuration des créneaux pour la salle sélectionnée */}
-                {salleSelectionnee && (
-                  <div className="border rounded-lg p-4 bg-gray-50">
-                    <div className="mb-4">
-                      <h4 className="font-medium text-lg text-gray-800">
-                        Configuration pour {getSalleSelectionnee()?.nom}
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {getSalleSelectionnee()?.id_salle} • {getSalleSelectionnee()?.type} • 
-                        Capacité: {getSalleSelectionnee()?.capacite} places
-                      </p>
-                    </div>
-
-                    {/* Grille de disponibilité */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {joursDisponibles.map(jour => (
-                        <div key={jour} className="border rounded-lg p-3 bg-white">
-                          <h5 className="font-medium text-sm text-gray-700 mb-3 flex items-center">
-                            <Clock className="w-4 h-4 mr-2" />
-                            {jour}
-                          </h5>
-                          <div className="space-y-2">
-                            {creneauxDisponibles.map(creneau => (
-                              <label key={creneau} className="flex items-center cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={estCreneauSelectionne(salleSelectionnee, jour, creneau)}
-                                  onChange={() => toggleCreneau(salleSelectionnee, jour, creneau)}
-                                  className="mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                                />
-                                <span className="text-sm text-gray-700">{creneau}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Résumé des salles configurées */}
-              {sallesSelectionnees.length > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-800 mb-2">
-                    Salles configurées ({sallesSelectionnees.length})
-                  </h4>
-                  <div className="space-y-2">
-                    {sallesSelectionnees.map((salle) => {
-                      const salleInfo = sallesExistantes.find(s => s.id_salle === salle.id_salle);
-                      return (
-                        <div key={salle.id_salle} className="text-sm text-blue-700">
-                          <strong>{salleInfo?.nom}</strong> - {salle.disponibilite.length} jour(s) configuré(s)
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {sallesSelectionnees.length > 0 && (
-                <div className="flex justify-end">
-                  <button
-                    onClick={importerDonnees}
-                    disabled={isLoading}
-                    className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    {isLoading ? 'Mise à jour...' : 'Mettre à jour les disponibilités'}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Copier/Coller */}
-          {activeTab === 'text' && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Données de disponibilité
-                </label>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                  <h4 className="font-medium text-blue-800 mb-2">Format attendu :</h4>
-                  <code className="text-sm text-blue-700">
-                    Nom_Salle, Jour Créneau, Jour Créneau, ...
-                  </code>
-                  <div className="mt-2 text-sm text-blue-600">
-                    <strong>Exemple :</strong><br />
-                    Salle_101, Lundi 08h30 - 11h30, Mardi 12h00 - 15h00<br />
-                    Salle_Machine_01, Mercredi 15h30 - 18h30
-                  </div>
-                </div>
-                <textarea
-                  value={manualData}
-                  onChange={(e) => setManualData(e.target.value)}
-                  rows="8"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Salle_101, Lundi 08h30 - 11h30, Mardi 12h00 - 15h00&#10;Salle_Machine_01, Mercredi 15h30 - 18h30"
-                />
-              </div>
-              
-              <div className="flex space-x-3">
-                <button
-                  onClick={parseManualData}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  <Eye className="w-4 h-4 mr-2" />
-                  Prévisualiser
-                </button>
-                
-                {showPreview && (
-                  <button
-                    onClick={importerDonnees}
-                    disabled={isLoading}
-                    className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    {isLoading ? 'Mise à jour...' : 'Mettre à jour'}
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Import fichier */}
-          {activeTab === 'file' && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Import depuis un fichier</h3>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={telechargerTemplateCSV}
-                    className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Template CSV
-                  </button>
-                  <button
-                    onClick={telechargerTemplateExcel}
-                    className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Template Excel
-                  </button>
-                </div>
-              </div>
-
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv,.xlsx,.xls"
-                  onChange={(e) => handleFileUpload(e.target.files[0])}
-                  className="hidden"
-                />
-                
-                {!file ? (
-                  <div>
-                    <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="text-primary-600 hover:text-primary-700 font-medium"
+                <AnimatePresence>
+                  {salleSelectionnee && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200 p-6 mb-8"
                     >
-                      Cliquez pour sélectionner un fichier
-                    </button>
-                    <p className="text-gray-500 mt-2">CSV ou Excel (.xlsx, .xls)</p>
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                          <span className="text-white text-xl">🏢</span>
+                        </div>
+                        <div>
+                          <h4 className="text-xl font-bold text-blue-900">
+                            {getSalleSelectionnee()?.nom}
+                          </h4>
+                          <p className="text-blue-700">
+                            {getSalleSelectionnee()?.id_salle} • {getSalleSelectionnee()?.type} • 
+                            Capacité: {getSalleSelectionnee()?.capacite} places
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Grille de disponibilité */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {joursDisponibles.map(jour => (
+                          <motion.div 
+                            key={jour} 
+                            whileHover={{ scale: 1.02 }}
+                            className="bg-white rounded-xl border border-blue-200 p-4 shadow-sm"
+                          >
+                            <h5 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-blue-500" />
+                              {jour}
+                            </h5>
+                            <div className="space-y-3">
+                              {creneauxDisponibles.map(creneau => (
+                                <label key={creneau} className="flex items-center cursor-pointer group">
+                                  <input
+                                    type="checkbox"
+                                    checked={estCreneauSelectionne(salleSelectionnee, jour, creneau)}
+                                    onChange={() => toggleCreneau(salleSelectionnee, jour, creneau)}
+                                    className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-all"
+                                  />
+                                  <span className="text-sm text-gray-700 group-hover:text-blue-600 transition-colors">
+                                    {creneau}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Résumé des salles configurées */}
+                <AnimatePresence>
+                  {sallesSelectionnees.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6 mb-8"
+                    >
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center">
+                          <span className="text-white">✅</span>
+                        </div>
+                        <h4 className="text-lg font-bold text-green-800">
+                          Salles configurées ({sallesSelectionnees.length})
+                        </h4>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {sallesSelectionnees.map((salle) => {
+                          const salleInfo = sallesExistantes.find(s => s.id_salle === salle.id_salle);
+                          return (
+                            <div key={salle.id_salle} className="bg-white rounded-lg p-3 border border-green-200">
+                              <div className="font-semibold text-green-800">{salleInfo?.nom}</div>
+                              <div className="text-sm text-green-600">
+                                {salle.disponibilite.length} jour(s) configuré(s)
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {sallesSelectionnees.length > 0 && (
+                  <div className="flex justify-center">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={importerDonnees}
+                      disabled={isLoading}
+                      className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="flex items-center gap-3">
+                        {isLoading ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>Mise à jour...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-5 h-5" />
+                            <span>Mettre à jour les disponibilités</span>
+                          </>
+                        )}
+                      </div>
+                    </motion.button>
                   </div>
-                ) : (
+                )}
+              </div>
+            )}
+
+            {/* Copier/Coller */}
+            {activeTab === 'text' && (
+              <div className="p-8">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-violet-600 rounded-xl flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
                   <div>
-                    <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                    <p className="font-medium">{file.name}</p>
-                    <div className="flex justify-center space-x-3 mt-4">
-                      <button
-                        onClick={() => {
-                          setFile(null);
-                          setPreview([]);
-                          setShowPreview(false);
-                        }}
-                        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                      >
-                        Changer de fichier
-                      </button>
+                    <h3 className="text-2xl font-bold text-gray-900">Import par Texte</h3>
+                    <p className="text-gray-600">Copiez et collez vos données au format spécifié</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="bg-gradient-to-r from-purple-50 to-violet-50 border-2 border-purple-200 rounded-2xl p-6">
+                    <h4 className="font-bold text-purple-800 mb-3 flex items-center gap-2">
+                      <span>📋</span> Format attendu :
+                    </h4>
+                    <div className="bg-white rounded-lg p-4 border border-purple-200">
+                      <code className="text-sm text-purple-700 font-mono">
+                        Nom_Salle, Jour Créneau, Jour Créneau, ...
+                      </code>
+                      <div className="mt-4 space-y-2">
+                        <div className="text-sm text-purple-600">
+                          <strong>Exemples :</strong>
+                        </div>
+                        <div className="bg-purple-50 rounded p-3 font-mono text-sm text-purple-700">
+                          Salle_101, Lundi 08h30 - 11h30, Mardi 12h00 - 15h00<br />
+                          Salle_Machine_01, Mercredi 15h30 - 18h30
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      📝 Données de disponibilité
+                    </label>
+                    <textarea
+                      value={manualData}
+                      onChange={(e) => setManualData(e.target.value)}
+                      rows="10"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all font-mono text-sm"
+                      placeholder="Salle_101, Lundi 08h30 - 11h30, Mardi 12h00 - 15h00&#10;Salle_Machine_01, Mercredi 15h30 - 18h30"
+                    />
+                  </div>
+                  
+                  <div className="flex justify-center gap-4">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={parseManualData}
+                      className="px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Eye className="w-5 h-5" />
+                        <span>Prévisualiser</span>
+                      </div>
+                    </motion.button>
+                    
+                    <AnimatePresence>
                       {showPreview && (
-                        <button
+                        <motion.button
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                           onClick={importerDonnees}
                           disabled={isLoading}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                          className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                         >
-                          {isLoading ? 'Mise à jour...' : 'Mettre à jour'}
-                        </button>
+                          <div className="flex items-center gap-2">
+                            {isLoading ? (
+                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <Save className="w-5 h-5" />
+                            )}
+                            <span>{isLoading ? 'Mise à jour...' : 'Mettre à jour'}</span>
+                          </div>
+                        </motion.button>
                       )}
-                    </div>
+                    </AnimatePresence>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Import fichier */}
+            {activeTab === 'file' && (
+              <div className="p-8">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                    <Upload className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">Import de Fichier</h3>
+                    <p className="text-gray-600">Uploadez vos fichiers CSV ou Excel</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex justify-center gap-4">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={telechargerTemplateCSV}
+                      className="px-6 py-3 bg-white border-2 border-green-200 text-green-700 font-semibold rounded-xl hover:bg-green-50 transition-all"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Download className="w-5 h-5" />
+                        <span>Template CSV</span>
+                      </div>
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={telechargerTemplateExcel}
+                      className="px-6 py-3 bg-white border-2 border-green-200 text-green-700 font-semibold rounded-xl hover:bg-green-50 transition-all"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Download className="w-5 h-5" />
+                        <span>Template Excel</span>
+                      </div>
+                    </motion.button>
+                  </div>
+
+                  <div className="border-4 border-dashed border-green-200 rounded-2xl p-12 text-center bg-gradient-to-br from-green-50 to-emerald-50">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".csv,.xlsx,.xls"
+                      onChange={(e) => handleFileUpload(e.target.files[0])}
+                      className="hidden"
+                    />
+                    
+                    {!file ? (
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        className="cursor-pointer"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                          <Upload className="w-10 h-10 text-white" />
+                        </div>
+                        <h4 className="text-xl font-bold text-gray-900 mb-2">
+                          Cliquez pour sélectionner un fichier
+                        </h4>
+                        <p className="text-gray-600">CSV ou Excel (.xlsx, .xls)</p>
+                      </motion.div>
+                    ) : (
+                      <div>
+                        <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                          <CheckCircle className="w-10 h-10 text-white" />
+                        </div>
+                        <h4 className="text-xl font-bold text-green-800 mb-4">{file.name}</h4>
+                        <div className="flex justify-center gap-4">
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                              setFile(null);
+                              setPreview([]);
+                              setShowPreview(false);
+                            }}
+                            className="px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all"
+                          >
+                            Changer de fichier
+                          </motion.button>
+                          <AnimatePresence>
+                            {showPreview && (
+                              <motion.button
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={importerDonnees}
+                                disabled={isLoading}
+                                className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                              >
+                                <div className="flex items-center gap-2">
+                                  {isLoading ? (
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                  ) : (
+                                    <Save className="w-5 h-5" />
+                                  )}
+                                  <span>{isLoading ? 'Mise à jour...' : 'Mettre à jour'}</span>
+                                </div>
+                              </motion.button>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Prévisualisation */}
+        <AnimatePresence>
+          {showPreview && preview.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 mt-8"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
+                  <Eye className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  Prévisualisation ({preview.length} salles)
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salle</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Disponibilité</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {preview.slice(0, 10).map((salle, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="font-medium text-gray-900">{salle.nom || salle.id_salle}</div>
+                          {salle.nom && <div className="text-sm text-gray-500">{salle.id_salle}</div>}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm space-y-1">
+                            {salle.disponibilite?.map((disp, i) => (
+                              <div key={i} className="flex items-center gap-2">
+                                <span className="font-medium text-blue-600 min-w-[80px]">{disp.jour}:</span> 
+                                <span className="text-gray-700">{disp.creneaux.join(', ')}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {preview.length > 10 && (
+                  <div className="text-center py-4">
+                    <span className="text-gray-500 bg-gray-100 px-4 py-2 rounded-full">
+                      ... et {preview.length - 10} autres salles
+                    </span>
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
           )}
-        </div>
-      </div>
+        </AnimatePresence>
 
-      {/* Prévisualisation */}
-      {showPreview && preview.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border p-6">
-          <h3 className="text-lg font-medium mb-4">Prévisualisation ({preview.length} salles)</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Salle</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Disponibilité</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {preview.slice(0, 10).map((salle, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium">{salle.nom || salle.id_salle}</div>
-                      {salle.nom && <div className="text-sm text-gray-500">{salle.id_salle}</div>}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm">
-                        {salle.disponibilite?.map((disp, i) => (
-                          <div key={i} className="mb-1">
-                            <span className="font-medium text-blue-600">{disp.jour}:</span> 
-                            <span className="ml-2">{disp.creneaux.join(', ')}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {preview.length > 10 && (
-              <p className="text-center text-gray-500 mt-4">
-                ... et {preview.length - 10} autres salles
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Données importées */}
-      {showImportedData && importedData.length > 0 && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-green-800">
-              Import réussi ! ({importedData.length} salles mises à jour)
-            </h3>
-            <button
-              onClick={() => setShowImportedData(false)}
-              className="text-green-600 hover:text-green-800"
+        {/* Données importées */}
+        <AnimatePresence>
+          {showImportedData && importedData.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-8 mt-8"
             >
-              ✕
-            </button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-green-200">
-              <thead className="bg-green-100">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase">Salle</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase">Disponibilité mise à jour</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-green-200">
-                {importedData.map((salle, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-green-800">{salle.nom || salle.id_salle}</div>
-                      {salle.nom && <div className="text-sm text-green-600">{salle.id_salle}</div>}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm">
-                        {salle.disponibilite?.map((disp, i) => (
-                          <div key={i} className="mb-1">
-                            <span className="font-medium text-green-700">{disp.jour}:</span> 
-                            <span className="ml-2 text-green-600">{disp.creneaux.join(', ')}</span>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-green-800">
+                      Import réussi ! 🎉
+                    </h3>
+                    <p className="text-green-600">
+                      {importedData.length} salles mises à jour avec succès
+                    </p>
+                  </div>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setShowImportedData(false)}
+                  className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition-colors"
+                >
+                  ✕
+                </motion.button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-green-200">
+                  <thead className="bg-green-100">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Salle</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Disponibilité mise à jour</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-green-200">
+                    {importedData.map((salle, index) => (
+                      <tr key={index} className="hover:bg-green-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="font-medium text-green-800">{salle.nom || salle.id_salle}</div>
+                          {salle.nom && <div className="text-sm text-green-600">{salle.id_salle}</div>}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm space-y-1">
+                            {salle.disponibilite?.map((disp, i) => (
+                              <div key={i} className="flex items-center gap-2">
+                                <span className="font-medium text-green-700 min-w-[80px]">{disp.jour}:</span> 
+                                <span className="text-green-600">{disp.creneaux.join(', ')}</span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
 
-export default ImportDonnees; 
+export default ImportDonnees;
