@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNotification } from '../../../context/NotificationContext';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calendar, 
   Users, 
@@ -21,8 +22,10 @@ import {
   RefreshCw,
   Zap,
   Target,
-  Filter,
-  Search
+  Search,
+  Archive,
+  FileText,
+  History
 } from 'lucide-react';
 
 const GenererEmploi = () => {
@@ -47,6 +50,21 @@ const GenererEmploi = () => {
     salle: '',
     jour: ''
   });
+  
+  // Nouveaux états pour la gestion des emplois sauvegardés
+  const [emploisSauvegardes, setEmploisSauvegardes] = useState([]);
+  const [loadingEmplois, setLoadingEmplois] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Nouveaux états pour la pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(1); // 1 emploi par page
+
+  // Nouveaux états pour la sélection simple
+  const [emploiSelectionne, setEmploiSelectionne] = useState('');
+
+  // Ajouter un état pour savoir si on charge depuis les sauvegardes
+  const [chargementDepuisSauvegardes, setChargementDepuisSauvegardes] = useState(false);
 
   const { showNotification } = useNotification();
 
@@ -58,6 +76,13 @@ const GenererEmploi = () => {
     chargerDonneesInitiales();
   }, []);
 
+  // Charger les emplois sauvegardés quand on va sur l'onglet
+  useEffect(() => {
+    if (activeTab === 'sauvegardes') {
+      chargerEmploisSauvegardes();
+    }
+  }, [activeTab]);
+
   // Charger les groupes quand un programme est sélectionné
   useEffect(() => {
     if (selectedProgramme) {
@@ -68,14 +93,17 @@ const GenererEmploi = () => {
     }
   }, [selectedProgramme]);
 
-  // Ajouter un effet pour réinitialiser l'emploi du temps quand on change de programme/groupe
+  // Modifier le useEffect problématique pour ne pas réinitialiser quand on charge depuis les sauvegardes
   useEffect(() => {
-    // Réinitialiser l'emploi du temps quand on change de programme ou groupe
-    setEmploiDuTemps(null);
-    setConflits([]);
-    setAnalyseDonnees(null);
-    setShowAnalyse(false);
-  }, [selectedProgramme, selectedGroupe]);
+    // Ne pas réinitialiser l'emploi du temps si on est en train de charger depuis les sauvegardes
+    // ou si on est sur l'onglet sauvegardes
+    if (!chargementDepuisSauvegardes && activeTab !== 'sauvegardes') {
+      setEmploiDuTemps(null);
+      setConflits([]);
+      setAnalyseDonnees(null);
+      setShowAnalyse(false);
+    }
+  }, [selectedProgramme, selectedGroupe, chargementDepuisSauvegardes, activeTab]);
 
   const chargerDonneesInitiales = async () => {
     try {
@@ -118,16 +146,22 @@ const GenererEmploi = () => {
       console.log('Groupes reçus:', response.data);
       setGroupesDisponibles(response.data.groupes);
       
-      if (response.data.groupes && response.data.groupes.length > 0) {
-        setSelectedGroupe(response.data.groupes[0]);
-      } else {
-        setSelectedGroupe('');
+      // Ne pas changer automatiquement le groupe si on est en train de charger depuis les sauvegardes
+      // ou si on est sur l'onglet sauvegardes
+      if (!chargementDepuisSauvegardes && activeTab !== 'sauvegardes') {
+        if (response.data.groupes && response.data.groupes.length > 0) {
+          setSelectedGroupe(response.data.groupes[0]);
+        } else {
+          setSelectedGroupe('');
+        }
       }
     } catch (error) {
       console.error('Erreur chargement groupes:', error);
       showNotification('Erreur lors du chargement des groupes', 'error');
       setGroupesDisponibles([1]); // Fallback
-      setSelectedGroupe(1);
+      if (!chargementDepuisSauvegardes && activeTab !== 'sauvegardes') {
+        setSelectedGroupe(1);
+      }
     }
   };
 
@@ -398,24 +432,59 @@ const GenererEmploi = () => {
   const GrilleEmploiDuTemps = () => {
     if (!emploiDuTemps) return null;
 
+    // Trouver le programme pour afficher le nom complet
+    const programme = programmes.find(p => p._id === selectedProgramme);
+    const nomComplet = programme 
+      ? `${programme.nom} Licence ${programme.licence} Semestre ${programme.semestre} (Groupe ${selectedGroupe})`
+      : `Emploi du temps (Groupe ${selectedGroupe})`;
+
     return (
       <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
         <div className="p-4 bg-gray-50 border-b flex items-center justify-between">
           <h3 className="font-medium text-gray-800 flex items-center">
             <Calendar className="w-5 h-5 mr-2" />
-            Emploi du temps - {programmes.find(p => p._id === selectedProgramme)?.nom} (Groupe {selectedGroupe})
+            Emploi du temps - {nomComplet}
           </h3>
           <div className="flex space-x-2">
+            {/* Remplacer Sauvegarder par Supprimer dans l'onglet sauvegardes */}
+            {activeTab === 'sauvegardes' && emploiSelectionne && (
+              <button
+                onClick={() => {
+                  const emploi = emploisSauvegardes.find(e => e._id === emploiSelectionne);
+                  if (emploi && confirm(`Êtes-vous sûr de vouloir supprimer l'emploi "${emploi.nom}" ?`)) {
+                    supprimerEmploiSauvegarde(emploiSelectionne);
+                    setEmploiSelectionne('');
+                    setEmploiDuTemps(null);
+                  }
+                }}
+                className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all font-medium"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Supprimer
+              </button>
+            )}
+            
+            {/* Garder Sauvegarder pour les autres onglets */}
+            {activeTab !== 'sauvegardes' && (
+              <button
+                onClick={sauvegarderEmploiDuTemps}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Sauvegarder
+              </button>
+            )}
+            
             <button
               onClick={() => exporterEmploi('pdf')}
-              className="flex items-center px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+              className="flex items-center px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               <Download className="w-3 h-3 mr-1" />
               PDF
             </button>
             <button
               onClick={() => exporterEmploi('excel')}
-              className="flex items-center px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+              className="flex items-center px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               <Download className="w-3 h-3 mr-1" />
               Excel
@@ -430,13 +499,13 @@ const GenererEmploi = () => {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r">
                   Horaire
                 </th>
-              {jours.map(jour => (
+                {jours.map(jour => (
                   <th key={jour} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r">
                     {jour}
                   </th>
-              ))}
-            </tr>
-          </thead>
+                ))}
+              </tr>
+            </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {creneaux.map((creneau, creneauIndex) => (
                 <tr key={creneau} className={creneauIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
@@ -446,82 +515,62 @@ const GenererEmploi = () => {
                       {creneau}
                     </div>
                   </td>
-                {jours.map(jour => {
-                    const seance = emploiDuTemps.seances?.find(
-                    s => s.jour === jour && s.creneau === creneau
-                  );
-                    
-                  return (
-                      <td key={`${jour}-${creneau}`} className="px-2 py-2 border-r relative group">
-                      {seance ? (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 min-h-[100px] relative hover:bg-blue-100 transition-colors">
-                            <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <div className="flex space-x-1">
-                                <button
-                                  onClick={() => modifierSeance(jour, creneau, seance)}
-                                  className="p-1 text-blue-600 hover:bg-blue-200 rounded"
-                                  title="Modifier"
-                                >
-                                  <Edit3 className="w-3 h-3" />
-                                </button>
-                                <button
-                                  onClick={() => supprimerSeance(jour, creneau)}
-                                  className="p-1 text-red-600 hover:bg-red-200 rounded"
-                                  title="Supprimer"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
+                  {jours.map(jour => {
+                    const seance = emploiDuTemps.seances?.find(s => s.jour === jour && s.creneau === creneau);
+                    return (
+                      <td key={jour} className="px-2 py-6 border-r relative">
+                        {seance ? (
+                          <div 
+                            className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                            onClick={() => activeTab === 'manuel' && modifierSeance(jour, creneau, seance)}
+                          >
+                            <div className="font-semibold text-sm mb-1 leading-tight">
+                              {seance.cours?.nom_matiere || 'Cours'}
+                            </div>
+                            <div className="text-xs opacity-90 space-y-1">
+                              <div className="flex items-center">
+                                <Users className="w-3 h-3 mr-1" />
+                                {seance.professeur?.prenom} {seance.professeur?.nom}
+                              </div>
+                              <div className="flex items-center">
+                                <MapPin className="w-3 h-3 mr-1" />
+                                {seance.salle?.nom}
                               </div>
                             </div>
-                            
-                            <div className="text-sm font-medium text-blue-800 mb-1">
-                              {seance.cours?.nom_matiere}
-                            </div>
-                            <div className="text-xs text-blue-600 mb-1 flex items-center">
-                              <Users className="w-3 h-3 mr-1" />
-                              {seance.professeur?.nom} {seance.professeur?.prenom}
-                            </div>
-                            <div className="text-xs text-blue-500 flex items-center">
-                              <MapPin className="w-3 h-3 mr-1" />
-                              {seance.salle?.nom}
-                            </div>
+                            {activeTab === 'manuel' && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  supprimerSeance(jour, creneau);
+                                }}
+                                className="absolute top-1 right-1 w-5 h-5 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-3 h-3 text-white" />
+                              </button>
+                            )}
                           </div>
                         ) : (
-                          <div className="min-h-[100px] border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center hover:border-gray-300 transition-colors group-hover:bg-gray-50">
-                            <button
-                              onClick={() => modifierSeance(jour, creneau)}
-                              className="flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                              title="Ajouter un cours"
-                            >
-                              <Plus className="w-4 h-4 mr-1" />
-                              <span className="text-xs">Ajouter</span>
-                            </button>
+                          <div 
+                            className={`h-16 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-400 text-xs ${
+                              activeTab === 'manuel' ? 'hover:border-blue-300 hover:bg-blue-50 cursor-pointer' : ''
+                            }`}
+                            onClick={() => activeTab === 'manuel' && modifierSeance(jour, creneau)}
+                          >
+                            {activeTab === 'manuel' ? (
+                              <Plus className="w-4 h-4" />
+                            ) : (
+                              'Libre'
+                            )}
                           </div>
                         )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        </div>
-
-        {conflits.length > 0 && (
-          <div className="p-4 bg-red-50 border-t border-red-200">
-            <h4 className="font-medium text-red-800 mb-2 flex items-center">
-              <AlertTriangle className="w-4 h-4 mr-2" />
-              Conflits détectés ({conflits.length})
-            </h4>
-            <div className="space-y-1">
-              {conflits.map((conflit, index) => (
-                <div key={index} className="text-sm text-red-700">
-                  • {conflit}
-                </div>
+                      </td>
+                    );
+                  })}
+                </tr>
               ))}
-            </div>
-          </div>
-        )}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   };
@@ -625,6 +674,232 @@ const GenererEmploi = () => {
     );
   };
 
+  // Nouvelle fonction pour charger les emplois sauvegardés
+  const chargerEmploisSauvegardes = async () => {
+    try {
+      setLoadingEmplois(true);
+      const token = localStorage.getItem('token');
+      
+      console.log('Chargement des emplois sauvegardés...');
+      
+      const response = await axios.get('http://localhost:3832/api/emplois', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      console.log('Emplois chargés:', response.data);
+      setEmploisSauvegardes(response.data);
+      
+    } catch (error) {
+      console.error('Erreur chargement emplois:', error);
+      showNotification('Erreur lors du chargement des emplois sauvegardés', 'error');
+      setEmploisSauvegardes([]); // Réinitialiser en cas d'erreur
+    } finally {
+      setLoadingEmplois(false);
+    }
+  };
+
+  // Simplifier la fonction de chargement (sans useCallback problématique)
+  const chargerEmploiSelectionne = async (emploiId) => {
+    if (!emploiId) {
+      setEmploiDuTemps(null);
+      return;
+    }
+
+    console.log('=== DEBUT chargerEmploiSelectionne ===');
+    console.log('emploiId:', emploiId);
+
+    try {
+      setLoading(true);
+      setChargementDepuisSauvegardes(true); // Indiquer qu'on charge depuis les sauvegardes
+      
+      const token = localStorage.getItem('token');
+      
+      console.log('Appel API pour emploi ID:', emploiId);
+      
+      const response = await axios.get(`http://localhost:3832/api/emplois/${emploiId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const emploi = response.data;
+      console.log('Emploi reçu:', emploi);
+      
+      // Mettre à jour les états et l'emploi du temps de manière synchrone
+      setSelectedProgramme(emploi.programme._id);
+      setSelectedGroupe(emploi.groupe);
+      setEmploiDuTemps(emploi);
+      
+      console.log('États mis à jour');
+      showNotification('Emploi du temps chargé avec succès', 'success');
+      
+      // Remettre le flag à false après un délai plus long pour s'assurer que tous les effets sont terminés
+      setTimeout(() => {
+        setChargementDepuisSauvegardes(false);
+        console.log('Flag chargementDepuisSauvegardes remis à false');
+      }, 500); // Délai augmenté à 500ms
+      
+    } catch (error) {
+      console.error('Erreur chargement emploi:', error);
+      showNotification('Erreur lors du chargement de l\'emploi du temps', 'error');
+      setChargementDepuisSauvegardes(false);
+    } finally {
+      setLoading(false);
+      console.log('=== FIN chargerEmploiSelectionne ===');
+    }
+  };
+
+  // Composant pour l'onglet des emplois sauvegardés (gestionnaire simplifié)
+  const EmploisSauvegardes = () => {
+    const handleAfficherClick = () => {
+      console.log('=== CLIC AFFICHER ===');
+      console.log('emploiSelectionne:', emploiSelectionne);
+      console.log('loading:', loading);
+      
+      if (emploiSelectionne && !loading) {
+        chargerEmploiSelectionne(emploiSelectionne);
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        {/* Interface simplifiée : juste un sélecteur et un bouton */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Emplois du temps sauvegardés
+              </label>
+              <select
+                value={emploiSelectionne}
+                onChange={(e) => {
+                  console.log('Sélection changée:', e.target.value);
+                  setEmploiSelectionne(e.target.value);
+                  // Réinitialiser l'emploi affiché quand on change de sélection
+                  if (!e.target.value) {
+                    setEmploiDuTemps(null);
+                  }
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
+              >
+                <option value="">-- Sélectionner un emploi du temps --</option>
+                {emploisSauvegardes.map((emploi) => (
+                  <option key={emploi._id} value={emploi._id}>
+                    {emploi.programme?.nom || 'Programme inconnu'} - Groupe {emploi.groupe} ({emploi.seances?.length || 0} séances)
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={handleAfficherClick}
+              disabled={!emploiSelectionne || loading}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            >
+              {loading ? 'Chargement...' : 'Afficher'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Fonction pour générer le diminutif du programme
+  const genererDiminutif = (nomProgramme) => {
+    // Génie Logiciel -> GL, Génie Informatique -> GI, etc.
+    if (nomProgramme.toLowerCase().includes('génie logiciel')) {
+      return 'GL';
+    } else if (nomProgramme.toLowerCase().includes('génie informatique')) {
+      return 'GI';
+    } else if (nomProgramme.toLowerCase().includes('génie civil')) {
+      return 'GC';
+    } else if (nomProgramme.toLowerCase().includes('génie électrique')) {
+      return 'GE';
+    } else {
+      // Fallback: prendre les premières lettres des mots principaux
+      return nomProgramme
+        .split(' ')
+        .filter(mot => mot.length > 2)
+        .map(mot => mot[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    }
+  };
+
+  const sauvegarderEmploiDuTemps = async () => {
+    if (!emploiDuTemps) {
+      showNotification('Aucun emploi du temps à sauvegarder', 'error');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      // Générer automatiquement le nom basé sur le programme (nom complet + diminutif licence/semestre)
+      const programme = programmes.find(p => p._id === selectedProgramme);
+      const nomAuto = `${programme?.nom || 'Emploi'} L${programme?.licence}S${programme?.semestre} - Groupe ${selectedGroupe}`;
+      
+      const dataToSave = {
+        nom: nomAuto,
+        description: '', // Pas de description
+        programme: selectedProgramme,
+        groupe: selectedGroupe,
+        seances: emploiDuTemps.seances || [],
+        statut: 'actif'
+      };
+
+      console.log('Données à sauvegarder:', dataToSave);
+
+      const response = await axios.post(
+        'http://localhost:3832/api/emplois/sauvegarder',
+        dataToSave,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      console.log('Réponse sauvegarde:', response.data);
+
+      showNotification('Emploi du temps sauvegardé avec succès !', 'success');
+      
+      // Recharger la liste si on est sur l'onglet sauvegardes
+      if (activeTab === 'sauvegardes') {
+        await chargerEmploisSauvegardes();
+      }
+      
+    } catch (error) {
+      console.error('Erreur sauvegarde:', error);
+      const message = error.response?.data?.message || 'Erreur lors de la sauvegarde';
+      showNotification(message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fonction pour supprimer un emploi sauvegardé
+  const supprimerEmploiSauvegarde = async (emploiId) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cet emploi du temps ?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      await axios.delete(`http://localhost:3832/api/emplois/${emploiId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      showNotification('Emploi du temps supprimé avec succès', 'success');
+      
+      // Recharger la liste des emplois
+      await chargerEmploisSauvegardes();
+      
+    } catch (error) {
+      console.error('Erreur suppression emploi:', error);
+      showNotification('Erreur lors de la suppression de l\'emploi du temps', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* En-tête */}
@@ -645,7 +920,8 @@ const GenererEmploi = () => {
             {[
               { id: 'automatique', label: 'Génération automatique', icon: Zap },
               { id: 'manuel', label: 'Attribution manuelle', icon: Edit3 },
-              { id: 'analyse', label: 'Analyse & Optimisation', icon: Target }
+              { id: 'analyse', label: 'Analyse & Optimisation', icon: Target },
+              { id: 'sauvegardes', label: 'Sauvegardes', icon: Archive }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -664,38 +940,37 @@ const GenererEmploi = () => {
         </div>
 
         <div className="p-6">
-          {/* Configuration commune */}
-          <div className="mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Sélection du programme et groupe - SEULEMENT pour les autres onglets */}
+          {activeTab !== 'sauvegardes' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Programme
                 </label>
-        <select
-          value={selectedProgramme}
-          onChange={(e) => setSelectedProgramme(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="">Sélectionner un programme</option>
-          {programmes.map(prog => (
-            <option key={prog._id} value={prog._id}>
-                      {prog.nom} - L{prog.licence} S{prog.semestre}
-            </option>
-          ))}
-        </select>
+                <select
+                  value={selectedProgramme}
+                  onChange={(e) => {
+                    setSelectedProgramme(e.target.value);
+                    chargerGroupesProgramme(e.target.value);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Sélectionner un programme</option>
+                  {programmes.map(programme => (
+                    <option key={programme._id} value={programme._id}>
+                      {programme.nom} - L{programme.licence} S{programme.semestre}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Groupe
                 </label>
-        <select
-                  value={selectedGroupe || ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSelectedGroupe(value ? parseInt(value) : "");
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                <select
+                  value={selectedGroupe}
+                  onChange={(e) => setSelectedGroupe(e.target.value)}
                   disabled={!selectedProgramme}
                 >
                   <option value="">Sélectionner un groupe</option>
@@ -704,7 +979,7 @@ const GenererEmploi = () => {
                       Groupe {groupe}
                     </option>
                   ))}
-        </select>
+                </select>
               </div>
 
               <div className="flex items-end">
@@ -718,7 +993,7 @@ const GenererEmploi = () => {
                 </button>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Analyse des données */}
           <AnalyseDonnees />
@@ -737,9 +1012,9 @@ const GenererEmploi = () => {
                 </p>
                 
                 <div className="flex space-x-3">
-        <button
-          onClick={genererEmploiAutomatique}
-          disabled={!selectedProgramme || loading}
+                  <button
+                    onClick={genererEmploiAutomatique}
+                    disabled={!selectedProgramme || loading}
                     className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
                   >
                     {loading ? (
@@ -751,13 +1026,28 @@ const GenererEmploi = () => {
                   </button>
                   
                   {emploiDuTemps && (
-                    <button
-                      onClick={() => setEmploiDuTemps(null)}
-                      className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                    >
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Nouveau
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={sauvegarderEmploiDuTemps}
+                        disabled={loading}
+                        className="flex items-center px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50"
+                      >
+                        {loading ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        ) : (
+                          <Save className="w-4 h-4 mr-2" />
+                        )}
+                        {loading ? 'Sauvegarde...' : 'Sauvegarder l\'emploi'}
+                      </button>
+                      <button
+                        onClick={() => setEmploiDuTemps(null)}
+                        className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      >
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Nouveau
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -791,16 +1081,41 @@ const GenererEmploi = () => {
                   Idéal pour les ajustements personnalisés et les cas particuliers.
                 </p>
                 
-                {!emploiDuTemps && (
-                  <button
-                    onClick={() => setEmploiDuTemps({ seances: [], programme: selectedProgramme, groupe: selectedGroupe })}
-                    disabled={!selectedProgramme}
-                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Créer un emploi du temps vide
-        </button>
-                )}
+                <div className="flex space-x-3">
+                  {!emploiDuTemps ? (
+                    <button
+                      onClick={() => setEmploiDuTemps({ seances: [], programme: selectedProgramme, groupe: selectedGroupe })}
+                      disabled={!selectedProgramme}
+                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Créer un emploi du temps vide
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={sauvegarderEmploiDuTemps}
+                        disabled={loading}
+                        className="flex items-center px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50"
+                      >
+                        {loading ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        ) : (
+                          <Save className="w-4 h-4 mr-2" />
+                        )}
+                        {loading ? 'Sauvegarde...' : 'Sauvegarder l\'emploi'}
+                      </button>
+                      <button
+                        onClick={() => setEmploiDuTemps(null)}
+                        className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      >
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Nouveau
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -838,11 +1153,16 @@ const GenererEmploi = () => {
               </div>
             </div>
           )}
+
+          {/* Emplois sauvegardés */}
+          {activeTab === 'sauvegardes' && (
+            <EmploisSauvegardes />
+          )}
         </div>
       </div>
 
-      {/* Grille d'emploi du temps */}
-      <GrilleEmploiDuTemps />
+      {/* Grille d'emploi du temps - CONDITION CORRIGÉE */}
+      {emploiDuTemps && <GrilleEmploiDuTemps />}
 
       {/* Modal d'édition */}
       <ModalEditionSeance />

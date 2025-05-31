@@ -15,10 +15,13 @@ import {
   Clock,
   MapPin,
   Search,
-  Filter
+  Filter,
+  Database,
+  PlusCircle
 } from 'lucide-react';
 
 const ImportDonnees = () => {
+  const [modeActuel, setModeActuel] = useState('consulter'); // 'consulter' ou 'importer'
   const [activeTab, setActiveTab] = useState('manual');
   const [manualData, setManualData] = useState('');
   const [file, setFile] = useState(null);
@@ -31,6 +34,9 @@ const ImportDonnees = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [importedData, setImportedData] = useState([]);
   const [showImportedData, setShowImportedData] = useState(false);
+  // États pour la pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(1); // 1 salle par page
   const fileInputRef = useRef(null);
   const { showNotification } = useNotification();
 
@@ -43,6 +49,30 @@ const ImportDonnees = () => {
 
   const joursDisponibles = [
     'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'
+  ];
+
+  // Configuration des modes principaux
+  const modes = [
+    {
+      id: 'consulter',
+      title: 'Consulter',
+      icon: '📊',
+      color: 'from-blue-500 to-indigo-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
+      textColor: 'text-blue-700',
+      description: 'Examiner les données de scolarité existantes'
+    },
+    {
+      id: 'importer',
+      title: 'Importer',
+      icon: '📥',
+      color: 'from-orange-500 to-red-600',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-200',
+      textColor: 'text-orange-700',
+      description: 'Ajouter de nouvelles données de scolarité'
+    }
   ];
 
   // Charger les salles existantes
@@ -70,11 +100,22 @@ const ImportDonnees = () => {
 
   // Ajouter/retirer un créneau pour une salle
   const toggleCreneau = (salleId, jour, creneau) => {
+    if (modeActuel !== 'importer') return; // Empêcher la modification en mode consultation
+    
+    // Vérifier si le créneau existe déjà dans les données permanentes
+    const salleExistante = sallesExistantes.find(s => s.id_salle === salleId);
+    if (salleExistante && salleExistante.disponibilite) {
+      const jourData = salleExistante.disponibilite.find(d => d.jour === jour);
+      if (jourData && jourData.creneaux.includes(creneau)) {
+        showNotification('Ce créneau est déjà configuré pour cette salle', 'warning');
+        return; // Empêcher la modification d'un créneau déjà existant
+      }
+    }
+    
     setSallesSelectionnees(prev => {
       const salleIndex = prev.findIndex(s => s.id_salle === salleId);
       
       if (salleIndex === -1) {
-        // Ajouter la salle avec ce créneau
         return [...prev, {
           id_salle: salleId,
           disponibilite: [{ jour, creneaux: [creneau] }]
@@ -86,10 +127,8 @@ const ImportDonnees = () => {
       const jourIndex = disponibilite.findIndex(d => d.jour === jour);
 
       if (jourIndex === -1) {
-        // Ajouter le jour avec le créneau
         disponibilite.push({ jour, creneaux: [creneau] });
       } else {
-        // Jour existe, ajouter/retirer le créneau
         const creneaux = [...disponibilite[jourIndex].creneaux];
         const creneauIndex = creneaux.indexOf(creneau);
         
@@ -108,7 +147,6 @@ const ImportDonnees = () => {
 
       salle.disponibilite = disponibilite;
 
-      // Si plus de disponibilité, retirer la salle
       if (disponibilite.length === 0) {
         return prev.filter(s => s.id_salle !== salleId);
       }
@@ -121,14 +159,34 @@ const ImportDonnees = () => {
 
   // Vérifier si un créneau est sélectionné
   const estCreneauSelectionne = (salleId, jour, creneau) => {
-    const salle = sallesSelectionnees.find(s => s.id_salle === salleId);
-    if (!salle) return false;
-    
+    if (modeActuel === 'consulter') {
+      // En mode consultation, vérifier les données existantes
+      const salle = sallesExistantes.find(s => s.id_salle === salleId);
+      if (!salle || !salle.disponibilite) return false;
     const jourData = salle.disponibilite.find(d => d.jour === jour);
     return jourData ? jourData.creneaux.includes(creneau) : false;
+    } else {
+      // En mode import, vérifier d'abord les données existantes puis les sélections temporaires
+      const salleExistante = sallesExistantes.find(s => s.id_salle === salleId);
+      let isExistant = false;
+      if (salleExistante && salleExistante.disponibilite) {
+        const jourData = salleExistante.disponibilite.find(d => d.jour === jour);
+        isExistant = jourData ? jourData.creneaux.includes(creneau) : false;
+      }
+      
+      // Vérifier les sélections temporaires
+      const salleSelectionnee = sallesSelectionnees.find(s => s.id_salle === salleId);
+      let isTemporaire = false;
+      if (salleSelectionnee) {
+        const jourData = salleSelectionnee.disponibilite.find(d => d.jour === jour);
+        isTemporaire = jourData ? jourData.creneaux.includes(creneau) : false;
+      }
+      
+      return isExistant || isTemporaire;
+    }
   };
 
-  // Parser les données textuelles (format: nom_salle, jour créneau, jour créneau...)
+  // Parser les données textuelles
   const parseManualData = () => {
     if (!manualData.trim()) {
       showNotification('Veuillez saisir des données', 'error');
@@ -144,8 +202,6 @@ const ImportDonnees = () => {
         if (parts.length < 2) return;
 
         const [nomSalle, ...creneauxStr] = parts;
-
-        // Trouver la salle par son nom
         const salleExistante = sallesExistantes.find(s => 
           s.nom.toLowerCase() === nomSalle.toLowerCase()
         );
@@ -180,9 +236,15 @@ const ImportDonnees = () => {
         });
       });
 
+      if (parsedSalles.length > 0) {
       setPreview(parsedSalles);
       setShowPreview(true);
+        showNotification(`${parsedSalles.length} salle(s) analysée(s) avec succès`, 'success');
+      } else {
+        showNotification('Aucune donnée valide trouvée', 'error');
+      }
     } catch (error) {
+      console.error('Erreur parsing:', error);
       showNotification('Erreur lors du parsing des données', 'error');
     }
   };
@@ -236,7 +298,6 @@ const ImportDonnees = () => {
         dataToImport = preview;
       }
 
-      // Utiliser l'endpoint correct pour mettre à jour les disponibilités
       const response = await axios.post(
         'http://localhost:3832/api/salles/update-disponibilites',
         { salles: dataToImport },
@@ -247,7 +308,8 @@ const ImportDonnees = () => {
       setShowImportedData(true);
       showNotification('Disponibilités mises à jour avec succès', 'success');
       
-      // Reset
+      // Recharger les données et reset
+      await chargerSallesExistantes();
       if (activeTab === 'manual') {
         setSallesSelectionnees([]);
         setSalleSelectionnee('');
@@ -281,25 +343,29 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
     window.URL.revokeObjectURL(url);
   };
 
-  // Télécharger template Excel
-  const telechargerTemplateExcel = () => {
-    const csvContent = `Nom_Salle,Jour_Creneau,Jour_Creneau,...
-Salle_101,Lundi 08h30 - 11h30,Mardi 12h00 - 15h00
-Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
-    
-    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'template_disponibilites.xlsx';
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-
   // Obtenir la salle sélectionnée
   const getSalleSelectionnee = () => {
     return sallesExistantes.find(s => s.id_salle === salleSelectionnee);
   };
+
+  const modeActuelConfig = modes.find(m => m.id === modeActuel);
+
+  // Logique de pagination
+  const totalPages = Math.ceil(sallesFiltrees.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const sallesPaginees = sallesFiltrees.slice(startIndex, endIndex);
+
+  // Fonctions de navigation
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToPreviousPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
+  const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  const goToLastPage = () => setCurrentPage(totalPages);
+
+  // Reset pagination quand on change de recherche
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const tabs = [
     { 
@@ -331,7 +397,246 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
       <div className="max-w-6xl mx-auto p-6">
-        {/* Navigation par onglets modernes */}
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 mb-8"
+        >
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+              <span className="text-2xl">📊</span>
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Import des Données</h1>
+              <p className="text-gray-600 mt-1">Consultez et importez les données de scolarité (salles, créneaux)</p>
+            </div>
+          </div>
+
+          {/* Modes principaux */}
+          <div className="flex gap-4 mb-6">
+            {modes.map((mode) => (
+              <motion.button
+                key={mode.id}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setModeActuel(mode.id)}
+                className={`flex items-center gap-3 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                  modeActuel === mode.id
+                    ? `${mode.bgColor} ${mode.borderColor} ${mode.textColor} border-2 shadow-md`
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-2 border-transparent'
+                }`}
+              >
+                <span className="text-xl">{mode.icon}</span>
+                <span>{mode.title}</span>
+                {modeActuel === mode.id && (
+                  <motion.div
+                    layoutId="activeModeIndicator"
+                    className={`w-2 h-2 bg-gradient-to-r ${mode.color} rounded-full`}
+                  />
+                )}
+              </motion.button>
+            ))}
+          </div>
+
+          {/* Description du mode actif */}
+          <div className={`${modeActuelConfig.bgColor} rounded-xl border ${modeActuelConfig.borderColor} p-4 mb-6`}>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">{modeActuelConfig.icon}</span>
+              <div>
+                <h3 className={`font-semibold ${modeActuelConfig.textColor}`}>
+                  Mode {modeActuelConfig.title}
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  {modeActuelConfig.description}
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Contenu selon le mode */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={modeActuel}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Mode Consultation */}
+            {modeActuel === 'consulter' && (
+              <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                    <Database className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">Données Existantes</h3>
+                    <p className="text-gray-600">Consultez les disponibilités actuelles des salles</p>
+                  </div>
+                </div>
+
+                {/* Recherche */}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    🔍 Rechercher une salle
+                  </label>
+                  <div className="relative max-w-md">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
+                      placeholder="Rechercher par nom ou ID..."
+                    />
+                  </div>
+                </div>
+
+                {/* Liste des salles avec leurs disponibilités */}
+                <div className="space-y-4">
+                  {sallesPaginees.map((salle) => (
+                    <motion.div
+                      key={salle._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-blue-50 border border-blue-200 rounded-xl p-6"
+                    >
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
+                          <span className="text-white text-lg">🏢</span>
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-bold text-blue-900">{salle.nom}</h4>
+                          <p className="text-blue-700 text-sm">
+                            {salle.id_salle} • {salle.type} • Capacité: {salle.capacite} places
+                          </p>
+                        </div>
+                        <div className="ml-auto">
+                          <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                            {salle.disponibilite?.reduce((total, jour) => total + jour.creneaux.length, 0) || 0} créneaux
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Grille des disponibilités en lecture seule */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {joursDisponibles.map(jour => (
+                          <div key={jour} className="bg-white rounded-lg border border-blue-200 p-4">
+                            <h5 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-blue-500" />
+                              {jour}
+                            </h5>
+                            <div className="space-y-2">
+                              {creneauxDisponibles.map(creneau => {
+                                const isAvailable = estCreneauSelectionne(salle.id_salle, jour, creneau);
+                                return (
+                                  <div
+                                    key={creneau}
+                                    className={`p-2 rounded-lg text-sm font-medium border ${
+                                      isAvailable
+                                        ? 'bg-green-100 text-green-800 border-green-200'
+                                        : 'bg-gray-100 text-gray-500 border-gray-200'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span>{isAvailable ? '✅' : '❌'}</span>
+                                      <span>{creneau}</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Contrôles de pagination */}
+                {sallesFiltrees.length > itemsPerPage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-center gap-2 mt-6"
+                  >
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={goToFirstPage}
+                      disabled={currentPage === 1}
+                      className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+                    >
+                      ⏮️
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={goToPreviousPage}
+                      disabled={currentPage === 1}
+                      className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+                    >
+                      ⏪
+                    </motion.button>
+                    <div className="px-4 py-2 bg-blue-100 text-blue-800 rounded-xl font-semibold">
+                      {currentPage} / {totalPages}
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={goToNextPage}
+                      disabled={currentPage === totalPages}
+                      className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+                    >
+                      ⏩
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={goToLastPage}
+                      disabled={currentPage === totalPages}
+                      className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+                    >
+                      ⏭️
+                    </motion.button>
+                  </motion.div>
+                )}
+
+                {/* Résumé global */}
+                {sallesExistantes.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6"
+                  >
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-2xl text-white">📈</span>
+                      </div>
+                      <h3 className="text-xl font-bold text-blue-900 mb-2">
+                        Résumé Global
+                      </h3>
+                      <p className="text-blue-700">
+                        <strong>{sallesExistantes.length} salles</strong> configurées avec un total de{' '}
+                        <strong>
+                          {sallesExistantes.reduce((total, salle) => 
+                            total + (salle.disponibilite?.reduce((subTotal, jour) => subTotal + jour.creneaux.length, 0) || 0), 0
+                          )} créneaux
+                        </strong> disponibles
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            )}
+
+            {/* Mode Import */}
+            {modeActuel === 'importer' && (
+              <div>
+                {/* Navigation par onglets pour l'import */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -346,7 +651,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                 onClick={() => setActiveTab(tab.id)}
                 className={`relative p-6 rounded-2xl border-2 transition-all duration-300 ${
                   activeTab === tab.id
-                    ? `${tab.bgColor} border-green-200 shadow-lg`
+                            ? `${tab.bgColor} border-orange-200 shadow-lg`
                     : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'
                 }`}
               >
@@ -361,7 +666,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                     }`} />
                   </div>
                   <h3 className={`font-bold text-lg mb-2 ${
-                    activeTab === tab.id ? 'text-green-700' : 'text-gray-700'
+                            activeTab === tab.id ? 'text-orange-700' : 'text-gray-700'
                   }`}>
                     {tab.label}
                   </h3>
@@ -370,11 +675,10 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                   </p>
                 </div>
                 
-                {/* Indicateur actif */}
                 {activeTab === tab.id && (
                   <motion.div
-                    layoutId="activeTabIndicator"
-                    className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg"
+                            layoutId="activeImportTabIndicator"
+                            className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center shadow-lg"
                   >
                     <span className="text-white text-sm">✓</span>
                   </motion.div>
@@ -384,7 +688,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
           </div>
         </motion.div>
 
-        {/* Contenu des onglets */}
+                {/* Contenu des onglets d'import */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -407,62 +711,44 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                   </div>
                 </div>
                 
-                {/* Recherche et sélection de salle */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      🔍 Rechercher une salle
-                    </label>
-                    <div className="relative">
-                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-                        placeholder="Rechercher par nom ou ID..."
-                      />
-                    </div>
-                  </div>
-                  <div>
+                        {/* Sélection de salle */}
+                        <div className="mb-8">
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
                       🏢 Sélectionner une salle
                     </label>
                     <select
                       value={salleSelectionnee}
                       onChange={(e) => setSalleSelectionnee(e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                            className="w-full max-w-md px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all appearance-none cursor-pointer"
                     >
                       <option value="">Choisir une salle...</option>
-                      {sallesFiltrees.map((salle) => (
+                            {sallesExistantes.map((salle) => (
                         <option key={salle._id} value={salle.id_salle}>
                           {salle.id_salle} - {salle.nom} ({salle.type}, {salle.capacite} places)
                         </option>
                       ))}
                     </select>
-                  </div>
                 </div>
 
-                {/* Configuration des créneaux pour la salle sélectionnée */}
+                        {/* Configuration des créneaux */}
                 <AnimatePresence>
                   {salleSelectionnee && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200 p-6 mb-8"
+                              className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl border-2 border-orange-200 p-6 mb-8"
                     >
                       <div className="flex items-center gap-3 mb-6">
-                        <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                                <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
                           <span className="text-white text-xl">🏢</span>
                         </div>
                         <div>
-                          <h4 className="text-xl font-bold text-blue-900">
+                                  <h4 className="text-xl font-bold text-orange-900">
                             {getSalleSelectionnee()?.nom}
                           </h4>
-                          <p className="text-blue-700">
-                            {getSalleSelectionnee()?.id_salle} • {getSalleSelectionnee()?.type} • 
-                            Capacité: {getSalleSelectionnee()?.capacite} places
+                                  <p className="text-orange-700">
+                                    Cliquez sur les créneaux pour les activer/désactiver
                           </p>
                         </div>
                       </div>
@@ -473,26 +759,38 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                           <motion.div 
                             key={jour} 
                             whileHover={{ scale: 1.02 }}
-                            className="bg-white rounded-xl border border-blue-200 p-4 shadow-sm"
+                                    className="bg-white rounded-xl border border-orange-200 p-4 shadow-sm"
                           >
                             <h5 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                              <Clock className="w-4 h-4 text-blue-500" />
+                                      <Clock className="w-4 h-4 text-orange-500" />
                               {jour}
                             </h5>
                             <div className="space-y-3">
-                              {creneauxDisponibles.map(creneau => (
-                                <label key={creneau} className="flex items-center cursor-pointer group">
+                                      {creneauxDisponibles.map(creneau => {
+                                        const isSelected = estCreneauSelectionne(salleSelectionnee, jour, creneau);
+                                        const salleExistante = sallesExistantes.find(s => s.id_salle === salleSelectionnee);
+                                        const isExistant = salleExistante?.disponibilite?.find(d => d.jour === jour)?.creneaux.includes(creneau) || false;
+                                        
+                                        return (
+                                          <label key={creneau} className={`flex items-center cursor-pointer group ${isExistant ? 'opacity-60' : ''}`}>
                                   <input
                                     type="checkbox"
-                                    checked={estCreneauSelectionne(salleSelectionnee, jour, creneau)}
+                                              checked={isSelected}
                                     onChange={() => toggleCreneau(salleSelectionnee, jour, creneau)}
-                                    className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-all"
-                                  />
-                                  <span className="text-sm text-gray-700 group-hover:text-blue-600 transition-colors">
+                                              disabled={isExistant}
+                                              className="mr-3 h-5 w-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded transition-all disabled:opacity-50"
+                                            />
+                                            <span className={`text-sm transition-colors ${
+                                              isExistant 
+                                                ? 'text-gray-400 line-through' 
+                                                : 'text-gray-700 group-hover:text-orange-600'
+                                            }`}>
                                     {creneau}
+                                              {isExistant && <span className="ml-2 text-xs text-gray-400">(déjà configuré)</span>}
                                   </span>
                                 </label>
-                              ))}
+                                        );
+                                      })}
                             </div>
                           </motion.div>
                         ))}
@@ -501,39 +799,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                   )}
                 </AnimatePresence>
 
-                {/* Résumé des salles configurées */}
-                <AnimatePresence>
-                  {sallesSelectionnees.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6 mb-8"
-                    >
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center">
-                          <span className="text-white">✅</span>
-                        </div>
-                        <h4 className="text-lg font-bold text-green-800">
-                          Salles configurées ({sallesSelectionnees.length})
-                        </h4>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {sallesSelectionnees.map((salle) => {
-                          const salleInfo = sallesExistantes.find(s => s.id_salle === salle.id_salle);
-                          return (
-                            <div key={salle.id_salle} className="bg-white rounded-lg p-3 border border-green-200">
-                              <div className="font-semibold text-green-800">{salleInfo?.nom}</div>
-                              <div className="text-sm text-green-600">
-                                {salle.disponibilite.length} jour(s) configuré(s)
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
+                        {/* Bouton d'import pour sélection manuelle */}
                 {sallesSelectionnees.length > 0 && (
                   <div className="flex justify-center">
                     <motion.button
@@ -541,7 +807,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                       whileTap={{ scale: 0.95 }}
                       onClick={importerDonnees}
                       disabled={isLoading}
-                      className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <div className="flex items-center gap-3">
                         {isLoading ? (
@@ -632,7 +898,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                           whileTap={{ scale: 0.95 }}
                           onClick={importerDonnees}
                           disabled={isLoading}
-                          className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                         >
                           <div className="flex items-center gap-2">
                             {isLoading ? (
@@ -647,6 +913,90 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                     </AnimatePresence>
                   </div>
                 </div>
+
+                        {/* Prévisualisation des données */}
+                        <AnimatePresence>
+                          {showPreview && preview.length > 0 && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -20 }}
+                              className="bg-gradient-to-r from-purple-50 to-violet-50 border-2 border-purple-200 rounded-2xl p-6"
+                            >
+                              <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center">
+                                    <Eye className="w-5 h-5 text-white" />
+                                  </div>
+                                  <div>
+                                    <h4 className="text-lg font-bold text-purple-800">
+                                      Prévisualisation ({preview.length} salle{preview.length > 1 ? 's' : ''})
+                                    </h4>
+                                    <p className="text-purple-600 text-sm">
+                                      Vérifiez les données avant l'import
+                                    </p>
+                                  </div>
+                                </div>
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  onClick={() => {
+                                    setShowPreview(false);
+                                    setPreview([]);
+                                  }}
+                                  className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center hover:bg-purple-600 transition-colors"
+                                >
+                                  ✕
+                                </motion.button>
+                              </div>
+
+                              <div className="space-y-4 max-h-96 overflow-y-auto">
+                                {preview.map((salle, index) => (
+                                  <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    className="bg-white rounded-xl border border-purple-200 p-4"
+                                  >
+                                    <div className="flex items-center gap-3 mb-3">
+                                      <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                                        <span className="text-white text-sm">🏢</span>
+                                      </div>
+                                      <div>
+                                        <h5 className="font-bold text-purple-900">{salle.nom}</h5>
+                                        <p className="text-purple-600 text-sm">{salle.id_salle}</p>
+                                      </div>
+                                      <div className="ml-auto">
+                                        <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                                          {salle.disponibilite?.reduce((total, jour) => total + jour.creneaux.length, 0) || 0} créneaux
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                      {salle.disponibilite?.map((jour, jourIndex) => (
+                                        <div key={jourIndex} className="bg-purple-50 rounded-lg p-3 border border-purple-100">
+                                          <h6 className="font-semibold text-purple-800 mb-2 flex items-center gap-1">
+                                            <Clock className="w-3 h-3" />
+                                            {jour.jour}
+                                          </h6>
+                                          <div className="space-y-1">
+                                            {jour.creneaux.map((creneau, creneauIndex) => (
+                                              <div key={creneauIndex} className="text-xs text-purple-700 bg-white rounded px-2 py-1">
+                                                {creneau}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </motion.div>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
               </div>
             )}
 
@@ -664,7 +1014,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                 </div>
 
                 <div className="space-y-6">
-                  <div className="flex justify-center gap-4">
+                          <div className="flex justify-center">
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -673,18 +1023,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                     >
                       <div className="flex items-center gap-2">
                         <Download className="w-5 h-5" />
-                        <span>Template CSV</span>
-                      </div>
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={telechargerTemplateExcel}
-                      className="px-6 py-3 bg-white border-2 border-green-200 text-green-700 font-semibold rounded-xl hover:bg-green-50 transition-all"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Download className="w-5 h-5" />
-                        <span>Template Excel</span>
+                                <span>Télécharger Template CSV</span>
                       </div>
                     </motion.button>
                   </div>
@@ -741,7 +1080,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                                 whileTap={{ scale: 0.95 }}
                                 onClick={importerDonnees}
                                 disabled={isLoading}
-                                className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                                        className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                               >
                                 <div className="flex items-center gap-2">
                                   {isLoading ? (
@@ -758,134 +1097,98 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
 
-        {/* Prévisualisation */}
+                          {/* Prévisualisation des données de fichier */}
         <AnimatePresence>
           {showPreview && preview.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 mt-8"
-            >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
-                  <Eye className="w-5 h-5 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">
-                  Prévisualisation ({preview.length} salles)
-                </h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salle</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Disponibilité</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {preview.slice(0, 10).map((salle, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="font-medium text-gray-900">{salle.nom || salle.id_salle}</div>
-                          {salle.nom && <div className="text-sm text-gray-500">{salle.id_salle}</div>}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm space-y-1">
-                            {salle.disponibilite?.map((disp, i) => (
-                              <div key={i} className="flex items-center gap-2">
-                                <span className="font-medium text-blue-600 min-w-[80px]">{disp.jour}:</span> 
-                                <span className="text-gray-700">{disp.creneaux.join(', ')}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {preview.length > 10 && (
-                  <div className="text-center py-4">
-                    <span className="text-gray-500 bg-gray-100 px-4 py-2 rounded-full">
-                      ... et {preview.length - 10} autres salles
-                    </span>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Données importées */}
-        <AnimatePresence>
-          {showImportedData && importedData.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-8 mt-8"
+                                className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6"
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-white" />
+                                    <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center">
+                                      <Eye className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-green-800">
-                      Import réussi ! 🎉
-                    </h3>
-                    <p className="text-green-600">
-                      {importedData.length} salles mises à jour avec succès
+                                      <h4 className="text-lg font-bold text-green-800">
+                                        Prévisualisation Fichier ({preview.length} salle{preview.length > 1 ? 's' : ''})
+                                      </h4>
+                                      <p className="text-green-600 text-sm">
+                                        Données extraites du fichier {file?.name}
                     </p>
                   </div>
                 </div>
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => setShowImportedData(false)}
+                                    onClick={() => {
+                                      setShowPreview(false);
+                                      setPreview([]);
+                                    }}
                   className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition-colors"
                 >
                   ✕
                 </motion.button>
               </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-green-200">
-                  <thead className="bg-green-100">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Salle</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Disponibilité mise à jour</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-green-200">
-                    {importedData.map((salle, index) => (
-                      <tr key={index} className="hover:bg-green-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="font-medium text-green-800">{salle.nom || salle.id_salle}</div>
-                          {salle.nom && <div className="text-sm text-green-600">{salle.id_salle}</div>}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm space-y-1">
-                            {salle.disponibilite?.map((disp, i) => (
-                              <div key={i} className="flex items-center gap-2">
-                                <span className="font-medium text-green-700 min-w-[80px]">{disp.jour}:</span> 
-                                <span className="text-green-600">{disp.creneaux.join(', ')}</span>
+
+                                <div className="space-y-4 max-h-96 overflow-y-auto">
+                                  {preview.map((salle, index) => (
+                                    <motion.div
+                                      key={index}
+                                      initial={{ opacity: 0, x: -20 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      transition={{ delay: index * 0.1 }}
+                                      className="bg-white rounded-xl border border-green-200 p-4"
+                                    >
+                                      <div className="flex items-center gap-3 mb-3">
+                                        <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                                          <span className="text-white text-sm">📁</span>
+                                        </div>
+                                        <div>
+                                          <h5 className="font-bold text-green-900">{salle.nom}</h5>
+                                          <p className="text-green-600 text-sm">{salle.id_salle}</p>
+                                        </div>
+                                        <div className="ml-auto">
+                                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                            {salle.disponibilite?.reduce((total, jour) => total + jour.creneaux.length, 0) || 0} créneaux
+                                          </span>
+                                        </div>
+                                      </div>
+
+                                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {salle.disponibilite?.map((jour, jourIndex) => (
+                                          <div key={jourIndex} className="bg-green-50 rounded-lg p-3 border border-green-100">
+                                            <h6 className="font-semibold text-green-800 mb-2 flex items-center gap-1">
+                                              <Clock className="w-3 h-3" />
+                                              {jour.jour}
+                                            </h6>
+                                            <div className="space-y-1">
+                                              {jour.creneaux.map((creneau, creneauIndex) => (
+                                                <div key={creneauIndex} className="text-xs text-green-700 bg-white rounded px-2 py-1">
+                                                  {creneau}
                               </div>
                             ))}
                           </div>
-                        </td>
-                      </tr>
+                                          </div>
                     ))}
-                  </tbody>
-                </table>
+                                      </div>
+                                    </motion.div>
+                                  ))}
               </div>
             </motion.div>
           )}
+                          </AnimatePresence>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            )}
+          </motion.div>
         </AnimatePresence>
       </div>
     </div>

@@ -21,12 +21,17 @@ router.put('/modifier-seance', auth, emploiDuTempsController.modifierSeance);
 router.delete('/supprimer-seance', auth, emploiDuTempsController.supprimerSeance);
 router.post('/exporter/:format', auth, emploiDuTempsController.exporterEmploi);
 
+// Nouvelles routes pour la sauvegarde et gestion des emplois du temps
+router.get('/', auth, emploiDuTempsController.getAllEmplois);
+router.post('/sauvegarder', auth, emploiDuTempsController.sauvegarderEmploi);
+
 // Routes pour la gestion des créneaux libres
 router.post('/analyser-creneaux-libres', auth, emploiDuTempsController.analyserCreneauxLibres);
 router.post('/proposer-creneau', auth, emploiDuTempsController.proposerCreneau);
 router.post('/reserver-creneau', auth, emploiDuTempsController.reserverCreneau);
 
 // Routes avec paramètres génériques DOIVENT être à la fin
+router.get('/:id', auth, emploiDuTempsController.getEmploiById);
 router.get('/:programmeId/:groupe', auth, emploiDuTempsController.getEmploiByProgrammeAndGroupe);
 router.put('/:id', auth, emploiDuTempsController.updateEmploi);
 router.delete('/:id', auth, emploiDuTempsController.deleteEmploi);

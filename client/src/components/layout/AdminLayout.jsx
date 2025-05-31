@@ -100,8 +100,8 @@ export default function AdminLayout() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-            <Link
-              to={item.path}
+                <Link
+                  to={item.path}
                   className={`group relative flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
                     isActive
                       ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-600 shadow-md'
@@ -133,7 +133,7 @@ export default function AdminLayout() {
                         exit={{ opacity: 0, x: -10 }}
                         className="ml-4 font-medium"
                       >
-              {item.title}
+                        {item.title}
                       </motion.span>
                     )}
                   </AnimatePresence>
@@ -148,7 +148,7 @@ export default function AdminLayout() {
                       3
                     </motion.span>
                   )}
-            </Link>
+                </Link>
               </motion.div>
             );
           })}
@@ -202,7 +202,7 @@ export default function AdminLayout() {
                   exit={{ opacity: 0, x: -10 }}
                   className="ml-3 font-medium"
                 >
-            Déconnexion
+                  Déconnexion
                 </motion.span>
               )}
             </AnimatePresence>
@@ -265,11 +265,11 @@ export default function AdminLayout() {
                   <p className="text-xs text-gray-500">Administrateur</p>
                 </div>
                 <div className="relative">
-            <img
+                  <img
                     src={user.photo || "/images/user.png"}
                     alt="Profile"
                     className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 hover:border-blue-300 transition-colors duration-200"
-            />
+                  />
                   <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
                 </div>
               </div>

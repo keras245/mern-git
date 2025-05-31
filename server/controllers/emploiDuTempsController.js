@@ -130,9 +130,6 @@ const emploiDuTempsController = {
         });
       }
 
-      // Supprimer l'ancien emploi du temps s'il existe
-      await EmploiDuTemps.deleteMany({ programme, groupe });
-
       // 1. Récupérer tous les cours du programme
       const cours = await Cours.find({ id_programme: programme }).populate('id_prof');
       
@@ -232,39 +229,37 @@ const emploiDuTempsController = {
         }
       }
 
-      // Créer le nouvel emploi du temps
-      const emploiDuTemps = new EmploiDuTemps({
+      // MODIFICATION : Ne pas sauvegarder automatiquement, juste retourner les données temporaires
+      // Populer les données pour l'affichage
+      const seancesPopulees = await Promise.all(
+        seances.map(async (seance) => {
+          const cours = await Cours.findById(seance.cours).select('nom_matiere duree');
+          const professeur = await Professeur.findById(seance.professeur).select('nom prenom');
+          const salle = await Salle.findById(seance.salle).select('nom type');
+          
+          return {
+            ...seance,
+            cours,
+            professeur,
+            salle
+          };
+        })
+      );
+
+      // Retourner l'emploi du temps temporaire avec toutes les références peuplées
+      const response = {
         programme,
         groupe,
-        seances
-      });
+        seances: seancesPopulees,
+        conflits,
+        totalSeances: seances.length,
+        totalConflits: conflits.length,
+        isTemporary: true // Marquer comme temporaire
+      };
 
-      await emploiDuTemps.save();
+      console.log(`Emploi du temps généré (temporaire): ${seances.length} séances, ${conflits.length} conflits`);
 
-      // Retourner l'emploi du temps avec toutes les références peuplées
-      const emploiComplet = await EmploiDuTemps.findById(emploiDuTemps._id)
-        .populate({
-          path: 'seances.cours',
-          select: 'nom_matiere duree'
-        })
-        .populate({
-          path: 'seances.professeur',
-          select: 'nom prenom'
-        })
-        .populate({
-          path: 'seances.salle',
-          select: 'nom type'
-        });
-
-      // Ajouter les conflits à la réponse
-      const response = emploiComplet.toObject();
-      response.conflits = conflits;
-      response.totalSeances = seances.length;
-      response.totalConflits = conflits.length;
-
-      console.log(`Emploi du temps généré: ${seances.length} séances, ${conflits.length} conflits`);
-
-      res.status(201).json(response);
+      res.status(200).json(response);
 
     } catch (error) {
       console.error('Erreur génération emploi du temps:', error);
@@ -385,7 +380,7 @@ const emploiDuTempsController = {
 
       const emploiDuTemps = await EmploiDuTemps.findById(emploiDuTempsId)
         .populate('programme', 'nom licence semestre')
-        .populate('seances.cours', 'nom_matiere duree')
+        .populate('seances.cours', 'nom_matiere')
         .populate('seances.professeur', 'nom prenom')
         .populate('seances.salle', 'nom type');
 
@@ -842,6 +837,91 @@ const emploiDuTempsController = {
       res.json({ message: 'Attribution temporaire supprimée avec succès' });
     } catch (error) {
       console.error('Erreur suppression attribution temporaire:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Nouvelle méthode pour récupérer tous les emplois du temps sauvegardés
+  getAllEmplois: async (req, res) => {
+    try {
+      const emplois = await EmploiDuTemps.find()
+        .populate('programme', 'nom licence semestre')
+        .populate('seances.cours', 'nom_matiere')
+        .populate('seances.professeur', 'nom prenom')
+        .populate('seances.salle', 'nom type')
+        .sort({ createdAt: -1 });
+
+      res.json(emplois);
+    } catch (error) {
+      console.error('Erreur récupération emplois:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Nouvelle méthode pour récupérer un emploi du temps par ID
+  getEmploiById: async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const emploi = await EmploiDuTemps.findById(id)
+        .populate('programme', 'nom licence semestre')
+        .populate('seances.cours', 'nom_matiere')
+        .populate('seances.professeur', 'nom prenom')
+        .populate('seances.salle', 'nom type');
+
+      if (!emploi) {
+        return res.status(404).json({ message: 'Emploi du temps non trouvé' });
+      }
+
+      res.json(emploi);
+    } catch (error) {
+      console.error('Erreur récupération emploi:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Nouvelle méthode pour sauvegarder un emploi du temps
+  sauvegarderEmploi: async (req, res) => {
+    try {
+      const { nom, description, programme, groupe, seances, statut } = req.body;
+
+      // Validation des données
+      if (!nom || !programme || !groupe) {
+        return res.status(400).json({ 
+          message: 'Le nom, le programme et le groupe sont requis' 
+        });
+      }
+
+      // MODIFICATION : Supprimer l'ancien emploi du temps s'il existe pour ce programme/groupe
+      await EmploiDuTemps.deleteMany({ programme, groupe });
+
+      // Créer le nouvel emploi du temps
+      const nouvelEmploi = new EmploiDuTemps({
+        nom: nom.trim(),
+        description: description?.trim() || '',
+        programme,
+        groupe,
+        seances: seances || [],
+        statut: statut || 'actif',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      const emploiSauvegarde = await nouvelEmploi.save();
+
+      // Populer les données pour la réponse
+      const emploiComplet = await EmploiDuTemps.findById(emploiSauvegarde._id)
+        .populate('programme', 'nom licence semestre')
+        .populate('seances.cours', 'nom_matiere')
+        .populate('seances.professeur', 'nom prenom')
+        .populate('seances.salle', 'nom type');
+
+      res.status(201).json({
+        message: 'Emploi du temps sauvegardé avec succès',
+        emploi: emploiComplet
+      });
+    } catch (error) {
+      console.error('Erreur sauvegarde emploi:', error);
       res.status(500).json({ message: error.message });
     }
   }

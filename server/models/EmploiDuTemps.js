@@ -29,6 +29,20 @@ const seanceSchema = new mongoose.Schema({
 });
 
 const emploiDuTempsSchema = new mongoose.Schema({
+  id_edt: {
+    type: String,
+    unique: true
+  },
+  nom: {
+    type: String,
+    trim: true,
+    maxlength: 100
+  },
+  description: {
+    type: String,
+    trim: true,
+    maxlength: 500
+  },
   programme: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Programme',
@@ -40,29 +54,47 @@ const emploiDuTempsSchema = new mongoose.Schema({
     min: 1
   },
   seances: [seanceSchema],
+  statut: {
+    type: String,
+    enum: ['actif', 'inactif', 'brouillon'],
+    default: 'actif'
+  },
   dateCreation: {
+    type: Date,
+    default: Date.now
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
     type: Date,
     default: Date.now
   }
 });
 
-// Supprimer le middleware problématique ou le corriger
-// Si vous voulez garder un ID unique, voici une version corrigée :
+// Middleware corrigé pour générer un ID unique
 emploiDuTempsSchema.pre('save', function(next) {
   if (!this.id_edt) {
-    // Format simple: EDT-[TIMESTAMP]
-    const timestamp = Date.now();
-    this.id_edt = `EDT-${timestamp}`;
+    // Format: EDT-YYYYMMDD-HHMMSS-RANDOM
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '');
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    this.id_edt = `EDT-${dateStr}-${timeStr}-${random}`;
   }
+  
+  // Mettre à jour updatedAt à chaque sauvegarde
+  this.updatedAt = new Date();
+  
   next();
 });
 
-// Ajouter le champ id_edt au schéma si nécessaire
-emploiDuTempsSchema.add({
-  id_edt: {
-    type: String,
-    unique: true
-  }
-});
+// Index pour optimiser les requêtes
+emploiDuTempsSchema.index({ programme: 1, groupe: 1 });
+emploiDuTempsSchema.index({ 'seances.jour': 1, 'seances.creneau': 1 });
+emploiDuTempsSchema.index({ nom: 1, programme: 1, groupe: 1 });
+emploiDuTempsSchema.index({ statut: 1 });
+emploiDuTempsSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('EmploiDuTemps', emploiDuTempsSchema);
