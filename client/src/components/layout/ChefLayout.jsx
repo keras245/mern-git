@@ -34,21 +34,21 @@ export default function ChefLayout() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Sidebar */}
+      {/* Sidebar - Fixe et optimisée */}
       <motion.aside
         initial={{ width: 280 }}
         animate={{ width: isCollapsed ? 80 : 280 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="relative bg-white shadow-2xl border-r border-gray-200"
+        className="fixed h-screen bg-white shadow-2xl border-r border-gray-200 flex flex-col z-50"
       >
         {/* Header de la sidebar */}
-        <div className="p-6 border-b border-gray-100">
+        <div className="p-6 border-b border-gray-100 flex-shrink-0">
           <motion.div 
             className="flex items-center"
             animate={{ justifyContent: isCollapsed ? 'center' : 'flex-start' }}
           >
-            <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
-              👨‍🏫
+            <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-teal-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
+              E
             </div>
             <AnimatePresence>
               {!isCollapsed && (
@@ -58,7 +58,7 @@ export default function ChefLayout() {
                   exit={{ opacity: 0, x: -20 }}
                   className="ml-3"
                 >
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">
                     EduFlex
                   </h1>
                   <p className="text-xs text-gray-500 font-medium">Chef de Classe</p>
@@ -83,8 +83,8 @@ export default function ChefLayout() {
           </motion.div>
         </motion.button>
 
-        {/* Navigation */}
-        <nav className="p-4 space-y-2">
+        {/* Navigation - Zone scrollable si nécessaire */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {menuItems.map((item, index) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
@@ -100,7 +100,7 @@ export default function ChefLayout() {
                   to={item.path}
                   className={`group relative flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
                     isActive
-                      ? 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-600 shadow-md'
+                      ? 'bg-gradient-to-r from-green-50 to-teal-50 text-green-600 shadow-md'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
@@ -108,7 +108,7 @@ export default function ChefLayout() {
                   {isActive && (
                     <motion.div
                       layoutId="activeIndicator"
-                      className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-500 to-emerald-500 rounded-r-full"
+                      className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-500 to-teal-500 rounded-r-full"
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                   )}
@@ -134,12 +134,12 @@ export default function ChefLayout() {
                     )}
                   </AnimatePresence>
 
-                  {/* Badge de notification */}
-                  {item.title === 'Notifications' && !isCollapsed && (
+                  {/* Badge de notification (exemple) */}
+                  {item.title === 'Messages' && !isCollapsed && (
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center"
+                      className="ml-auto bg-green-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center"
                     >
                       5
                     </motion.span>
@@ -150,14 +150,16 @@ export default function ChefLayout() {
           })}
         </nav>
 
-        {/* Profil utilisateur */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100">
+        {/* Profil utilisateur - Pas d'espace inutile */}
+        <div className="p-4 border-t border-gray-100 flex-shrink-0">
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-3`}>
             <div className="flex items-center">
               <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white font-semibold">
-                  {user.prenom?.[0]}{user.nom?.[0]}
-                </div>
+                <img
+                  src={user.photo || "/images/user.png"}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                />
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
               </div>
               <AnimatePresence>
@@ -168,8 +170,8 @@ export default function ChefLayout() {
                     exit={{ opacity: 0, x: -10 }}
                     className="ml-3"
                   >
-                    <p className="text-sm font-medium text-gray-900">{user.prenom} {user.nom}</p>
-                    <p className="text-xs text-gray-500">Chef de Classe - {user.classe}</p>
+                    <p className="text-sm font-medium text-gray-900">{user.nom} {user.prenom}</p>
+                    <p className="text-xs text-gray-500">Chef de Classe</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -180,7 +182,6 @@ export default function ChefLayout() {
           <motion.button
             onClick={() => {
               localStorage.removeItem('token');
-              localStorage.removeItem('role');
               localStorage.removeItem('user');
               window.location.href = '/login';
             }}
@@ -195,7 +196,7 @@ export default function ChefLayout() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
-                  className="ml-4 font-medium"
+                  className="ml-3 font-medium"
                 >
                   Déconnexion
                 </motion.span>
@@ -205,8 +206,12 @@ export default function ChefLayout() {
         </div>
       </motion.aside>
 
-      {/* Contenu principal */}
-      <div className="flex-1 flex flex-col">
+      {/* Main content - Avec marge pour la sidebar fixe */}
+      <motion.div 
+        className="flex-1 flex flex-col"
+        animate={{ marginLeft: isCollapsed ? 80 : 280 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
         {/* Header */}
         <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 px-8 py-6">
           <div className="flex items-center justify-between">
@@ -266,7 +271,7 @@ export default function ChefLayout() {
         <main className="flex-1 p-8 overflow-auto">
           <Outlet />
         </main>
-      </div>
+      </motion.div>
     </div>
   );
 }

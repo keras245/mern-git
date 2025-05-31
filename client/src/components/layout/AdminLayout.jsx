@@ -38,15 +38,15 @@ export default function AdminLayout() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Sidebar */}
+      {/* Sidebar - Fixe et optimisée */}
       <motion.aside
         initial={{ width: 280 }}
         animate={{ width: isCollapsed ? 80 : 280 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="relative bg-white shadow-2xl border-r border-gray-200"
+        className="fixed h-screen bg-white shadow-2xl border-r border-gray-200 flex flex-col z-50"
       >
         {/* Header de la sidebar */}
-        <div className="p-6 border-b border-gray-100">
+        <div className="p-6 border-b border-gray-100 flex-shrink-0">
           <motion.div 
             className="flex items-center"
             animate={{ justifyContent: isCollapsed ? 'center' : 'flex-start' }}
@@ -87,8 +87,8 @@ export default function AdminLayout() {
           </motion.div>
         </motion.button>
 
-        {/* Navigation */}
-        <nav className="p-4 space-y-2">
+        {/* Navigation - Zone scrollable si nécessaire */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {menuItems.map((item, index) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
@@ -154,8 +154,8 @@ export default function AdminLayout() {
           })}
         </nav>
 
-        {/* Profil utilisateur */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100">
+        {/* Profil utilisateur - Pas d'espace inutile */}
+        <div className="p-4 border-t border-gray-100 flex-shrink-0">
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-3`}>
             <div className="flex items-center">
               <div className="relative">
@@ -210,8 +210,12 @@ export default function AdminLayout() {
         </div>
       </motion.aside>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col">
+      {/* Main content - Avec marge pour la sidebar fixe */}
+      <motion.div 
+        className="flex-1 flex flex-col"
+        animate={{ marginLeft: isCollapsed ? 80 : 280 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
         {/* Header moderne */}
         <header className="bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200 sticky top-0 z-40">
           <div className="flex items-center justify-between px-8 py-4">
@@ -287,7 +291,7 @@ export default function AdminLayout() {
             <Outlet />
           </motion.div>
         </main>
-      </div>
+      </motion.div>
     </div>
   );
 }
