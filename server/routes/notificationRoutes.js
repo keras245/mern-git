@@ -8,7 +8,13 @@ const {
   deleteNotification,
   markAllAsRead,
   deleteMultiple,
-  createNotification
+  createNotification,
+  getNotificationsAdmin,
+  getNotificationsStatsAdmin,
+  createNotificationAdmin,
+  deleteNotificationAdmin,
+  deleteMultipleAdmin,
+  getChefsForAdmin
 } = require('../controllers/notificationController');
 const auth = require('../middleware/auth');
 
@@ -21,7 +27,14 @@ router.delete('/:id', auth, deleteNotification);
 router.put('/mark-all-read', auth, markAllAsRead);
 router.delete('/', auth, deleteMultiple);
 
-// Routes pour les admins
+// Routes spécifiques pour les admins (DOIVENT être AVANT les routes génériques)
+router.get('/admin/stats', auth, getNotificationsStatsAdmin);
+router.get('/admin', auth, getNotificationsAdmin);
+router.post('/admin/create', auth, createNotificationAdmin);
+router.delete('/admin/bulk', auth, deleteMultipleAdmin);
+router.delete('/admin/:id', auth, deleteNotificationAdmin);
+
+// Routes pour créer des notifications (admins et système)
 router.post('/', auth, createNotification);
 
 module.exports = router; 

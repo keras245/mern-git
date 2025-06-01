@@ -21,6 +21,8 @@ import {
   Star,
   StarOff
 } from 'lucide-react';
+import api from '../../services/api';
+import { useNotification } from '../../context/NotificationContext';
 
 const notificationTypes = {
   info: { icon: Info, color: 'blue', bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
@@ -31,113 +33,76 @@ const notificationTypes = {
   schedule: { icon: Calendar, color: 'indigo', bgColor: 'bg-indigo-50', textColor: 'text-indigo-600' }
 };
 
-const mockNotifications = [
-  {
-    id: 1,
-    type: 'schedule',
-    title: 'Modification d\'emploi du temps',
-    message: 'Le cours de Mathématiques de demain (14h-16h) a été déplacé en salle B205.',
-    time: '2024-01-15T10:30:00Z',
-    read: false,
-    important: true,
-    sender: 'Administration'
-  },
-  {
-    id: 2,
-    type: 'info',
-    title: 'Nouvelle attribution temporaire',
-    message: 'Prof. Martin remplacera Prof. Dubois pour le cours de Physique cette semaine.',
-    time: '2024-01-15T09:15:00Z',
-    read: false,
-    important: false,
-    sender: 'Département'
-  },
-  {
-    id: 3,
-    type: 'success',
-    title: 'Feedback traité',
-    message: 'Votre feedback concernant l\'équipement informatique a été pris en compte.',
-    time: '2024-01-14T16:45:00Z',
-    read: true,
-    important: false,
-    sender: 'Support Technique'
-  },
-  {
-    id: 4,
-    type: 'warning',
-    title: 'Présence non déclarée',
-    message: 'Rappel : La présence pour le cours d\'Anglais d\'hier n\'a pas été déclarée.',
-    time: '2024-01-14T14:20:00Z',
-    read: false,
-    important: true,
-    sender: 'Système'
-  },
-  {
-    id: 5,
-    type: 'message',
-    title: 'Message du directeur',
-    message: 'Réunion des chefs de classe prévue vendredi 19 janvier à 10h en salle de conférence.',
-    time: '2024-01-14T11:00:00Z',
-    read: true,
-    important: true,
-    sender: 'Direction'
-  },
-  {
-    id: 6,
-    type: 'info',
-    title: 'Mise à jour système',
-    message: 'Le système sera en maintenance dimanche de 2h à 6h du matin.',
-    time: '2024-01-13T18:30:00Z',
-    read: true,
-    important: false,
-    sender: 'IT Support'
-  },
-  {
-    id: 7,
-    type: 'error',
-    title: 'Problème technique',
-    message: 'Le projecteur de la salle A101 est en panne. Merci de signaler tout problème similaire.',
-    time: '2024-01-13T15:20:00Z',
-    read: false,
-    important: true,
-    sender: 'Maintenance'
-  },
-  {
-    id: 8,
-    type: 'success',
-    title: 'Présence validée',
-    message: 'Toutes les présences de la semaine dernière ont été validées avec succès.',
-    time: '2024-01-12T17:00:00Z',
-    read: true,
-    important: false,
-    sender: 'Système'
-  }
-];
-
 export default function Notifications() {
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedNotifications, setSelectedNotifications] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [stats, setStats] = useState({
+    total: 0,
+    unread: 0,
+    important: 0,
+    today: 0
+  });
 
-  // Statistiques
-  const stats = {
-    total: notifications.length,
-    unread: notifications.filter(n => !n.read).length,
-    important: notifications.filter(n => n.important).length,
-    today: notifications.filter(n => {
-      const today = new Date().toDateString();
-      return new Date(n.time).toDateString() === today;
-    }).length
+  const { showNotification } = useNotification();
+
+  useEffect(() => {
+    chargerNotifications();
+  }, []);
+
+  const chargerNotifications = async () => {
+    try {
+      setLoading(true);
+      console.log('=== CHARGEMENT NOTIFICATIONS CHEF ===');
+      
+      const response = await api.get('/notifications');
+      console.log('Notifications reçues:', response.data);
+      
+      if (response.data.notifications) {
+        setNotifications(response.data.notifications);
+        setStats(response.data.stats);
+      } else {
+        // Si pas de structure complète, utiliser directement les données
+        setNotifications(Array.isArray(response.data) ? response.data : []);
+        calculerStatsLocales(Array.isArray(response.data) ? response.data : []);
+      }
+    } catch (error) {
+      console.error('Erreur chargement notifications:', error);
+      setNotifications([]);
+      showNotification('Erreur lors du chargement des notifications', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const calculerStatsLocales = (notifs = notifications) => {
+    const total = notifs.length;
+    const unread = notifs.filter(n => !n.read).length;
+    const important = notifs.filter(n => n.important).length;
+    const today = notifs.filter(n => {
+      const today = new Date().toDateString();
+      return new Date(n.createdAt || n.time).toDateString() === today;
+    }).length;
+
+    setStats({ total, unread, important, today });
+  };
+
+  // Recalculer les stats quand les notifications changent
+  useEffect(() => {
+    if (notifications.length > 0) {
+      calculerStatsLocales();
+    }
+  }, [notifications]);
 
   // Filtrage des notifications
   const filteredNotifications = notifications.filter(notification => {
     const matchesSearch = notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          notification.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         notification.sender.toLowerCase().includes(searchTerm.toLowerCase());
+                         (notification.sender || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesType = filterType === 'all' || notification.type === filterType;
     const matchesStatus = filterStatus === 'all' || 
@@ -170,35 +135,82 @@ export default function Notifications() {
   };
 
   // Actions sur les notifications
-  const markAsRead = (id) => {
-    setNotifications(prev => prev.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    ));
+  const marquerCommeLue = async (id) => {
+    try {
+      await api.put(`/notifications/${id}/read`);
+      setNotifications(prev => prev.map(n => 
+        n._id === id ? { ...n, read: true } : n
+      ));
+      showNotification('Notification marquée comme lue', 'success');
+    } catch (error) {
+      console.error('Erreur marquage lu:', error);
+      showNotification('Erreur lors du marquage', 'error');
+    }
   };
 
-  const markAsUnread = (id) => {
-    setNotifications(prev => prev.map(n => 
-      n.id === id ? { ...n, read: false } : n
-    ));
+  const marquerCommeNonLue = async (id) => {
+    try {
+      await api.put(`/notifications/${id}/unread`);
+      setNotifications(prev => prev.map(n => 
+        n._id === id ? { ...n, read: false } : n
+      ));
+      showNotification('Notification marquée comme non lue', 'success');
+    } catch (error) {
+      console.error('Erreur marquage non lu:', error);
+      showNotification('Erreur lors du marquage', 'error');
+    }
   };
 
-  const toggleImportant = (id) => {
-    setNotifications(prev => prev.map(n => 
-      n.id === id ? { ...n, important: !n.important } : n
-    ));
+  const basculerImportant = async (id) => {
+    try {
+      const response = await api.put(`/notifications/${id}/important`);
+      setNotifications(prev => prev.map(n => 
+        n._id === id ? { ...n, important: response.data.important } : n
+      ));
+      showNotification(
+        response.data.important ? 'Notification marquée comme importante' : 'Importance retirée',
+        'success'
+      );
+    } catch (error) {
+      console.error('Erreur basculement importance:', error);
+      showNotification('Erreur lors de la modification', 'error');
+    }
   };
 
-  const deleteNotification = (id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+  const supprimerNotification = async (id) => {
+    try {
+      await api.delete(`/notifications/${id}`);
+      setNotifications(prev => prev.filter(n => n._id !== id));
+      showNotification('Notification supprimée', 'success');
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+      showNotification('Erreur lors de la suppression', 'error');
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  const marquerToutCommeLu = async () => {
+    try {
+      await api.put('/notifications/mark-all-read');
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      showNotification('Toutes les notifications ont été marquées comme lues', 'success');
+    } catch (error) {
+      console.error('Erreur marquage global:', error);
+      showNotification('Erreur lors du marquage global', 'error');
+    }
   };
 
-  const deleteSelected = () => {
-    setNotifications(prev => prev.filter(n => !selectedNotifications.includes(n.id)));
-    setSelectedNotifications([]);
+  const supprimerSelections = async () => {
+    try {
+      await api.delete('/notifications/multiple', {
+        data: { ids: selectedNotifications }
+      });
+      setNotifications(prev => prev.filter(n => !selectedNotifications.includes(n._id)));
+      setSelectedNotifications([]);
+      showNotification(`${selectedNotifications.length} notification(s) supprimée(s)`, 'success');
+    } catch (error) {
+      console.error('Erreur suppression multiple:', error);
+      showNotification('Erreur lors de la suppression', 'error');
+    }
   };
 
   const toggleSelectNotification = (id) => {
@@ -210,12 +222,22 @@ export default function Notifications() {
   };
 
   const selectAll = () => {
-    setSelectedNotifications(filteredNotifications.map(n => n.id));
+    setSelectedNotifications(filteredNotifications.map(n => n._id));
   };
 
   const deselectAll = () => {
     setSelectedNotifications([]);
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -232,7 +254,7 @@ export default function Notifications() {
           </div>
           <div className="flex items-center space-x-3">
             <motion.button
-              onClick={markAllAsRead}
+              onClick={marquerToutCommeLu}
               className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors duration-200 flex items-center space-x-2"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -310,7 +332,7 @@ export default function Notifications() {
                 {selectedNotifications.length} sélectionnée(s)
               </span>
               <button
-                onClick={deleteSelected}
+                onClick={supprimerSelections}
                 className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200 flex items-center space-x-1"
               >
                 <Trash2 size={16} />
@@ -389,133 +411,139 @@ export default function Notifications() {
 
       {/* Liste des notifications */}
       <div className="space-y-3">
-        <AnimatePresence>
-          {filteredNotifications.map((notification, index) => {
-            const typeConfig = notificationTypes[notification.type];
-            const Icon = typeConfig.icon;
-            const isSelected = selectedNotifications.includes(notification.id);
-
-            return (
-              <motion.div
-                key={notification.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ delay: index * 0.05 }}
-                className={`bg-white rounded-2xl p-6 shadow-sm border transition-all duration-200 hover:shadow-md ${
-                  !notification.read ? 'border-l-4 border-l-green-500' : 'border-gray-100'
-                } ${isSelected ? 'ring-2 ring-green-500 ring-opacity-50' : ''}`}
-              >
-                <div className="flex items-start space-x-4">
-                  {/* Checkbox de sélection */}
-                  <motion.button
-                    onClick={() => toggleSelectNotification(notification.id)}
-                    className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
-                      isSelected 
-                        ? 'bg-green-500 border-green-500' 
-                        : 'border-gray-300 hover:border-green-400'
-                    }`}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    {isSelected && <Check size={12} className="text-white" />}
-                  </motion.button>
-
-                  {/* Icône du type */}
-                  <div className={`p-3 rounded-xl ${typeConfig.bgColor} flex-shrink-0`}>
-                    <Icon className={`w-5 h-5 ${typeConfig.textColor}`} />
-                  </div>
-
-                  {/* Contenu */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <h3 className={`font-semibold ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
-                          {notification.title}
-                        </h3>
-                        {notification.important && (
-                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                        )}
-                        {!notification.read && (
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xs text-gray-500">{formatTime(notification.time)}</span>
-                        <div className="relative group">
-                          <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-                            <MoreVertical size={16} className="text-gray-400" />
-                          </button>
-                          
-                          {/* Menu contextuel */}
-                          <div className="absolute right-0 top-8 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-                            <button
-                              onClick={() => notification.read ? markAsUnread(notification.id) : markAsRead(notification.id)}
-                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
-                            >
-                              <Eye size={16} />
-                              <span>{notification.read ? 'Marquer non lu' : 'Marquer lu'}</span>
-                            </button>
-                            <button
-                              onClick={() => toggleImportant(notification.id)}
-                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
-                            >
-                              {notification.important ? <StarOff size={16} /> : <Star size={16} />}
-                              <span>{notification.important ? 'Retirer importance' : 'Marquer important'}</span>
-                            </button>
-                            <button
-                              onClick={() => deleteNotification(notification.id)}
-                              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
-                            >
-                              <Trash2 size={16} />
-                              <span>Supprimer</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <p className="text-gray-600 mb-3 leading-relaxed">{notification.message}</p>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <User size={14} className="text-gray-400" />
-                        <span className="text-sm text-gray-500">{notification.sender}</span>
-                      </div>
-                      
-                      {!notification.read && (
-                        <motion.button
-                          onClick={() => markAsRead(notification.id)}
-                          className="px-3 py-1 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors duration-200 text-sm"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          Marquer lu
-                        </motion.button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-
-        {/* Message si aucune notification */}
-        {filteredNotifications.length === 0 && (
+        {filteredNotifications.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center py-12"
+            className="text-center py-12 bg-white rounded-2xl border border-gray-100"
           >
             <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune notification trouvée</h3>
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">Aucune notification</h3>
             <p className="text-gray-500">
               {searchTerm || filterType !== 'all' || filterStatus !== 'all'
-                ? 'Essayez de modifier vos critères de recherche ou filtres.'
+                ? 'Aucune notification ne correspond à vos critères de recherche.'
                 : 'Vous n\'avez aucune notification pour le moment.'}
             </p>
           </motion.div>
+        ) : (
+          <AnimatePresence>
+            {filteredNotifications.map((notification, index) => {
+              const typeConfig = notificationTypes[notification.type] || notificationTypes.info;
+              const Icon = typeConfig.icon;
+              const isSelected = selectedNotifications.includes(notification._id);
+
+              return (
+                <motion.div
+                  key={notification._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: index * 0.05 }}
+                  className={`bg-white rounded-2xl p-6 shadow-sm border transition-all duration-200 hover:shadow-md ${
+                    !notification.read ? 'border-l-4 border-l-green-500' : 'border-gray-100'
+                  } ${isSelected ? 'ring-2 ring-green-500 ring-opacity-50' : ''}`}
+                >
+                  <div className="flex items-start space-x-4">
+                    {/* Checkbox de sélection */}
+                    <motion.button
+                      onClick={() => toggleSelectNotification(notification._id)}
+                      className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                        isSelected 
+                          ? 'bg-green-500 border-green-500' 
+                          : 'border-gray-300 hover:border-green-400'
+                      }`}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      {isSelected && <Check size={12} className="text-white" />}
+                    </motion.button>
+
+                    {/* Icône du type */}
+                    <div className={`p-3 rounded-xl ${typeConfig.bgColor} flex-shrink-0`}>
+                      <Icon className={`w-5 h-5 ${typeConfig.textColor}`} />
+                    </div>
+
+                    {/* Contenu */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <h3 className={`font-semibold ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                            {notification.title}
+                          </h3>
+                          {notification.important && (
+                            <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                          )}
+                          {!notification.read && (
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs text-gray-500">
+                            {formatTime(notification.createdAt || notification.time)}
+                          </span>
+                          <div className="relative group">
+                            <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                              <MoreVertical size={16} className="text-gray-400" />
+                            </button>
+                            
+                            {/* Menu déroulant */}
+                            <div className="absolute right-0 top-8 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                              {!notification.read ? (
+                                <button
+                                  onClick={() => marquerCommeLue(notification._id)}
+                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+                                >
+                                  <Check size={16} />
+                                  <span>Marquer comme lu</span>
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => marquerCommeNonLue(notification._id)}
+                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+                                >
+                                  <Eye size={16} />
+                                  <span>Marquer comme non lu</span>
+                                </button>
+                              )}
+                              <button
+                                onClick={() => basculerImportant(notification._id)}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+                              >
+                                {notification.important ? <StarOff size={16} /> : <Star size={16} />}
+                                <span>{notification.important ? 'Retirer importance' : 'Marquer important'}</span>
+                              </button>
+                              <button
+                                onClick={() => supprimerNotification(notification._id)}
+                                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                              >
+                                <Trash2 size={16} />
+                                <span>Supprimer</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className={`text-sm mb-3 ${!notification.read ? 'text-gray-700' : 'text-gray-600'}`}>
+                        {notification.message}
+                      </p>
+
+                      <div className="flex items-center space-x-4 text-xs text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <User size={12} />
+                          <span>{notification.sender || 'Administration'}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Calendar size={12} />
+                          <span>{new Date(notification.createdAt || notification.time).toLocaleDateString('fr-FR')}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         )}
       </div>
     </div>
