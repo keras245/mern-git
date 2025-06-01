@@ -13,13 +13,16 @@ import {
   BookOpen,
   Users,
   Monitor,
-  Laptop
+  Laptop,
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react';
 import api from '../../services/api';
 
 const EmploiDuTemps = () => {
   const [emploiDuTemps, setEmploiDuTemps] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [semaine, setSemaine] = useState(getCurrentWeek());
   const [filtreJour, setFiltreJour] = useState('tous');
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,81 +43,126 @@ const EmploiDuTemps = () => {
     return firstDayOfWeek;
   }
 
+  // Fonction pour parser la classe du chef et extraire les composants
+  const parseClasseChef = (classeString) => {
+    if (!classeString) return null;
+    
+    console.log('Analyse de la classe:', classeString);
+    
+    // Format attendu: "Génie Civil - L4 S7 G1"
+    // Regex pour extraire les parties
+    const regex = /^(.+?)\s*-\s*L(\d+)\s*S(\d+)\s*G(\d+)$/;
+    const match = classeString.match(regex);
+    
+    if (match) {
+      return {
+        nom: match[1].trim(),
+        licence: parseInt(match[2]),
+        semestre: parseInt(match[3]),
+        groupe: parseInt(match[4])
+      };
+    }
+    
+    console.log('Format de classe non reconnu:', classeString);
+    return null;
+  };
+
+  // Fonction pour trouver le programme correspondant
+  const trouverProgrammeCorrespondant = (programmes, classeInfo) => {
+    if (!classeInfo || !programmes) return null;
+    
+    console.log('Recherche du programme pour:', classeInfo);
+    console.log('Programmes disponibles:', programmes);
+    
+    const programme = programmes.find(p => 
+      p.nom === classeInfo.nom &&
+      p.licence === classeInfo.licence &&
+      p.semestre === classeInfo.semestre &&
+      p.groupe >= classeInfo.groupe // Le programme doit avoir au moins ce nombre de groupes
+    );
+    
+    console.log('Programme trouvé:', programme);
+    return programme;
+  };
+
   const chargerEmploiDuTemps = async () => {
     try {
       setLoading(true);
+      setError('');
       
-      // 1. D'abord, récupérer le programme correspondant à la classe du chef
-      const programmesResponse = await api.get('/programmes');
-      const programmeCorrespondant = programmesResponse.data.find(p => 
-        p.nom.toLowerCase().includes(user.classe?.toLowerCase()) || 
-        p.nom === user.classe
-      );
-
-      if (!programmeCorrespondant) {
-        console.log('Aucun programme trouvé pour la classe:', user.classe);
-        // Utiliser des données simulées si aucun programme trouvé
-        setEmploiDuTemps(getEmploiSimule());
+      if (!user.classe) {
+        setError('Votre classe n\'est pas définie. Contactez l\'administration.');
+        setEmploiDuTemps(null);
         return;
       }
 
+      console.log('Classe du chef:', user.classe);
+
+      // 1. Parser la classe du chef
+      const classeInfo = parseClasseChef(user.classe);
+      if (!classeInfo) {
+        setError(`Format de classe invalide: "${user.classe}". Format attendu: "Programme - L# S# G#"`);
+        setEmploiDuTemps(null);
+        return;
+      }
+
+      // 2. Récupérer tous les programmes
+      const programmesResponse = await api.get('/programmes');
+      console.log('Programmes récupérés:', programmesResponse.data);
+
+      // 3. Trouver le programme correspondant
+      const programmeCorrespondant = trouverProgrammeCorrespondant(programmesResponse.data, classeInfo);
+
+      if (!programmeCorrespondant) {
+        setError(`Aucun programme trouvé pour "${classeInfo.nom}" niveau L${classeInfo.licence} S${classeInfo.semestre}. Contactez l'administration pour vérifier la configuration de votre classe.`);
+        setEmploiDuTemps(null);
+        return;
+      }
+
+      console.log('Programme correspondant trouvé:', programmeCorrespondant);
       setProgramme(programmeCorrespondant);
 
-      // 2. Récupérer l'emploi du temps pour ce programme
+      // 4. Récupérer l'emploi du temps pour ce programme et ce groupe
       try {
-        const emploiResponse = await api.get(`/emplois/programme/${programmeCorrespondant._id}/groupe/1`);
+        const emploiResponse = await api.get(`/emplois/${programmeCorrespondant._id}/${classeInfo.groupe}`);
+        console.log('Réponse emploi du temps:', emploiResponse.data);
         
-        if (emploiResponse.data && emploiResponse.data.seances) {
-          // Enrichir les données avec les informations des cours, professeurs et salles
-          const seancesEnrichies = await Promise.all(
-            emploiResponse.data.seances.map(async (seance) => {
-              try {
-                const [coursResponse, profResponse, salleResponse] = await Promise.all([
-                  api.get(`/cours/${seance.cours}`),
-                  api.get(`/professeurs/${seance.professeur}`),
-                  api.get(`/salles/${seance.salle}`)
-                ]);
-
-                return {
-                  ...seance,
-                  matiere: coursResponse.data.nom_matiere,
-                  professeur: `${profResponse.data.prenom} ${profResponse.data.nom}`,
-                  salle: salleResponse.data.nom,
-                  type: coursResponse.data.type || 'Cours',
-                  couleur: getCouleurMatiere(coursResponse.data.nom_matiere)
-                };
-              } catch (error) {
-                console.error('Erreur enrichissement séance:', error);
-                return {
-                  ...seance,
-                  matiere: 'Matière inconnue',
-                  professeur: 'Professeur inconnu',
-                  salle: 'Salle inconnue',
-                  type: 'Cours',
-                  couleur: 'bg-gray-500'
-                };
-              }
-            })
-          );
-
+        if (emploiResponse.data && emploiResponse.data.seances && emploiResponse.data.seances.length > 0) {
+          // Les données sont déjà populées côté backend
           setEmploiDuTemps({
             programme: programmeCorrespondant.nom,
             classe: user.classe,
-            seances: seancesEnrichies
+            licence: programmeCorrespondant.licence,
+            semestre: programmeCorrespondant.semestre,
+            groupe: classeInfo.groupe,
+            seances: emploiResponse.data.seances.map(seance => ({
+              ...seance,
+              matiere: seance.cours?.nom_matiere || 'Matière inconnue',
+              professeur: `${seance.professeur?.prenom || ''} ${seance.professeur?.nom || ''}`.trim() || 'Professeur inconnu',
+              salle: seance.salle?.nom || 'Salle inconnue',
+              type: seance.cours?.type || 'Cours',
+              couleur: getCouleurMatiere(seance.cours?.nom_matiere || 'inconnue')
+            }))
           });
+          setError('');
         } else {
-          // Aucun emploi du temps trouvé, utiliser des données simulées
-          setEmploiDuTemps(getEmploiSimule());
+          setError(`Aucun emploi du temps généré pour votre classe (${user.classe}). L'administration doit d'abord créer votre emploi du temps.`);
+          setEmploiDuTemps(null);
         }
       } catch (error) {
-        console.log('Aucun emploi du temps trouvé pour ce programme, utilisation de données simulées');
-        setEmploiDuTemps(getEmploiSimule());
+        console.error('Erreur récupération emploi:', error);
+        if (error.response?.status === 404) {
+          setError(`Aucun emploi du temps généré pour votre classe (${user.classe}). L'administration doit d'abord créer votre emploi du temps.`);
+        } else {
+          setError('Erreur lors de la récupération de l\'emploi du temps. Veuillez réessayer.');
+        }
+        setEmploiDuTemps(null);
       }
       
     } catch (error) {
       console.error('Erreur chargement emploi du temps:', error);
-      // En cas d'erreur, utiliser des données simulées
-      setEmploiDuTemps(getEmploiSimule());
+      setError('Erreur de connexion. Vérifiez votre connexion internet et réessayez.');
+      setEmploiDuTemps(null);
     } finally {
       setLoading(false);
     }
@@ -131,7 +179,11 @@ const EmploiDuTemps = () => {
       'génie logiciel': 'bg-pink-500',
       'projet': 'bg-teal-500',
       'algorithme': 'bg-yellow-500',
-      'système': 'bg-gray-500'
+      'système': 'bg-gray-600',
+      'civil': 'bg-amber-600',
+      'construction': 'bg-stone-600',
+      'béton': 'bg-gray-700',
+      'structure': 'bg-zinc-600'
     };
 
     const matiereKey = matiere.toLowerCase();
@@ -141,95 +193,6 @@ const EmploiDuTemps = () => {
       }
     }
     return 'bg-gray-500';
-  };
-
-  const getEmploiSimule = () => {
-    return {
-      programme: user.classe || 'Programme non défini',
-      classe: user.classe,
-      seances: [
-        {
-          id: 1,
-          jour: 'Lundi',
-          creneau: '08h30 - 11h30',
-          matiere: 'Mathématiques',
-          professeur: 'Dr. Diallo',
-          salle: 'A101',
-          type: 'Cours',
-          couleur: 'bg-blue-500'
-        },
-        {
-          id: 2,
-          jour: 'Lundi',
-          creneau: '12h00 - 15h00',
-          matiere: 'Physique',
-          professeur: 'Prof. Camara',
-          salle: 'B205',
-          type: 'TD',
-          couleur: 'bg-green-500'
-        },
-        {
-          id: 3,
-          jour: 'Mardi',
-          creneau: '08h30 - 11h30',
-          matiere: 'Informatique',
-          professeur: 'Dr. Touré',
-          salle: 'C301',
-          type: 'TP',
-          couleur: 'bg-purple-500'
-        },
-        {
-          id: 4,
-          jour: 'Mardi',
-          creneau: '15h30 - 18h30',
-          matiere: 'Anglais',
-          professeur: 'Mme. Barry',
-          salle: 'A203',
-          type: 'Cours',
-          couleur: 'bg-orange-500'
-        },
-        {
-          id: 5,
-          jour: 'Mercredi',
-          creneau: '12h00 - 15h00',
-          matiere: 'Base de données',
-          professeur: 'Dr. Konaté',
-          salle: 'C102',
-          type: 'TP',
-          couleur: 'bg-red-500'
-        },
-        {
-          id: 6,
-          jour: 'Jeudi',
-          creneau: '08h30 - 11h30',
-          matiere: 'Réseaux',
-          professeur: 'Prof. Sylla',
-          salle: 'C201',
-          type: 'Cours',
-          couleur: 'bg-indigo-500'
-        },
-        {
-          id: 7,
-          jour: 'Vendredi',
-          creneau: '12h00 - 15h00',
-          matiere: 'Génie Logiciel',
-          professeur: 'Dr. Bah',
-          salle: 'A105',
-          type: 'TD',
-          couleur: 'bg-pink-500'
-        },
-        {
-          id: 8,
-          jour: 'Samedi',
-          creneau: '08h30 - 11h30',
-          matiere: 'Projet',
-          professeur: 'Dr. Touré',
-          salle: 'C301',
-          type: 'Projet',
-          couleur: 'bg-teal-500'
-        }
-      ]
-    };
   };
 
   const getSeanceForSlot = (jour, creneau) => {
@@ -254,10 +217,16 @@ const EmploiDuTemps = () => {
 
   const exporterPDF = async () => {
     try {
-      if (!emploiDuTemps) return;
+      if (!emploiDuTemps || !programme) {
+        alert('Aucun emploi du temps à exporter');
+        return;
+      }
       
-      // Appeler l'API d'export PDF
-      const response = await api.get(`/emplois/export-pdf/${programme?._id}/1`, {
+      // Appeler l'API d'export PDF avec les bons paramètres
+      const response = await api.post('/emplois/exporter/pdf', {
+        programmeId: programme._id,
+        groupe: emploiDuTemps.groupe
+      }, {
         responseType: 'blob'
       });
       
@@ -265,14 +234,14 @@ const EmploiDuTemps = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `emploi-du-temps-${user.classe}.pdf`);
+      link.setAttribute('download', `emploi-du-temps-${user.classe.replace(/\s+/g, '-')}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Erreur export PDF:', error);
-      alert('Erreur lors de l\'export PDF');
+      alert('Erreur lors de l\'export PDF. Veuillez réessayer.');
     }
   };
 
@@ -288,6 +257,7 @@ const EmploiDuTemps = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <span className="ml-3 text-gray-600">Chargement de votre emploi du temps...</span>
       </div>
     );
   }
@@ -306,11 +276,20 @@ const EmploiDuTemps = () => {
               Emploi du temps - {user.classe}
             </h1>
             <p className="text-gray-600">
-              {emploiDuTemps?.programme || 'Programme non défini'}
+              {emploiDuTemps ? 
+                `${emploiDuTemps.programme} - Licence ${emploiDuTemps.licence} - Semestre ${emploiDuTemps.semestre} - Groupe ${emploiDuTemps.groupe}` :
+                programme ? `${programme.nom} - L${programme.licence} S${programme.semestre}` : 'Programme non défini'
+              }
             </p>
             <p className="text-sm text-gray-500 mt-1">
               Semaine du {semaine.toLocaleDateString('fr-FR')}
             </p>
+            {emploiDuTemps && (
+              <div className="flex items-center mt-2">
+                <CheckCircle className="w-4 h-4 text-green-600 mr-1" />
+                <span className="text-sm text-green-600">Emploi du temps à jour</span>
+              </div>
+            )}
           </div>
           
           <div className="flex items-center space-x-4 mt-4 md:mt-0">
@@ -322,77 +301,88 @@ const EmploiDuTemps = () => {
               <span>Actualiser</span>
             </button>
             
-            <button
-              onClick={exporterPDF}
-              className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              <span>Exporter PDF</span>
-            </button>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Filtres */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-      >
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Filter className="w-5 h-5 text-gray-400" />
-              <select
-                value={filtreJour}
-                onChange={(e) => setFiltreJour(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            {emploiDuTemps && (
+              <button
+                onClick={exporterPDF}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
               >
-                <option value="tous">Tous les jours</option>
-                {jours.map(jour => (
-                  <option key={jour} value={jour}>{jour}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Search className="w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Rechercher une matière..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
+                <Download className="w-4 h-4" />
+                <span>Exporter PDF</span>
+              </button>
+            )}
           </div>
         </div>
       </motion.div>
 
-      {/* Message si aucun emploi du temps */}
-      {!emploiDuTemps || emploiDuTemps.seances.length === 0 ? (
+      {/* Message d'erreur */}
+      {error && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center"
+          className="bg-red-50 border border-red-200 rounded-2xl p-6"
         >
-          <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            Aucun emploi du temps disponible
-          </h3>
-          <p className="text-gray-600 mb-6">
-            L'emploi du temps pour votre classe n'a pas encore été généré par l'administration.
-          </p>
-          <button
-            onClick={chargerEmploiDuTemps}
-            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-          >
-            Vérifier à nouveau
-          </button>
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-lg font-semibold text-red-900 mb-1">
+                Emploi du temps non disponible
+              </h3>
+              <p className="text-red-700 mb-3">{error}</p>
+              <div className="text-sm text-red-600 bg-red-100 rounded-lg p-3 mb-3">
+                <strong>Informations de débogage :</strong><br />
+                Classe enregistrée : <code>{user.classe}</code><br />
+                Format attendu : <code>Programme - L# S# G#</code>
+              </div>
+              <button
+                onClick={chargerEmploiDuTemps}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+              >
+                Réessayer
+              </button>
+            </div>
+          </div>
         </motion.div>
-      ) : (
+      )}
+
+      {emploiDuTemps && (
         <>
+          {/* Filtres */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+          >
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Filter className="w-5 h-5 text-gray-400" />
+                  <select
+                    value={filtreJour}
+                    onChange={(e) => setFiltreJour(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  >
+                    <option value="tous">Tous les jours</option>
+                    {jours.map(jour => (
+                      <option key={jour} value={jour}>{jour}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Search className="w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher une matière ou un professeur..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+          </motion.div>
+
           {/* Grille de l'emploi du temps */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
