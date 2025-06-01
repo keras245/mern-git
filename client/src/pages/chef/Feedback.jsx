@@ -230,8 +230,8 @@ const Feedback = () => {
     if (!nouveauFeedback.contenu.trim()) {
       setShowError(true);
       setErrorMessage('Le contenu du feedback ne peut pas être vide.');
-      return;
-    }
+        return;
+      }
 
     try {
       setIsSubmitting(true);
@@ -242,7 +242,7 @@ const Feedback = () => {
         setErrorMessage('Session expirée. Veuillez vous reconnecter.');
         return;
       }
-
+      
       const feedbackData = {
         contenu: nouveauFeedback.contenu.trim(),
         type: nouveauFeedback.type,
@@ -262,13 +262,13 @@ const Feedback = () => {
 
       if (response.data) {
         // Fermer le modal immédiatement
-        setShowModal(false);
+      setShowModal(false);
         
         // Réinitialiser le formulaire
-        setNouveauFeedback({ 
-          contenu: '', 
-          type: 'general', 
-          priorite: 'normale', 
+      setNouveauFeedback({
+        contenu: '',
+        type: 'general',
+        priorite: 'normale',
           id_cours: '' 
         });
         
@@ -1034,8 +1034,8 @@ const Feedback = () => {
                       </>
                     ) : (
                       <>
-                        <Send className="w-4 h-4" />
-                        <span>Envoyer</span>
+                    <Send className="w-4 h-4" />
+                    <span>Envoyer</span>
                       </>
                     )}
                   </button>

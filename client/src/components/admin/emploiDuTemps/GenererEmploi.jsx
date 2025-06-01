@@ -98,10 +98,10 @@ const GenererEmploi = () => {
     // Ne pas réinitialiser l'emploi du temps si on est en train de charger depuis les sauvegardes
     // ou si on est sur l'onglet sauvegardes
     if (!chargementDepuisSauvegardes && activeTab !== 'sauvegardes') {
-      setEmploiDuTemps(null);
-      setConflits([]);
-      setAnalyseDonnees(null);
-      setShowAnalyse(false);
+    setEmploiDuTemps(null);
+    setConflits([]);
+    setAnalyseDonnees(null);
+    setShowAnalyse(false);
     }
   }, [selectedProgramme, selectedGroupe, chargementDepuisSauvegardes, activeTab]);
 
@@ -149,10 +149,10 @@ const GenererEmploi = () => {
       // Ne pas changer automatiquement le groupe si on est en train de charger depuis les sauvegardes
       // ou si on est sur l'onglet sauvegardes
       if (!chargementDepuisSauvegardes && activeTab !== 'sauvegardes') {
-        if (response.data.groupes && response.data.groupes.length > 0) {
-          setSelectedGroupe(response.data.groupes[0]);
-        } else {
-          setSelectedGroupe('');
+      if (response.data.groupes && response.data.groupes.length > 0) {
+        setSelectedGroupe(response.data.groupes[0]);
+      } else {
+        setSelectedGroupe('');
         }
       }
     } catch (error) {
@@ -160,7 +160,7 @@ const GenererEmploi = () => {
       showNotification('Erreur lors du chargement des groupes', 'error');
       setGroupesDisponibles([1]); // Fallback
       if (!chargementDepuisSauvegardes && activeTab !== 'sauvegardes') {
-        setSelectedGroupe(1);
+      setSelectedGroupe(1);
       }
     }
   };
@@ -499,13 +499,13 @@ const GenererEmploi = () => {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r">
                   Horaire
                 </th>
-                {jours.map(jour => (
+              {jours.map(jour => (
                   <th key={jour} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r">
                     {jour}
                   </th>
-                ))}
-              </tr>
-            </thead>
+              ))}
+            </tr>
+          </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {creneaux.map((creneau, creneauIndex) => (
                 <tr key={creneau} className={creneauIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
@@ -515,38 +515,38 @@ const GenererEmploi = () => {
                       {creneau}
                     </div>
                   </td>
-                  {jours.map(jour => {
+                {jours.map(jour => {
                     const seance = emploiDuTemps.seances?.find(s => s.jour === jour && s.creneau === creneau);
-                    return (
+                  return (
                       <td key={jour} className="px-2 py-6 border-r relative">
-                        {seance ? (
+                      {seance ? (
                           <div 
                             className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                             onClick={() => activeTab === 'manuel' && modifierSeance(jour, creneau, seance)}
                           >
                             <div className="font-semibold text-sm mb-1 leading-tight">
                               {seance.cours?.nom_matiere || 'Cours'}
-                            </div>
+                              </div>
                             <div className="text-xs opacity-90 space-y-1">
                               <div className="flex items-center">
-                                <Users className="w-3 h-3 mr-1" />
+                              <Users className="w-3 h-3 mr-1" />
                                 {seance.professeur?.prenom} {seance.professeur?.nom}
-                              </div>
-                              <div className="flex items-center">
-                                <MapPin className="w-3 h-3 mr-1" />
-                                {seance.salle?.nom}
-                              </div>
                             </div>
+                              <div className="flex items-center">
+                              <MapPin className="w-3 h-3 mr-1" />
+                              {seance.salle?.nom}
+                            </div>
+                          </div>
                             {activeTab === 'manuel' && (
-                              <button
+                            <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   supprimerSeance(jour, creneau);
                                 }}
                                 className="absolute top-1 right-1 w-5 h-5 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                              >
+                            >
                                 <X className="w-3 h-3 text-white" />
-                              </button>
+                            </button>
                             )}
                           </div>
                         ) : (
@@ -563,13 +563,13 @@ const GenererEmploi = () => {
                             )}
                           </div>
                         )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
         </div>
       </div>
     );
@@ -947,28 +947,28 @@ const GenererEmploi = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Programme
                 </label>
-                <select
-                  value={selectedProgramme}
+        <select
+          value={selectedProgramme}
                   onChange={(e) => {
                     setSelectedProgramme(e.target.value);
                     chargerGroupesProgramme(e.target.value);
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Sélectionner un programme</option>
+        >
+          <option value="">Sélectionner un programme</option>
                   {programmes.map(programme => (
                     <option key={programme._id} value={programme._id}>
                       {programme.nom} - L{programme.licence} S{programme.semestre}
-                    </option>
-                  ))}
-                </select>
+            </option>
+          ))}
+        </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Groupe
                 </label>
-                <select
+        <select
                   value={selectedGroupe}
                   onChange={(e) => setSelectedGroupe(e.target.value)}
                   disabled={!selectedProgramme}
@@ -979,7 +979,7 @@ const GenererEmploi = () => {
                       Groupe {groupe}
                     </option>
                   ))}
-                </select>
+        </select>
               </div>
 
               <div className="flex items-end">
@@ -1012,9 +1012,9 @@ const GenererEmploi = () => {
                 </p>
                 
                 <div className="flex space-x-3">
-                  <button
-                    onClick={genererEmploiAutomatique}
-                    disabled={!selectedProgramme || loading}
+        <button
+          onClick={genererEmploiAutomatique}
+          disabled={!selectedProgramme || loading}
                     className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
                   >
                     {loading ? (
@@ -1040,13 +1040,13 @@ const GenererEmploi = () => {
                         )}
                         {loading ? 'Sauvegarde...' : 'Sauvegarder l\'emploi'}
                       </button>
-                      <button
-                        onClick={() => setEmploiDuTemps(null)}
-                        className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                      >
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                        Nouveau
-                      </button>
+                    <button
+                      onClick={() => setEmploiDuTemps(null)}
+                      className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Nouveau
+                    </button>
                     </>
                   )}
                 </div>
@@ -1083,14 +1083,14 @@ const GenererEmploi = () => {
                 
                 <div className="flex space-x-3">
                   {!emploiDuTemps ? (
-                    <button
-                      onClick={() => setEmploiDuTemps({ seances: [], programme: selectedProgramme, groupe: selectedGroupe })}
-                      disabled={!selectedProgramme}
-                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Créer un emploi du temps vide
-                    </button>
+                  <button
+                    onClick={() => setEmploiDuTemps({ seances: [], programme: selectedProgramme, groupe: selectedGroupe })}
+                    disabled={!selectedProgramme}
+                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Créer un emploi du temps vide
+        </button>
                   ) : (
                     <>
                       <button

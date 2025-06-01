@@ -55,7 +55,7 @@ const Presences = () => {
 
   useEffect(() => {
     if (programme && classeInfo) {
-      chargerDonnees();
+    chargerDonnees();
     }
   }, [selectedDate, programme, classeInfo]);
 
@@ -156,7 +156,7 @@ const Presences = () => {
       
       console.log('Réponse emploi et présences:', response.data);
       setSeancesJour(response.data.seances || []);
-      
+
       // Calculer les statistiques
       calculerStatistiques(response.data.seances || []);
 
@@ -455,50 +455,50 @@ const Presences = () => {
         <>
           {/* Statistiques */}
           <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total cours</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalPresences}</p>
-                </div>
-                <Users className="w-8 h-8 text-blue-600" />
-              </div>
-            </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total cours</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalPresences}</p>
+            </div>
+            <Users className="w-8 h-8 text-blue-600" />
+          </div>
+        </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Présents</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.presents}</p>
-                </div>
-                <CheckCircle className="w-8 h-8 text-green-600" />
-              </div>
-            </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Présents</p>
+              <p className="text-2xl font-bold text-green-600">{stats.presents}</p>
+            </div>
+            <CheckCircle className="w-8 h-8 text-green-600" />
+          </div>
+        </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Absents</p>
-                  <p className="text-2xl font-bold text-red-600">{stats.absents}</p>
-                </div>
-                <XCircle className="w-8 h-8 text-red-600" />
-              </div>
-            </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Absents</p>
+              <p className="text-2xl font-bold text-red-600">{stats.absents}</p>
+            </div>
+            <XCircle className="w-8 h-8 text-red-600" />
+          </div>
+        </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -515,11 +515,11 @@ const Presences = () => {
               </div>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -535,66 +535,66 @@ const Presences = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45 }}
               className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Taux présence</p>
-                  <p className="text-2xl font-bold text-purple-600">{stats.tauxPresence}%</p>
-                </div>
-                <TrendingUp className="w-8 h-8 text-purple-600" />
-              </div>
-            </motion.div>
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Taux présence</p>
+              <p className="text-2xl font-bold text-purple-600">{stats.tauxPresence}%</p>
+            </div>
+            <TrendingUp className="w-8 h-8 text-purple-600" />
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Filtres */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+      >
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-5 h-5 text-gray-400" />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
+            </div>
           </div>
 
-          {/* Filtres */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-          >
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="w-5 h-5 text-gray-400" />
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Search className="w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
+          <div className="flex items-center space-x-2">
+            <Search className="w-5 h-5 text-gray-400" />
+            <input
+              type="text"
                   placeholder="Rechercher un cours ou un professeur..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
                   className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent w-full md:w-64"
-                />
-              </div>
-            </div>
-          </motion.div>
+            />
+          </div>
+        </div>
+      </motion.div>
 
-          {/* Liste des cours du jour */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-          >
-            <h2 className="text-xl font-bold text-gray-900 mb-6">
-              Cours du {new Date(selectedDate).toLocaleDateString('fr-FR', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </h2>
+      {/* Liste des cours du jour */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+      >
+        <h2 className="text-xl font-bold text-gray-900 mb-6">
+          Cours du {new Date(selectedDate).toLocaleDateString('fr-FR', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}
+        </h2>
 
             {loading ? (
               <div className="flex items-center justify-center py-12">
@@ -602,38 +602,38 @@ const Presences = () => {
                 <span className="ml-3 text-gray-600">Chargement des cours...</span>
               </div>
             ) : seancesFiltrees.length === 0 ? (
-              <div className="text-center py-12">
-                <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Aucun cours programmé
-                </h3>
-                <p className="text-gray-600">
+          <div className="text-center py-12">
+            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Aucun cours programmé
+            </h3>
+            <p className="text-gray-600">
                   {searchTerm 
                     ? 'Aucun cours ne correspond à votre recherche.'
                     : 'Il n\'y a pas de cours programmé pour cette date.'}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
                 {seancesFiltrees.map((seanceData, index) => (
-                  <motion.div
+                <motion.div
                     key={`${seanceData.creneau}-${seanceData.professeur.id}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-200 group"
-                  >
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-200 group"
+                >
                     <div className="flex items-center space-x-4 flex-1">
                       <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center text-white font-semibold">
                         {seanceData.cours?.nom?.charAt(0) || 'C'}
-                      </div>
-                      
+                    </div>
+                    
                       <div className="flex-1">
                         <h4 className="font-semibold text-gray-900">{seanceData.cours?.nom}</h4>
                         <p className="text-sm text-gray-600">{seanceData.professeur?.nom}</p>
-                        <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
-                          <span className="flex items-center space-x-1">
-                            <Clock className="w-3 h-3" />
+                      <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                        <span className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
                             <span>{seanceData.creneau}</span>
                           </span>
                           <span className="flex items-center space-x-1">
@@ -643,12 +643,12 @@ const Presences = () => {
                           <span className="flex items-center space-x-1">
                             <BookOpen className="w-3 h-3" />
                             <span>{seanceData.cours?.type || 'Cours'}</span>
-                          </span>
+                        </span>
                         </div>
-                      </div>
                     </div>
+                  </div>
 
-                    <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4">
                       {/* Statut actuel */}
                       <div className="flex items-center space-x-2">
                         {seanceData.presence && (
@@ -657,7 +657,7 @@ const Presences = () => {
                             {seanceData.presence.heure_arrivee && (
                               <span className="text-xs text-gray-500 mt-1">
                                 Arrivé à {seanceData.presence.heure_arrivee}
-                              </span>
+                          </span>
                             )}
                           </div>
                         )}
@@ -703,22 +703,22 @@ const Presences = () => {
                         >
                           <Clock className="w-5 h-5" />
                         </button>
-                        
-                        <button
+
+                    <button
                           onClick={() => ouvrirModalPresence(seanceData)}
                           disabled={saving}
                           className="p-2 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-lg transition-all"
                           title="Plus d'options"
                         >
                           <MessageSquare className="w-5 h-5" />
-                        </button>
+                    </button>
                       </div>
-                    </div>
-                  </motion.div>
+                  </div>
+                </motion.div>
                 ))}
-              </div>
-            )}
-          </motion.div>
+          </div>
+        )}
+      </motion.div>
         </>
       )}
 
@@ -837,21 +837,21 @@ const Presences = () => {
                     rows={3}
                     placeholder="Ex: Justification d'absence, retard signalé, remarques..."
                   />
-                </div>
+              </div>
 
                 {/* Actions */}
                 <div className="flex space-x-3 mt-6">
-                  <button
+                <button
                     onClick={() => {
                       setShowModal(false);
                       setEditingPresence(null);
                     }}
                     className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    onClick={sauvegarderPresence}
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={sauvegarderPresence}
                     disabled={!editingPresence.nouveauStatut || saving}
                     className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center"
                   >
@@ -863,7 +863,7 @@ const Presences = () => {
                         Enregistrer
                       </>
                     )}
-                  </button>
+                </button>
                 </div>
               </div>
             </motion.div>

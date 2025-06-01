@@ -314,11 +314,11 @@ const DisponibiliteProf = () => {
                               className={`p-4 rounded-xl text-sm font-semibold transition-all duration-200 border-2 ${
                                 isSelected
                                   ? activeTab === 'visualiser'
-                                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-blue-500 shadow-lg'
+                                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-blue-500 shadow-lg'
                                     : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white border-green-500 shadow-lg'
                                   : activeTab === 'visualiser'
                                     ? 'bg-gray-100 text-gray-500 border-gray-200'
-                                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200 hover:border-gray-300'
+                                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200 hover:border-gray-300'
                               } ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
                             >
                               <div className="flex items-center justify-center gap-2">
@@ -346,32 +346,32 @@ const DisponibiliteProf = () => {
 
               {/* Bouton de sauvegarde - uniquement en mode définir */}
               {activeTab === 'definir' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="flex justify-center pt-6"
-                >
-                  <button
-                    onClick={handleSubmit}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="flex justify-center pt-6"
+              >
+                <button
+                  onClick={handleSubmit}
                     disabled={loading}
-                    className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                  >
-                    <div className="flex items-center gap-3">
-                      {loading ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span>Enregistrement...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-xl">💾</span>
-                          <span>Enregistrer les disponibilités</span>
-                        </>
-                      )}
-                    </div>
-                  </button>
-                </motion.div>
+                  className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  <div className="flex items-center gap-3">
+                    {loading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Enregistrement...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-xl">💾</span>
+                        <span>Enregistrer les disponibilités</span>
+                      </>
+                    )}
+                  </div>
+                </button>
+              </motion.div>
               )}
 
               {/* Résumé en mode visualisation */}

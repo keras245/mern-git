@@ -20,6 +20,7 @@ import ChefNotifications from './pages/chef/Notifications';
 import AdminPresences from './pages/admin/Presences';
 import AdminFeedback from './pages/admin/Feedback';
 import AdminNotifications from './pages/admin/Notifications';
+import AdminSettings from './pages/admin/Settings';
 
 const PrivateRoute = ({ children, role }) => {
   const token = localStorage.getItem('token');
@@ -64,6 +65,7 @@ function App() {
             <Route path="attendance" element={<AdminPresences />} />
             <Route path="feedback" element={<AdminFeedback />} />
             <Route path="notifications" element={<AdminNotifications />} />
+            <Route path="settings" element={<AdminSettings />} />
           </Route>
 
           {/* Espace chef de classe avec sidebar */}
