@@ -214,11 +214,11 @@ const Presences = () => {
       const data = {
         date: selectedDate,
         statut,
-        id_prof: seance.professeur.id,
-        id_cours: seance.cours.id,
-        nom_matiere: seance.cours.nom,
+        id_prof: seance.professeur._id,
+        id_cours: seance.cours._id,
+        nom_matiere: seance.cours?.nom || seance.cours?.nom_matiere,
         creneau: seance.creneau,
-        salle: seance.salle.nom,
+        salle: seance.salle?.nom,
         type_cours: seance.cours.type,
         id_programme: programme._id,
         nom_programme: programme.nom,
@@ -271,30 +271,32 @@ const Presences = () => {
 
   const ouvrirModalPresence = (seanceData) => {
     setEditingPresence({
-      seance: seanceData.seance,
-      presence: seanceData.presence || {
-        statut: '',
-        commentaire: ''
-      }
+      ...seanceData,
+      nouveauStatut: seanceData.presence?.statut || '',
+      nouveauCommentaire: seanceData.presence?.commentaire || ''
     });
     setShowModal(true);
   };
 
   const sauvegarderPresence = () => {
-    if (!editingPresence || !editingPresence.presence.statut) {
+    if (!editingPresence.nouveauStatut) {
       setError('Veuillez sélectionner un statut de présence');
       return;
     }
 
-    declarerPresence(
-      editingPresence.seance,
-      editingPresence.presence.statut,
-      editingPresence.presence.commentaire
-    );
+    declarerPresence(editingPresence, editingPresence.nouveauStatut, editingPresence.nouveauCommentaire);
+    setShowModal(false);
+    setEditingPresence(null);
   };
 
   const handleQuickPresence = (seanceData, statut) => {
-    declarerPresence(seanceData.seance, statut);
+    console.log('=== QUICK PRESENCE DEBUG ===');
+    console.log('SeanceData structure:', seanceData);
+    console.log('Professeur:', seanceData.professeur);
+    console.log('Cours:', seanceData.cours);
+    console.log('Salle:', seanceData.salle);
+    
+    declarerPresence(seanceData, statut);
   };
 
   const getStatutIcon = (statut) => {
@@ -334,10 +336,10 @@ const Presences = () => {
       const headers = ['Date', 'Créneau', 'Matière', 'Professeur', 'Salle', 'Statut', 'Heure arrivée', 'Commentaire'];
       const rows = seancesJour.map(s => [
         selectedDate,
-        s.seance.creneau,
-        s.seance.cours.nom,
-        s.seance.professeur.nom,
-        s.seance.salle.nom,
+        s.creneau,
+        s.cours?.nom,
+        s.professeur?.nom,
+        s.salle?.nom,
         s.presence?.statut || 'En attente',
         s.presence?.heure_arrivee || '-',
         s.presence?.commentaire || '-'
@@ -361,8 +363,8 @@ const Presences = () => {
   };
 
   const seancesFiltrees = seancesJour.filter(s =>
-    s.seance.cours.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.seance.professeur.nom.toLowerCase().includes(searchTerm.toLowerCase())
+    s.cours?.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.professeur?.nom?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading && !programme) {
@@ -615,7 +617,7 @@ const Presences = () => {
               <div className="space-y-4">
                 {seancesFiltrees.map((seanceData, index) => (
                   <motion.div
-                    key={`${seanceData.seance.creneau}-${seanceData.seance.professeur.id}`}
+                    key={`${seanceData.creneau}-${seanceData.professeur.id}`}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
@@ -623,24 +625,24 @@ const Presences = () => {
                   >
                     <div className="flex items-center space-x-4 flex-1">
                       <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center text-white font-semibold">
-                        {seanceData.seance.cours.nom.charAt(0)}
+                        {seanceData.cours?.nom?.charAt(0) || 'C'}
                       </div>
                       
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{seanceData.seance.cours.nom}</h4>
-                        <p className="text-sm text-gray-600">{seanceData.seance.professeur.nom}</p>
+                        <h4 className="font-semibold text-gray-900">{seanceData.cours?.nom}</h4>
+                        <p className="text-sm text-gray-600">{seanceData.professeur?.nom}</p>
                         <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
                           <span className="flex items-center space-x-1">
                             <Clock className="w-3 h-3" />
-                            <span>{seanceData.seance.creneau}</span>
+                            <span>{seanceData.creneau}</span>
                           </span>
                           <span className="flex items-center space-x-1">
                             <MapPin className="w-3 h-3" />
-                            <span>Salle {seanceData.seance.salle.nom}</span>
+                            <span>Salle {seanceData.salle?.nom}</span>
                           </span>
                           <span className="flex items-center space-x-1">
                             <BookOpen className="w-3 h-3" />
-                            <span>{seanceData.seance.cours.type}</span>
+                            <span>{seanceData.cours?.type || 'Cours'}</span>
                           </span>
                         </div>
                       </div>
@@ -754,16 +756,16 @@ const Presences = () => {
                 {/* Informations du cours */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-semibold text-gray-900 mb-2">
-                    {editingPresence.seance.cours.nom}
+                    {editingPresence.cours?.nom}
                   </h4>
                   <p className="text-sm text-gray-600">
-                    Professeur : {editingPresence.seance.professeur.nom}
+                    Professeur : {editingPresence.professeur?.nom}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Créneau : {editingPresence.seance.creneau}
+                    Créneau : {editingPresence.creneau}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Salle : {editingPresence.seance.salle.nom}
+                    Salle : {editingPresence.salle?.nom}
                   </p>
                 </div>
 
@@ -776,10 +778,10 @@ const Presences = () => {
                     <button
                       onClick={() => setEditingPresence({
                         ...editingPresence,
-                        presence: { ...editingPresence.presence, statut: 'présent' }
+                        nouveauStatut: 'présent'
                       })}
                       className={`p-3 rounded-lg border-2 transition-all text-center ${
-                        editingPresence.presence.statut === 'présent'
+                        editingPresence.nouveauStatut === 'présent'
                           ? 'border-green-500 bg-green-50 text-green-700'
                           : 'border-gray-200 hover:border-green-300'
                       }`}
@@ -791,10 +793,10 @@ const Presences = () => {
                     <button
                       onClick={() => setEditingPresence({
                         ...editingPresence,
-                        presence: { ...editingPresence.presence, statut: 'absent' }
+                        nouveauStatut: 'absent'
                       })}
                       className={`p-3 rounded-lg border-2 transition-all text-center ${
-                        editingPresence.presence.statut === 'absent'
+                        editingPresence.nouveauStatut === 'absent'
                           ? 'border-red-500 bg-red-50 text-red-700'
                           : 'border-gray-200 hover:border-red-300'
                       }`}
@@ -806,10 +808,10 @@ const Presences = () => {
                     <button
                       onClick={() => setEditingPresence({
                         ...editingPresence,
-                        presence: { ...editingPresence.presence, statut: 'retard' }
+                        nouveauStatut: 'retard'
                       })}
                       className={`p-3 rounded-lg border-2 transition-all text-center ${
-                        editingPresence.presence.statut === 'retard'
+                        editingPresence.nouveauStatut === 'retard'
                           ? 'border-orange-500 bg-orange-50 text-orange-700'
                           : 'border-gray-200 hover:border-orange-300'
                       }`}
@@ -826,10 +828,10 @@ const Presences = () => {
                     Commentaire (optionnel)
                   </label>
                   <textarea
-                    value={editingPresence.presence.commentaire || ''}
+                    value={editingPresence.nouveauCommentaire || ''}
                     onChange={(e) => setEditingPresence({
                       ...editingPresence,
-                      presence: { ...editingPresence.presence, commentaire: e.target.value }
+                      nouveauCommentaire: e.target.value
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     rows={3}
@@ -850,7 +852,7 @@ const Presences = () => {
                   </button>
                   <button
                     onClick={sauvegarderPresence}
-                    disabled={!editingPresence.presence.statut || saving}
+                    disabled={!editingPresence.nouveauStatut || saving}
                     className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center"
                   >
                     {saving ? (

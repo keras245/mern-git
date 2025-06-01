@@ -168,10 +168,10 @@ const presenceController = {
     try {
       const { date, programmeId, groupe } = req.params;
       
-      console.log('=== RÉCUPÉRATION EMPLOI ET PRÉSENCES ===');
+      console.log('=== RÉCUPÉRATION EMPLOI ET PRÉSENCES ADMIN ===');
       console.log('Paramètres:', { date, programmeId, groupe });
       
-      // Obtenir le jour de la semaine
+      // Obtenir le jour de la semaine (avec la bonne casse)
       const dateObj = new Date(date);
       const jours = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
       const jourSemaine = jours[dateObj.getDay()];
@@ -183,21 +183,60 @@ const presenceController = {
         programme: programmeId,
         groupe: parseInt(groupe),
         statut: 'actif'
-      }).populate('seances.cours seances.professeur seances.salle');
+      }).populate('programme seances.cours seances.professeur seances.salle');
       
       console.log('Emploi du temps trouvé:', emploiDuTemps ? 'Oui' : 'Non');
       
       if (!emploiDuTemps) {
+        console.log('Recherche d\'emplois du temps alternatifs...');
+        
+        // Essayer de trouver tous les emplois du temps pour ce programme
+        const emploisAlternatifs = await EmploiDuTemps.find({
+          programme: programmeId,
+          statut: 'actif'
+        }).populate('programme');
+        
+        console.log('Emplois alternatifs trouvés:', emploisAlternatifs.map(e => ({
+          id: e._id,
+          programme: e.programme?.nom,
+          groupe: e.groupe
+        })));
+        
         return res.json({ 
           seances: [],
-          presences: [],
-          message: 'Aucun emploi du temps actif trouvé pour ce programme' 
+          message: `Aucun emploi du temps actif trouvé pour le programme sélectionné (groupe ${groupe})`,
+          debug: {
+            programmeId,
+            groupe: parseInt(groupe),
+            emploisDisponibles: emploisAlternatifs.map(e => `Groupe ${e.groupe}`)
+          }
         });
       }
+      
+      console.log('Programme de l\'emploi:', emploiDuTemps.programme?.nom);
+      console.log('Groupe de l\'emploi:', emploiDuTemps.groupe);
+      console.log('Total séances:', emploiDuTemps.seances.length);
       
       // Filtrer les séances du jour
       const seancesDuJour = emploiDuTemps.seances.filter(s => s.jour === jourSemaine);
       console.log(`Séances du ${jourSemaine}:`, seancesDuJour.length);
+      console.log('Séances trouvées:', seancesDuJour.map(s => `${s.cours?.nom || s.cours?.nom_matiere} - ${s.creneau}`));
+      
+      if (seancesDuJour.length === 0) {
+        // Voir quels jours ont des séances
+        const joursAvecSeances = [...new Set(emploiDuTemps.seances.map(s => s.jour))];
+        console.log('Jours avec séances dans cet emploi:', joursAvecSeances);
+        
+        return res.json({ 
+          seances: [],
+          message: `Aucune séance programmée le ${jourSemaine}`,
+          debug: {
+            jourDemande: jourSemaine,
+            joursDisponibles: joursAvecSeances,
+            totalSeances: emploiDuTemps.seances.length
+          }
+        });
+      }
       
       // Récupérer les présences existantes pour cette date
       const presences = await Presence.find({
@@ -208,34 +247,35 @@ const presenceController = {
       
       console.log('Présences trouvées:', presences.length);
       
-      // Formater la réponse
+      // Formater la réponse dans le bon format pour le frontend
       const seancesAvecPresences = seancesDuJour.map(seance => {
         const presence = presences.find(p => 
+          p.id_prof && seance.professeur && 
           p.id_prof.toString() === seance.professeur._id.toString() && 
           p.creneau === seance.creneau
         );
         
+        console.log(`Séance ${seance.cours?.nom || seance.cours?.nom_matiere}: présence = ${presence ? presence.statut : 'non trouvée'}`);
+        
         return {
-          seance: {
-            id: seance._id,
-            jour: seance.jour,
-            creneau: seance.creneau,
-            cours: {
-              id: seance.cours._id,
-              nom: seance.cours.nom_matiere,
-              type: seance.cours.type || 'Cours'
-            },
-            professeur: {
-              id: seance.professeur._id,
-              nom: `${seance.professeur.prenom} ${seance.professeur.nom}`
-            },
-            salle: {
-              id: seance.salle._id,
-              nom: seance.salle.nom
-            }
+          _id: seance._id,
+          jour: seance.jour,
+          creneau: seance.creneau,
+          cours: {
+            _id: seance.cours._id,
+            nom: seance.cours.nom || seance.cours.nom_matiere,
+            type: seance.cours.type || 'Cours'
+          },
+          professeur: {
+            _id: seance.professeur._id,
+            nom: `${seance.professeur.prenom} ${seance.professeur.nom}`
+          },
+          salle: {
+            _id: seance.salle._id,
+            nom: seance.salle.nom
           },
           presence: presence ? {
-            id: presence._id,
+            _id: presence._id,
             statut: presence.statut,
             heure_arrivee: presence.heure_arrivee,
             commentaire: presence.commentaire
@@ -246,10 +286,12 @@ const presenceController = {
       console.log('Réponse finale:', { 
         date, 
         jour: jourSemaine, 
-        seances: seancesAvecPresences.length 
+        seances: seancesAvecPresences.length,
+        premierCours: seancesAvecPresences[0]?.cours?.nom || 'Aucun'
       });
       
       res.json({
+        success: true,
         date: date,
         jour: jourSemaine,
         seances: seancesAvecPresences
@@ -257,7 +299,11 @@ const presenceController = {
       
     } catch (error) {
       console.error('Erreur récupération emploi et présences:', error);
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ 
+        success: false,
+        message: 'Erreur lors de la récupération des données',
+        error: error.message 
+      });
     }
   },
 
@@ -416,6 +462,293 @@ const presenceController = {
       });
     } catch (error) {
       res.status(500).json({ message: error.message });
+    }
+  },
+
+  getStatsGlobales: async (req, res) => {
+    try {
+      const { date } = req.params;
+      
+      console.log('=== STATS GLOBALES ===');
+      console.log('Date:', date);
+      
+      // Obtenir le jour de la semaine (avec la casse correcte)
+      const dateObj = new Date(date);
+      const jours = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+      const jourSemaine = jours[dateObj.getDay()];
+      
+      console.log('Jour de la semaine:', jourSemaine);
+      
+      // Récupérer tous les emplois du temps actifs
+      const emplois = await EmploiDuTemps.find({ 
+        statut: 'actif' 
+      }).populate('programme seances.cours seances.professeur seances.salle');
+      
+      console.log('Emplois du temps trouvés:', emplois.length);
+      
+      let totalClasses = 0;
+      let totalSeances = 0;
+      let totalPresents = 0;
+      let totalAbsents = 0;
+      let totalRetards = 0;
+      const presencesParClasse = [];
+
+      for (const emploi of emplois) {
+        if (!emploi.programme) {
+          console.log('Emploi sans programme, skip:', emploi._id);
+          continue;
+        }
+
+        // Filtrer les séances pour le jour demandé
+        const seancesDuJour = emploi.seances.filter(s => s.jour === jourSemaine);
+        
+        if (seancesDuJour.length === 0) {
+          console.log('Pas de séances pour', emploi.programme.nom, 'groupe', emploi.groupe, 'le', jourSemaine);
+          continue;
+        }
+
+        console.log(`Traitement ${emploi.programme.nom} G${emploi.groupe}: ${seancesDuJour.length} séances`);
+
+        totalClasses++;
+        totalSeances += seancesDuJour.length;
+
+        let presentsClasse = 0;
+        let absentsClasse = 0;
+        let retardsClasse = 0;
+        const seancesAvecPresence = [];
+
+        // Pour chaque séance, récupérer les présences
+        for (const seance of seancesDuJour) {
+          // Chercher la présence avec les critères corrects
+          const presence = await Presence.findOne({
+            date: new Date(date),
+            id_prof: seance.professeur._id,
+            creneau: seance.creneau,
+            groupe: emploi.groupe,
+            id_programme: emploi.programme._id
+          });
+
+          console.log(`Séance ${seance.cours?.nom}: présence = ${presence ? presence.statut : 'non trouvée'}`);
+
+          const seanceData = {
+            _id: seance._id,
+            creneau: seance.creneau,
+            cours: seance.cours,
+            professeur: seance.professeur,
+            salle: seance.salle,
+            presence: presence
+          };
+
+          seancesAvecPresence.push(seanceData);
+
+          if (presence) {
+            switch (presence.statut) {
+              case 'présent':
+                presentsClasse++;
+                totalPresents++;
+                break;
+              case 'absent':
+                absentsClasse++;
+                totalAbsents++;
+                break;
+              case 'retard':
+                retardsClasse++;
+                totalRetards++;
+                break;
+            }
+          }
+        }
+
+        const tauxPresence = seancesDuJour.length > 0 
+          ? Math.round((presentsClasse / seancesDuJour.length) * 100)
+          : 0;
+
+        presencesParClasse.push({
+          _id: `${emploi.programme._id}_${emploi.groupe}`,
+          nom: emploi.programme.nom,
+          licence: emploi.programme.licence,
+          semestre: emploi.programme.semestre,
+          groupe: emploi.groupe,
+          totalSeances: seancesDuJour.length,
+          presents: presentsClasse,
+          absents: absentsClasse,
+          retards: retardsClasse,
+          tauxPresence: tauxPresence,
+          seances: seancesAvecPresence
+        });
+      }
+
+      const tauxPresenceGlobal = totalSeances > 0 
+        ? Math.round((totalPresents / totalSeances) * 100)
+        : 0;
+
+      const stats = {
+        totalClasses,
+        totalSeances,
+        totalPresents,
+        totalAbsents,
+        totalRetards,
+        tauxPresenceGlobal
+      };
+
+      console.log('Stats finales:', stats);
+      console.log('Classes avec présences:', presencesParClasse.length);
+
+      res.json({
+        success: true,
+        stats,
+        presencesParClasse
+      });
+
+    } catch (error) {
+      console.error('Erreur getStatsGlobales:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération des statistiques globales',
+        error: error.message
+      });
+    }
+  },
+
+  exportPresences: async (req, res) => {
+    try {
+      const { date, programmeId, groupe } = req.params;
+      
+      console.log('Export demandé pour:', { date, programmeId, groupe });
+      
+      // TODO: Implémenter l'export Excel
+      res.json({
+        success: true,
+        message: 'Fonctionnalité d\'export en cours de développement',
+        data: { date, programmeId, groupe }
+      });
+
+    } catch (error) {
+      console.error('Erreur exportPresences:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de l\'export',
+        error: error.message
+      });
+    }
+  },
+
+  // Modifier une présence existante (pour l'admin)
+  modifierPresenceAdmin: async (req, res) => {
+    try {
+      const { id_seance, statut, commentaire, date } = req.body;
+      
+      console.log('=== MODIFICATION/CRÉATION PRÉSENCE ADMIN ===');
+      console.log('Données reçues:', { id_seance, statut, commentaire, date });
+      
+      // Récupérer les informations de la séance depuis l'emploi du temps
+      const emploi = await EmploiDuTemps.findOne({
+        'seances._id': id_seance
+      }).populate('programme seances.cours seances.professeur seances.salle');
+      
+      if (!emploi) {
+        return res.status(404).json({ 
+          success: false,
+          message: 'Séance non trouvée' 
+        });
+      }
+      
+      const seance = emploi.seances.find(s => s._id.toString() === id_seance);
+      if (!seance) {
+        return res.status(404).json({ 
+          success: false,
+          message: 'Séance non trouvée dans l\'emploi du temps' 
+        });
+      }
+      
+      console.log('Séance trouvée:', {
+        cours: seance.cours?.nom || seance.cours?.nom_matiere,
+        professeur: `${seance.professeur?.prenom} ${seance.professeur?.nom}`,
+        creneau: seance.creneau
+      });
+      
+      // Chercher la présence existante
+      let presence = await Presence.findOne({
+        date: new Date(date),
+        id_prof: seance.professeur._id,
+        creneau: seance.creneau,
+        groupe: emploi.groupe,
+        id_programme: emploi.programme._id
+      });
+      
+      let isCreation = false;
+      
+      if (!presence) {
+        console.log('Aucune présence existante, création d\'une nouvelle présence par l\'admin');
+        isCreation = true;
+        
+        // Créer une nouvelle présence
+        presence = new Presence({
+          date: new Date(date),
+          statut,
+          id_prof: seance.professeur._id,
+          nom_prof: `${seance.professeur.prenom} ${seance.professeur.nom}`,
+          id_cours: seance.cours._id,
+          nom_matiere: seance.cours.nom || seance.cours.nom_matiere,
+          creneau: seance.creneau,
+          salle: seance.salle.nom,
+          type_cours: seance.cours.type || 'Cours',
+          id_programme: emploi.programme._id,
+          nom_programme: emploi.programme.nom,
+          groupe: emploi.groupe,
+          enregistre_par: req.user.id, // Admin qui crée
+          commentaire: commentaire || '',
+          heure_arrivee: statut === 'présent' ? new Date().toLocaleTimeString('fr-FR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }) : null
+        });
+      } else {
+        console.log('Présence existante trouvée, modification:', {
+          id: presence._id,
+          statut_actuel: presence.statut,
+          nouveau_statut: statut
+        });
+        
+        // Mettre à jour la présence existante
+        presence.statut = statut;
+        presence.commentaire = commentaire || '';
+        presence.updatedAt = Date.now();
+        
+        // Mettre à jour l'heure d'arrivée si nécessaire
+        if (statut === 'présent' && !presence.heure_arrivee) {
+          presence.heure_arrivee = new Date().toLocaleTimeString('fr-FR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          });
+        } else if (statut !== 'présent') {
+          presence.heure_arrivee = null;
+        }
+      }
+      
+      await presence.save();
+      
+      console.log(`Présence ${isCreation ? 'créée' : 'mise à jour'} avec succès`);
+      
+      res.json({
+        success: true,
+        message: `Présence ${isCreation ? 'créée' : 'modifiée'} avec succès`,
+        presence: {
+          _id: presence._id,
+          statut: presence.statut,
+          commentaire: presence.commentaire,
+          heure_arrivee: presence.heure_arrivee
+        },
+        isCreation
+      });
+      
+    } catch (error) {
+      console.error('Erreur modification/création présence admin:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la modification/création de la présence',
+        error: error.message
+      });
     }
   }
 };
