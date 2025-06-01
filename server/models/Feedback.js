@@ -1,70 +1,71 @@
 const mongoose = require('mongoose');
 
 const feedbackSchema = new mongoose.Schema({
-  id_feedback: { 
-    type: String, 
+  id_feedback: {
+    type: String,
+    required: true,
     unique: true
   },
-  contenu: { 
-    type: String, 
+  contenu: {
+    type: String,
     required: true,
-    maxlength: [1000, 'Le contenu ne peut pas dépasser 1000 caractères']
+    minlength: 10,
+    maxlength: 1000
   },
   type: {
     type: String,
-    enum: ['general', 'pedagogique', 'technique', 'comportement'],
+    enum: ['general', 'cours', 'technique', 'suggestion'],
     default: 'general'
   },
   priorite: {
     type: String,
-    enum: ['basse', 'normale', 'haute', 'urgente'],
+    enum: ['faible', 'normale', 'elevee', 'urgente'],
     default: 'normale'
   },
   statut: {
     type: String,
-    enum: ['brouillon', 'envoye', 'en_attente', 'traite'],
+    enum: ['brouillon', 'envoye', 'traite'],
     default: 'brouillon'
   },
-  date: { 
-    type: Date, 
-    default: Date.now 
+  id_chef: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ChefDeClasse',
+    required: true
   },
-  dateReponse: {
-    type: Date
-  },
-  reponse: {
-    type: String,
-    maxlength: [1000, 'La réponse ne peut pas dépasser 1000 caractères']
-  },
-  
-  // Relations
-  id_chef: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'ChefDeClasse', 
-    required: true 
-  },
-  id_cours: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Cours' 
+  id_cours: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Cours',
+    required: false
   },
   id_programme: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Programme'
+    ref: 'Programme',
+    required: false
   },
-  
-  // Metadata
+  date: {
+    type: Date,
+    default: Date.now
+  },
   lu: {
     type: Boolean,
     default: false
   },
-  traite_par: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Administrateur'
+  date_lecture: {
+    type: Date
   },
-  
-  // Timestamps
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  reponse: {
+    type: String,
+    maxlength: 1000
+  },
+  date_reponse: {
+    type: Date
+  },
+  repondu_par: {
+    type: String,
+    enum: ['admin', 'professeur']
+  }
+}, {
+  timestamps: true
 });
 
 // Middleware pour générer automatiquement l'ID feedback - VERSION AMÉLIORÉE
@@ -112,10 +113,11 @@ feedbackSchema.pre('save', function(next) {
   next();
 });
 
-// Index pour optimiser les recherches
+// Index pour optimiser les requêtes
 feedbackSchema.index({ id_chef: 1, date: -1 });
-feedbackSchema.index({ statut: 1 });
+feedbackSchema.index({ statut: 1, date: -1 });
 feedbackSchema.index({ type: 1 });
-feedbackSchema.index({ id_feedback: 1 }, { unique: true });
+feedbackSchema.index({ priorite: 1 });
+feedbackSchema.index({ lu: 1 });
 
 module.exports = mongoose.model('Feedback', feedbackSchema);

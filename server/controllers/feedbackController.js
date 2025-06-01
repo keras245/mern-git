@@ -575,6 +575,229 @@ const feedbackController = {
       console.error('Erreur statistiques feedback:', error);
       res.status(500).json({ message: error.message });
     }
+  },
+
+  // Marquer un feedback comme lu
+  marquerCommeLu: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const id_chef = req.user.id;
+      
+      console.log('=== MARQUAGE FEEDBACK ===');
+      console.log('Feedback ID:', id);
+      console.log('Chef ID:', id_chef);
+      
+      // Vérifier que le feedback appartient au chef connecté
+      const feedback = await Feedback.findOne({ _id: id, id_chef });
+      if (!feedback) {
+        return res.status(404).json({ 
+          message: 'Feedback non trouvé ou vous n\'avez pas les droits pour le marquer comme lu' 
+        });
+      }
+      
+      // Mettre à jour le statut du feedback
+      const updatedFeedback = await Feedback.findByIdAndUpdate(
+        id,
+        { lu: true },
+        { new: true }
+      );
+      
+      if (!updatedFeedback) {
+        return res.status(500).json({ message: 'Erreur lors de la mise à jour du feedback' });
+      }
+      
+      res.json({
+        message: 'Feedback marqué comme lu avec succès',
+        feedback: updatedFeedback
+      });
+    } catch (error) {
+      console.error('Erreur marquage lu:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Répondre à un feedback
+  repondreAuFeedback: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { reponse } = req.body;
+      
+      if (!reponse || reponse.trim() === '') {
+        return res.status(400).json({ 
+          message: 'La réponse est requise' 
+        });
+      }
+      
+      const feedback = await Feedback.findByIdAndUpdate(
+        id,
+        { 
+          reponse: reponse.trim(),
+          statut: 'traite',
+          date_reponse: new Date(),
+          repondu_par: 'admin'
+        },
+        { new: true }
+      )
+        .populate('id_chef', 'nom prenom classe')
+        .populate('id_cours', 'nom_matiere')
+        .populate('id_programme', 'nom licence semestre');
+      
+      if (!feedback) {
+        return res.status(404).json({ message: 'Feedback non trouvé' });
+      }
+      
+      res.json({
+        message: 'Réponse envoyée avec succès',
+        feedback
+      });
+    } catch (error) {
+      console.error('Erreur réponse feedback:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Supprimer un feedback
+  supprimerFeedback: async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const feedback = await Feedback.findByIdAndDelete(id);
+      
+      if (!feedback) {
+        return res.status(404).json({ message: 'Feedback non trouvé' });
+      }
+      
+      res.json({
+        message: 'Feedback supprimé avec succès',
+        feedback
+      });
+    } catch (error) {
+      console.error('Erreur suppression feedback:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Récupérer les feedbacks avec filtres avancés
+  getFeedbacksAvecFiltres: async (req, res) => {
+    try {
+      console.log('=== RÉCUPÉRATION FEEDBACKS FILTRÉS ===');
+      console.log('Query params:', req.query);
+      
+      // Pour l'instant, retourner tous les feedbacks
+      const feedbacks = await Feedback.find({})
+        .populate('id_chef', 'nom prenom classe')
+        .populate('id_cours', 'nom_matiere')
+        .populate('id_programme', 'nom licence semestre')
+        .sort({ date: -1 });
+      
+      res.json({
+        feedbacks,
+        pagination: {
+          page: 1,
+          limit: 100,
+          total: feedbacks.length,
+          pages: 1
+        }
+      });
+    } catch (error) {
+      console.error('Erreur récupération feedbacks filtrés:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Dashboard stats pour admin
+  getDashboardStats: async (req, res) => {
+    try {
+      console.log('=== RÉCUPÉRATION STATS DASHBOARD ===');
+      
+      // Pour l'instant, retourner les mêmes stats que getStatistiquesGlobales
+      const [total, brouillons, envoyes, traites] = await Promise.all([
+        Feedback.countDocuments({}),
+        Feedback.countDocuments({ statut: 'brouillon' }),
+        Feedback.countDocuments({ statut: 'envoye' }),
+        Feedback.countDocuments({ statut: 'traite' })
+      ]);
+      
+      const reponses = await Feedback.countDocuments({ 
+        reponse: { $exists: true, $ne: null, $ne: '' } 
+      });
+      
+      const stats = {
+        total,
+        brouillons,
+        envoyes,
+        traites,
+        reponses,
+        tauxReponse: total > 0 ? Math.round((reponses / total) * 100) : 0
+      };
+      
+      res.json(stats);
+    } catch (error) {
+      console.error('Erreur stats dashboard:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Statistiques globales pour l'admin
+  getStatistiquesGlobales: async (req, res) => {
+    try {
+      console.log('=== RÉCUPÉRATION STATS GLOBALES ===');
+      
+      const [total, brouillons, envoyes, traites] = await Promise.all([
+        Feedback.countDocuments({}),
+        Feedback.countDocuments({ statut: 'brouillon' }),
+        Feedback.countDocuments({ statut: 'envoye' }),
+        Feedback.countDocuments({ statut: 'traite' })
+      ]);
+      
+      const reponses = await Feedback.countDocuments({ 
+        reponse: { $exists: true, $ne: null, $ne: '' } 
+      });
+      
+      const stats = {
+        total,
+        brouillons,
+        envoyes,
+        traites,
+        reponses,
+        tauxReponse: total > 0 ? Math.round((reponses / total) * 100) : 0
+      };
+      
+      console.log('Stats calculées:', stats);
+      res.json(stats);
+    } catch (error) {
+      console.error('Erreur stats globales feedback:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Marquer un feedback comme lu pour l'admin
+  marquerCommeLuAdmin: async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      console.log('=== MARQUAGE FEEDBACK ADMIN ===');
+      console.log('Feedback ID:', id);
+      
+      const feedback = await Feedback.findByIdAndUpdate(
+        id,
+        { lu: true, date_lecture: new Date() },
+        { new: true }
+      );
+      
+      if (!feedback) {
+        return res.status(404).json({ message: 'Feedback non trouvé' });
+      }
+      
+      console.log('Feedback marqué comme lu:', feedback.id_feedback);
+      res.json({
+        message: 'Feedback marqué comme lu',
+        feedback
+      });
+    } catch (error) {
+      console.error('Erreur marquage lu admin:', error);
+      res.status(500).json({ message: error.message });
+    }
   }
 };
 

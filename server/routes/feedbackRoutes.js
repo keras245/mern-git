@@ -3,31 +3,28 @@ const router = express.Router();
 const feedbackController = require('../controllers/feedbackController');
 const auth = require('../middleware/auth');
 
-// POST /api/feedbacks/creer - Créer un nouveau feedback
-router.post('/creer', auth, feedbackController.creerFeedback);
+// ⚠️ IMPORTANT: Routes spécifiques DOIVENT être AVANT les routes avec paramètres
 
-// GET /api/feedbacks/cours-disponibles - Récupérer les cours du chef connecté
+// Routes spécifiques pour l'admin
+router.get('/stats/global', auth, feedbackController.getStatistiquesGlobales);
+router.get('/stats/dashboard', auth, feedbackController.getDashboardStats);
+router.get('/filtres', auth, feedbackController.getFeedbacksAvecFiltres);
 router.get('/cours-disponibles', auth, feedbackController.getCoursDisponibles);
+router.get('/statistiques', auth, feedbackController.getStatistiquesChef);
 
-// GET /api/feedbacks - Récupérer tous les feedbacks
+// Routes principales
+router.post('/creer', auth, feedbackController.creerFeedback);
 router.get('/', auth, feedbackController.getAllFeedbacks);
 
-// GET /api/feedbacks/chef/:chefId - Récupérer feedbacks par chef
+// Routes avec paramètres spécifiques
 router.get('/chef/:chefId', auth, feedbackController.getFeedbacksByChef);
+router.put('/:id/lu', auth, feedbackController.marquerCommeLuAdmin);
+router.put('/:id/repondre', auth, feedbackController.repondreAuFeedback);
+router.put('/:id/envoyer', auth, feedbackController.envoyerFeedback);
 
-// GET /api/feedbacks/statistiques - Statistiques
-router.get('/statistiques', auth, feedbackController.getStatistiques);
-
-// GET /api/feedbacks/:id - Récupérer un feedback par ID
+// Routes génériques avec paramètres (EN DERNIER)
 router.get('/:id', auth, feedbackController.getFeedbackById);
-
-// PUT /api/feedbacks/:id - Mettre à jour un feedback
 router.put('/:id', auth, feedbackController.updateFeedback);
-
-// PUT /api/feedbacks/:id/repondre - Répondre à un feedback
-router.put('/:id/repondre', auth, feedbackController.repondreFeedback);
-
-// DELETE /api/feedbacks/:id - Supprimer un feedback
-router.delete('/:id', auth, feedbackController.deleteFeedback);
+router.delete('/:id', auth, feedbackController.supprimerFeedback);
 
 module.exports = router;
