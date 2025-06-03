@@ -5,6 +5,7 @@ const auth = (req, res, next) => {
         const token = req.header('Authorization').replace('Bearer ', '');
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
+        req.token = token;
         next();
     } catch (error) {
         res.status(401).json({ message: 'Veuillez vous authentifier' });

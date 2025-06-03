@@ -16,11 +16,13 @@
     "dotenv": "^16.5.0",
     "exceljs": "^4.4.0",
     "express": "^5.1.0",
+    "geoip-lite": "^1.4.10",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.14.1",
     "multer": "^2.0.0",
     "nodemon": "^3.1.10",
     "puppeteer": "^24.9.0",
+    "ua-parser-js": "^2.0.3",
     "xlsx": "^0.18.5"
   }
 }

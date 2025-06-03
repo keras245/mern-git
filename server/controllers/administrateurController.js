@@ -1,6 +1,7 @@
 const Administrateur = require('../models/Administrateur');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { createSession } = require('./sessionController');
 
 const administrateurController = {
   login: async (req, res) => {
@@ -38,6 +39,15 @@ const administrateurController = {
         process.env.JWT_SECRET,
         { expiresIn: '1d' }
       );
+
+      // Créer une session pour cette connexion
+      try {
+        await createSession(admin._id, 'administrateur', token, req);
+        console.log('Session créée avec succès pour:', email);
+      } catch (sessionError) {
+        console.error('Erreur création session:', sessionError);
+        // Ne pas empêcher la connexion si la session échoue
+      }
 
       console.log('Connexion réussie pour:', email);
       res.json({
@@ -138,6 +148,79 @@ const administrateurController = {
       res.json({ message: "Administrateur supprimé avec succès" });
     } catch (err) {
       res.status(500).json({ message: err.message });
+    }
+  },
+
+  changePassword: async (req, res) => {
+    try {
+      console.log('Tentative changement mot de passe pour user:', req.user.id);
+      const { currentPassword, newPassword } = req.body;
+      
+      // Validation des champs requis
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Mot de passe actuel et nouveau mot de passe requis" 
+        });
+      }
+      
+      // Validation du nouveau mot de passe
+      if (newPassword.length < 8) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Le nouveau mot de passe doit contenir au moins 8 caractères" 
+        });
+      }
+
+      // Récupérer l'administrateur
+      const admin = await Administrateur.findById(req.user.id);
+      if (!admin) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Administrateur non trouvé" 
+        });
+      }
+
+      // Vérifier le mot de passe actuel
+      console.log('Vérification mot de passe actuel...');
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, admin.mot_de_passe);
+      
+      if (!isCurrentPasswordValid) {
+        console.log('Mot de passe actuel incorrect');
+        // CORRECTION : Utiliser 400 au lieu de 401 pour éviter la déconnexion
+        return res.status(400).json({ 
+          success: false,
+          message: "Le mot de passe actuel est incorrect",
+          errorType: "CURRENT_PASSWORD_INVALID" // Ajouter un type d'erreur
+        });
+      }
+
+      // Vérifier que le nouveau mot de passe est différent de l'actuel
+      const isSamePassword = await bcrypt.compare(newPassword, admin.mot_de_passe);
+      if (isSamePassword) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Le nouveau mot de passe doit être différent de l'actuel" 
+        });
+      }
+
+      // Mettre à jour le mot de passe (le hachage se fait automatiquement via le hook pre('save'))
+      admin.mot_de_passe = newPassword;
+      await admin.save();
+
+      console.log('Mot de passe mis à jour avec succès pour:', admin.email);
+      
+      res.json({
+        success: true,
+        message: "Mot de passe mis à jour avec succès"
+      });
+
+    } catch (error) {
+      console.error('Erreur changement mot de passe:', error);
+      res.status(500).json({ 
+        success: false,
+        message: "Erreur lors du changement de mot de passe" 
+      });
     }
   }
 };

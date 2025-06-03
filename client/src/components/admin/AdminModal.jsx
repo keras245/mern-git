@@ -103,8 +103,8 @@ const AdminModal = ({ admin, onClose, onSuccess }) => {
   const inputClasses = (fieldName) => `
     w-full px-4 py-3 pl-12 border rounded-xl transition-all duration-200 
     ${errors[fieldName] 
-      ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500' 
-      : 'border-gray-200 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 focus:bg-white'
+      ? 'border-red-300 bg-red-50 dark:border-red-500 dark:bg-red-900/20 focus:ring-red-500 focus:border-red-500' 
+      : 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-blue-500 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-600 text-gray-900 dark:text-white'
     }
   `;
 
@@ -122,7 +122,7 @@ const AdminModal = ({ admin, onClose, onSuccess }) => {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ type: "spring", duration: 0.3 }}
-          className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl"
+          className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* En-tête */}
@@ -158,19 +158,19 @@ const AdminModal = ({ admin, onClose, onSuccess }) => {
               {/* Informations personnelles */}
               <div className="space-y-6">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <User className="w-5 h-5 text-blue-600" />
+                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                    <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Informations personnelles</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Informations personnelles</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       ID Administrateur *
                     </label>
                     <div className="relative">
-                      <Shield className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Shield className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                       <input
                         type="text"
                         value={formData.id_admin}
@@ -180,16 +180,16 @@ const AdminModal = ({ admin, onClose, onSuccess }) => {
                       />
                     </div>
                     {errors.id_admin && (
-                      <p className="mt-1 text-sm text-red-600">{errors.id_admin}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.id_admin}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Nom *
                     </label>
                     <div className="relative">
-                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                       <input
                         type="text"
                         value={formData.nom}
@@ -199,16 +199,16 @@ const AdminModal = ({ admin, onClose, onSuccess }) => {
                       />
                     </div>
                     {errors.nom && (
-                      <p className="mt-1 text-sm text-red-600">{errors.nom}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.nom}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Prénom *
                     </label>
                     <div className="relative">
-                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                       <input
                         type="text"
                         value={formData.prenom}
@@ -218,16 +218,16 @@ const AdminModal = ({ admin, onClose, onSuccess }) => {
                       />
                     </div>
                     {errors.prenom && (
-                      <p className="mt-1 text-sm text-red-600">{errors.prenom}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.prenom}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Téléphone *
                     </label>
                     <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                       <input
                         type="tel"
                         value={formData.telephone}
@@ -237,17 +237,17 @@ const AdminModal = ({ admin, onClose, onSuccess }) => {
                       />
                     </div>
                     {errors.telephone && (
-                      <p className="mt-1 text-sm text-red-600">{errors.telephone}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.telephone}</p>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email *
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                     <input
                       type="email"
                       value={formData.email}
@@ -257,20 +257,20 @@ const AdminModal = ({ admin, onClose, onSuccess }) => {
                     />
                   </div>
                   {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Adresse
                   </label>
                   <div className="relative">
-                    <MapPin className="absolute left-4 top-4 w-5 h-5 text-gray-400" />
+                    <MapPin className="absolute left-4 top-4 w-5 h-5 text-gray-400 dark:text-gray-500" />
                     <textarea
                       value={formData.adresse}
                       onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
-                      className="w-full px-4 py-3 pl-12 border border-gray-200 bg-gray-50 rounded-xl focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200 resize-none"
+                      className="w-full px-4 py-3 pl-12 border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-xl focus:ring-blue-500 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 resize-none"
                       rows="3"
                       placeholder="Adresse complète"
                     />
@@ -281,18 +281,18 @@ const AdminModal = ({ admin, onClose, onSuccess }) => {
               {/* Sécurité */}
               <div className="space-y-4">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                    <Lock className="w-5 h-5 text-red-600" />
+                  <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                    <Lock className="w-5 h-5 text-red-600 dark:text-red-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Sécurité</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Sécurité</h3>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Mot de passe * {admin && '(laisser vide pour ne pas modifier)'}
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                     <input
                       type={showPassword ? "text" : "password"}
                       value={formData.mot_de_passe}
@@ -303,26 +303,26 @@ const AdminModal = ({ admin, onClose, onSuccess }) => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
                   {errors.mot_de_passe && (
-                    <p className="mt-1 text-sm text-red-600">{errors.mot_de_passe}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.mot_de_passe}</p>
                   )}
-                  <p className="mt-2 text-xs text-gray-500">
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                     Le mot de passe doit contenir au moins 8 caractères
                   </p>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+              <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-600">
                 <motion.button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 font-medium transition-colors duration-200"
+                  className="px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-colors duration-200"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -331,16 +331,16 @@ const AdminModal = ({ admin, onClose, onSuccess }) => {
                 <motion.button
                   type="submit"
                   disabled={loading}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 font-medium transition-all duration-200 disabled:opacity-50 flex items-center space-x-2"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   {loading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                   ) : (
-                    <Save className="w-5 h-5" />
+                    <Save className="w-5 h-5 mr-2" />
                   )}
-                  <span>{admin ? 'Modifier' : 'Créer'}</span>
+                  {admin ? 'Modifier' : 'Créer'}
                 </motion.button>
               </div>
             </form>

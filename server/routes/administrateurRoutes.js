@@ -20,4 +20,7 @@ router.get('/:id', auth, adminController.getAdminById);
 router.put('/:id', auth, adminController.updateAdmin);
 router.delete('/:id', auth, adminController.deleteAdmin);
 
+// NOUVELLE ROUTE : Changement de mot de passe
+router.patch('/change-password', auth, adminController.changePassword);
+
 module.exports = router;

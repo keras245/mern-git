@@ -308,23 +308,23 @@ const AdminPresences = () => {
         className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
       >
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Gestion des Présences
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             Vue d'ensemble et gestion des présences de toutes les classes
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Sélecteur de mode */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
+          <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
             <button
               onClick={() => setViewMode('global')}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                 viewMode === 'global' 
-                  ? 'bg-white text-blue-600 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm' 
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               Vue globale
@@ -333,8 +333,8 @@ const AdminPresences = () => {
               onClick={() => setViewMode('details')}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                 viewMode === 'details' 
-                  ? 'bg-white text-blue-600 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm' 
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               Détails classe
@@ -346,13 +346,13 @@ const AdminPresences = () => {
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
 
           {/* Export */}
           <button
             onClick={exporterDonnees}
-            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
           >
             <Download className="w-4 h-4 mr-2" />
             Exporter
@@ -362,7 +362,7 @@ const AdminPresences = () => {
           <button
             onClick={() => viewMode === 'global' ? chargerStatsGlobales() : chargerSeancesClasse()}
             disabled={loading}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Actualiser
@@ -377,7 +377,7 @@ const AdminPresences = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"
+            className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg"
           >
             <div className="flex items-center">
               <AlertTriangle className="w-5 h-5 mr-2" />
@@ -391,7 +391,7 @@ const AdminPresences = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg"
+            className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg"
           >
             <div className="flex items-center">
               <CheckCircle className="w-5 h-5 mr-2" />
@@ -410,84 +410,84 @@ const AdminPresences = () => {
         >
           {/* Statistiques globales */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Classes</p>
-                  <p className="text-2xl font-bold text-gray-900">{statsGlobales.totalClasses}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Classes</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{statsGlobales.totalClasses}</p>
                 </div>
-                <Building className="w-8 h-8 text-blue-600" />
+                <Building className="w-8 h-8 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Séances</p>
-                  <p className="text-2xl font-bold text-gray-900">{statsGlobales.totalSeances}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Séances</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{statsGlobales.totalSeances}</p>
                 </div>
-                <BookOpen className="w-8 h-8 text-purple-600" />
+                <BookOpen className="w-8 h-8 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Présents</p>
-                  <p className="text-2xl font-bold text-green-600">{statsGlobales.totalPresents}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Présents</p>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{statsGlobales.totalPresents}</p>
                 </div>
-                <CheckCircle className="w-8 h-8 text-green-600" />
+                <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Absents</p>
-                  <p className="text-2xl font-bold text-red-600">{statsGlobales.totalAbsents}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Absents</p>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{statsGlobales.totalAbsents}</p>
                 </div>
-                <XCircle className="w-8 h-8 text-red-600" />
+                <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Retards</p>
-                  <p className="text-2xl font-bold text-yellow-600">{statsGlobales.totalRetards}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Retards</p>
+                  <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{statsGlobales.totalRetards}</p>
                 </div>
-                <AlertCircle className="w-8 h-8 text-yellow-600" />
+                <AlertCircle className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Taux global</p>
-                  <p className="text-2xl font-bold text-blue-600">{statsGlobales.tauxPresenceGlobal}%</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Taux global</p>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{statsGlobales.tauxPresenceGlobal}%</p>
                 </div>
-                <TrendingUp className="w-8 h-8 text-blue-600" />
+                <TrendingUp className="w-8 h-8 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </div>
 
           {/* Liste des classes */}
-          <div className="bg-white rounded-lg border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900">Présences par classe</h3>
-              <p className="text-gray-600">Détails des présences pour chaque classe</p>
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Présences par classe</h3>
+              <p className="text-gray-600 dark:text-gray-400">Détails des présences pour chaque classe</p>
             </div>
 
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
               {loading ? (
                 <div className="p-8 text-center">
-                  <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-                  <p className="text-gray-600">Chargement des données...</p>
+                  <RefreshCw className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400">Chargement des données...</p>
                 </div>
               ) : presencesParClasse.length === 0 ? (
                 <div className="p-8 text-center">
-                  <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Aucune donnée de présence pour cette date</p>
+                  <Calendar className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400">Aucune donnée de présence pour cette date</p>
                 </div>
               ) : (
                 presencesParClasse.map((classe) => (
@@ -498,15 +498,15 @@ const AdminPresences = () => {
                     >
                       <div className="flex items-center space-x-4">
                         {expandedClasses.has(classe._id) ? (
-                          <ChevronDown className="w-5 h-5 text-gray-400" />
+                          <ChevronDown className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                         ) : (
-                          <ChevronRight className="w-5 h-5 text-gray-400" />
+                          <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                         )}
                         <div>
-                          <h4 className="font-medium text-gray-900">
+                          <h4 className="font-medium text-gray-900 dark:text-white">
                             {classe.nom} - L{classe.licence} S{classe.semestre} G{classe.groupe}
                           </h4>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             {classe.totalSeances} séance(s) programmée(s)
                           </p>
                         </div>
@@ -514,24 +514,24 @@ const AdminPresences = () => {
 
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2">
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400">
                             <CheckCircle className="w-3 h-3 mr-1" />
                             {classe.presents}
                           </span>
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400">
                             <XCircle className="w-3 h-3 mr-1" />
                             {classe.absents}
                           </span>
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400">
                             <AlertCircle className="w-3 h-3 mr-1" />
                             {classe.retards}
                           </span>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
                             {classe.tauxPresence}%
                           </p>
-                          <p className="text-xs text-gray-500">Taux présence</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Taux présence</p>
                         </div>
                       </div>
                     </div>
@@ -548,15 +548,15 @@ const AdminPresences = () => {
                           {classe.seances?.map((seance) => (
                             <div
                               key={seance._id}
-                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                              className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
                             >
                               <div className="flex items-center space-x-3">
                                 <div className="text-sm">
-                                  <span className="font-medium">{seance.creneau}</span>
+                                  <span className="font-medium text-gray-900 dark:text-white">{seance.creneau}</span>
                                 </div>
                                 <div className="flex-1">
-                                  <p className="font-medium text-gray-900">{seance.cours?.nom}</p>
-                                  <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                                  <p className="font-medium text-gray-900 dark:text-white">{seance.cours?.nom}</p>
+                                  <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400 mt-1">
                                     <span className="flex items-center">
                                       <Users className="w-4 h-4 mr-1" />
                                       {seance.professeur?.nom}
@@ -576,7 +576,7 @@ const AdminPresences = () => {
                                     <span className="ml-1 capitalize">{seance.presence.statut}</span>
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-500">
                                     <Clock className="w-3 h-3 mr-1" />
                                     Non déclarée
                                   </span>
@@ -587,7 +587,7 @@ const AdminPresences = () => {
                                     e.stopPropagation();
                                     ouvrirModalPresence(seance);
                                   }}
-                                  className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                  className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
                                   title="Modifier"
                                 >
                                   <Edit className="w-4 h-4" />
@@ -616,13 +616,13 @@ const AdminPresences = () => {
           {/* Sélecteurs */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Programme
               </label>
               <select
                 value={selectedProgramme}
                 onChange={(e) => setSelectedProgramme(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Sélectionner un programme</option>
                 {programmes.map((programme) => (
@@ -634,13 +634,13 @@ const AdminPresences = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Groupe
               </label>
               <select
                 value={selectedGroupe}
                 onChange={(e) => setSelectedGroupe(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
                 disabled={!selectedProgramme}
               >
                 <option value="">Sélectionner un groupe</option>
@@ -651,7 +651,7 @@ const AdminPresences = () => {
                 ))}
               </select>
               {!selectedProgramme && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Sélectionnez d'abord un programme
                 </p>
               )}
@@ -661,22 +661,22 @@ const AdminPresences = () => {
           {/* Recherche */}
           {selectedProgramme && selectedGroupe && (
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 placeholder="Rechercher un cours, professeur ou salle..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           )}
 
           {/* Liste des séances */}
           {selectedProgramme && selectedGroupe && (
-            <div className="bg-white rounded-lg border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-lg font-bold text-gray-900">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                   Séances du {new Date(selectedDate).toLocaleDateString('fr-FR', {
                     weekday: 'long',
                     year: 'numeric',
@@ -686,16 +686,16 @@ const AdminPresences = () => {
                 </h3>
               </div>
 
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
                 {loading ? (
                   <div className="p-8 text-center">
-                    <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-                    <p className="text-gray-600">Chargement des séances...</p>
+                    <RefreshCw className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400 mx-auto mb-4" />
+                    <p className="text-gray-600 dark:text-gray-400">Chargement des séances...</p>
                   </div>
                 ) : filteredSeances.length === 0 ? (
                   <div className="p-8 text-center">
-                    <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">
+                    <Calendar className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                    <p className="text-gray-600 dark:text-gray-400">
                       {searchTerm ? 'Aucune séance trouvée' : 'Aucune séance programmée pour cette date'}
                     </p>
                   </div>
@@ -703,19 +703,19 @@ const AdminPresences = () => {
                   filteredSeances.map((seance) => (
                     <div
                       key={seance._id}
-                      className="p-6 hover:bg-gray-50 transition-colors"
+                      className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                           <div className="flex-shrink-0">
-                            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <Clock className="w-6 h-6 text-blue-600" />
+                            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                              <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                             </div>
                           </div>
 
                           <div>
-                            <h4 className="font-medium text-gray-900">{seance.cours?.nom}</h4>
-                            <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                            <h4 className="font-medium text-gray-900 dark:text-white">{seance.cours?.nom}</h4>
+                            <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400 mt-1">
                               <span className="flex items-center">
                                 <Clock className="w-4 h-4 mr-1" />
                                 {seance.creneau}
@@ -739,16 +739,15 @@ const AdminPresences = () => {
                               <span className="ml-2 capitalize">{seance.presence.statut}</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-500">
                               <Clock className="w-4 h-4 mr-2" />
                               Non déclarée
                             </span>
                           )}
 
-                          {/* Bouton modifier - disponible même sans présence pour consultation */}
                           <button
                             onClick={() => ouvrirModalPresence(seance)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                             title="Modifier"
                           >
                             <Edit className="w-5 h-5" />
@@ -758,8 +757,8 @@ const AdminPresences = () => {
 
                       {seance.presence?.commentaire && (
                         <div className="mt-3 ml-16">
-                          <div className="bg-gray-100 rounded-lg p-3">
-                            <p className="text-sm text-gray-700">
+                          <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
                               <MessageSquare className="w-4 h-4 inline mr-2" />
                               {seance.presence.commentaire}
                             </p>
@@ -788,15 +787,15 @@ const AdminPresences = () => {
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
-              className="bg-white rounded-lg max-w-md w-full p-6"
+              className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                   {editingPresence?.presence ? 'Modifier la présence' : 'Consulter la séance'}
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -804,15 +803,14 @@ const AdminPresences = () => {
 
               <div className="space-y-4">
                 <div>
-                  <p className="font-medium text-gray-900">{editingPresence?.cours?.nom}</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="font-medium text-gray-900 dark:text-white">{editingPresence?.cours?.nom}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     {editingPresence?.creneau} • {editingPresence?.professeur?.nom} • {editingPresence?.salle?.nom}
                   </p>
                 </div>
 
-                {/* Toujours afficher les options de modification */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Statut {editingPresence?.presence ? '(actuel)' : '(à définir)'}
                   </label>
                   <select
@@ -821,7 +819,7 @@ const AdminPresences = () => {
                       ...editingPresence,
                       nouveauStatut: e.target.value
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">
                       {editingPresence?.presence ? 'Sélectionner un nouveau statut' : 'Aucune présence déclarée'}
@@ -831,14 +829,14 @@ const AdminPresences = () => {
                     <option value="retard">Retard</option>
                   </select>
                   {!editingPresence?.presence && (
-                    <p className="text-xs text-amber-600 mt-1">
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
                       ⚠️ Cette action créera une nouvelle présence. Normalement, seul le chef de classe peut déclarer les présences.
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Commentaire
                   </label>
                   <textarea
@@ -848,7 +846,7 @@ const AdminPresences = () => {
                       nouveauCommentaire: e.target.value
                     })}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                     placeholder={editingPresence?.presence 
                       ? "Modifier le commentaire..." 
                       : "Ajouter un commentaire (optionnel)..."
@@ -859,7 +857,7 @@ const AdminPresences = () => {
                 <div className="flex justify-end space-x-3 pt-4">
                   <button
                     onClick={() => setShowModal(false)}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Fermer
                   </button>
@@ -868,7 +866,7 @@ const AdminPresences = () => {
                     <button
                       onClick={sauvegarderPresence}
                       disabled={saving}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                      className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-50"
                     >
                       {saving ? (
                         <>

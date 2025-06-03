@@ -93,11 +93,13 @@ const AdminsManagement = ({ searchTerm }) => {
       {/* En-tête avec actions */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 space-y-4 lg:space-y-0">
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2 bg-gray-100 rounded-xl p-1">
+          <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
             <button
               onClick={() => setViewMode('grid')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                viewMode === 'grid' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
+                viewMode === 'grid' 
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
+                  : 'text-gray-600 dark:text-gray-300'
               }`}
             >
               Grille
@@ -105,7 +107,9 @@ const AdminsManagement = ({ searchTerm }) => {
             <button
               onClick={() => setViewMode('table')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                viewMode === 'table' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
+                viewMode === 'table' 
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
+                  : 'text-gray-600 dark:text-gray-300'
               }`}
             >
               Tableau
@@ -113,15 +117,15 @@ const AdminsManagement = ({ searchTerm }) => {
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors duration-200"
+            className="flex items-center px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
           >
-            <Filter className="w-5 h-5 mr-2 text-gray-500" />
-            Filtres
+            <Filter className="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-700 dark:text-gray-300">Filtres</span>
           </button>
         </div>
 
         <div className="flex items-center space-x-3">
-          <button className="flex items-center px-4 py-2 text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors duration-200">
+          <button className="flex items-center px-4 py-2 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
             <Download className="w-5 h-5 mr-2" />
             Exporter
           </button>
@@ -147,24 +151,24 @@ const AdminsManagement = ({ searchTerm }) => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-gray-50 rounded-xl p-6 mb-6"
+            className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-6"
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
-                <select className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Statut</label>
+                <select className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                   <option>Tous</option>
                   <option>Actif</option>
                   <option>Inactif</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date d'ajout</label>
-                <input type="date" className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date d'ajout</label>
+                <input type="date" className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Rôle</label>
-                <select className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rôle</label>
+                <select className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                   <option>Tous</option>
                   <option>Super Admin</option>
                   <option>Admin</option>
@@ -177,40 +181,40 @@ const AdminsManagement = ({ searchTerm }) => {
 
       {/* Statistiques rapides */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-600 text-sm font-medium">Total</p>
-              <p className="text-2xl font-bold text-blue-900">{admins.length}</p>
+              <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">Total</p>
+              <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{admins.length}</p>
             </div>
-            <Shield className="w-8 h-8 text-blue-600" />
+            <Shield className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
         </div>
-        <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6">
+        <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-600 text-sm font-medium">Actifs</p>
-              <p className="text-2xl font-bold text-green-900">{admins.length}</p>
+              <p className="text-green-600 dark:text-green-400 text-sm font-medium">Actifs</p>
+              <p className="text-2xl font-bold text-green-900 dark:text-green-100">{admins.length}</p>
             </div>
-            <User className="w-8 h-8 text-green-600" />
+            <User className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
         </div>
-        <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6">
+        <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-600 text-sm font-medium">Ce mois</p>
-              <p className="text-2xl font-bold text-purple-900">+2</p>
+              <p className="text-purple-600 dark:text-purple-400 text-sm font-medium">Ce mois</p>
+              <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">+2</p>
             </div>
-            <Calendar className="w-8 h-8 text-purple-600" />
+            <Calendar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
           </div>
         </div>
-        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-6">
+        <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-orange-600 text-sm font-medium">Dernière connexion</p>
-              <p className="text-sm font-medium text-orange-900">Aujourd'hui</p>
+              <p className="text-orange-600 dark:text-orange-400 text-sm font-medium">Dernière connexion</p>
+              <p className="text-sm font-medium text-orange-900 dark:text-orange-100">Aujourd'hui</p>
             </div>
-            <Calendar className="w-8 h-8 text-orange-600" />
+            <Calendar className="w-8 h-8 text-orange-600 dark:text-orange-400" />
           </div>
         </div>
       </div>
@@ -225,7 +229,7 @@ const AdminsManagement = ({ searchTerm }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300 group"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 group"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
@@ -233,37 +237,37 @@ const AdminsManagement = ({ searchTerm }) => {
                     {admin.nom?.charAt(0)}{admin.prenom?.charAt(0)}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{admin.nom} {admin.prenom}</h3>
-                    <p className="text-sm text-gray-500">Administrateur</p>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{admin.nom} {admin.prenom}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Administrateur</p>
                   </div>
                 </div>
                 <div className="relative">
-                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-                    <MoreVertical className="w-5 h-5 text-gray-400" />
+                  <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200">
+                    <MoreVertical className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                   </button>
                 </div>
               </div>
 
               <div className="space-y-3 mb-6">
-                <div className="flex items-center text-sm text-gray-600">
-                  <Mail className="w-4 h-4 mr-3 text-gray-400" />
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                  <Mail className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
                   {admin.email}
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <Phone className="w-4 h-4 mr-3 text-gray-400" />
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                  <Phone className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
                   {admin.telephone}
                 </div>
                 {admin.adresse && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <MapPin className="w-4 h-4 mr-3 text-gray-400" />
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                    <MapPin className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
                     {admin.adresse}
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
                 <div className="flex items-center space-x-2">
-                  <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                  <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs font-medium rounded-full">
                     Actif
                   </span>
                 </div>
@@ -273,7 +277,7 @@ const AdminsManagement = ({ searchTerm }) => {
                       setSelectedAdmin(admin);
                       setIsModalOpen(true);
                     }}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                    className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors duration-200"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
@@ -281,7 +285,7 @@ const AdminsManagement = ({ searchTerm }) => {
                   </motion.button>
                   <motion.button
                     onClick={() => handleDelete(admin._id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors duration-200"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
@@ -294,36 +298,36 @@ const AdminsManagement = ({ searchTerm }) => {
         </div>
       ) : (
         /* Vue en tableau */
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Utilisateur
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Contact
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Statut
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Date d'ajout
                   </th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredAdmins.map((admin, index) => (
                   <motion.tr
                     key={admin._id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="hover:bg-gray-50 transition-colors duration-200"
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -331,23 +335,23 @@ const AdminsManagement = ({ searchTerm }) => {
                           {admin.nom?.charAt(0)}{admin.prenom?.charAt(0)}
                         </div>
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {admin.nom} {admin.prenom}
                           </div>
-                          <div className="text-sm text-gray-500">Administrateur</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">Administrateur</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{admin.email}</div>
-                      <div className="text-sm text-gray-500">{admin.telephone}</div>
+                      <div className="text-sm text-gray-900 dark:text-white">{admin.email}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{admin.telephone}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
                         Actif
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {new Date().toLocaleDateString('fr-FR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -357,7 +361,7 @@ const AdminsManagement = ({ searchTerm }) => {
                             setSelectedAdmin(admin);
                             setIsModalOpen(true);
                           }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                          className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors duration-200"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                         >
@@ -365,7 +369,7 @@ const AdminsManagement = ({ searchTerm }) => {
                         </motion.button>
                         <motion.button
                           onClick={() => handleDelete(admin._id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                          className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors duration-200"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                         >
@@ -388,9 +392,9 @@ const AdminsManagement = ({ searchTerm }) => {
           animate={{ opacity: 1 }}
           className="text-center py-12"
         >
-          <Shield className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun administrateur trouvé</h3>
-          <p className="text-gray-500 mb-6">
+          <Shield className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Aucun administrateur trouvé</h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
             {searchTerm ? 'Aucun résultat pour votre recherche.' : 'Commencez par ajouter votre premier administrateur.'}
           </p>
           <button

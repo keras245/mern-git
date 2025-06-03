@@ -108,11 +108,13 @@ const ChefsManagement = ({ searchTerm }) => {
       {/* En-tête avec actions */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 space-y-4 lg:space-y-0">
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2 bg-gray-100 rounded-xl p-1">
+          <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
             <button
               onClick={() => setViewMode('grid')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                viewMode === 'grid' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
+                viewMode === 'grid' 
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
+                  : 'text-gray-600 dark:text-gray-300'
               }`}
             >
               Grille
@@ -120,7 +122,9 @@ const ChefsManagement = ({ searchTerm }) => {
             <button
               onClick={() => setViewMode('table')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                viewMode === 'table' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
+                viewMode === 'table' 
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
+                  : 'text-gray-600 dark:text-gray-300'
               }`}
             >
               Tableau
@@ -128,15 +132,15 @@ const ChefsManagement = ({ searchTerm }) => {
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors duration-200"
+            className="flex items-center px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
           >
-            <Filter className="w-5 h-5 mr-2 text-gray-500" />
-            Filtres
+            <Filter className="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-700 dark:text-gray-300">Filtres</span>
           </button>
         </div>
 
         <div className="flex items-center space-x-3">
-          <button className="flex items-center px-4 py-2 text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors duration-200">
+          <button className="flex items-center px-4 py-2 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
             <Download className="w-5 h-5 mr-2" />
             Exporter
           </button>
@@ -162,35 +166,35 @@ const ChefsManagement = ({ searchTerm }) => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-gray-50 rounded-xl p-6 mb-6"
+            className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-6"
           >
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Classe</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Classe</label>
                 <input
                   type="text"
                   placeholder="Filtrer par classe..."
                   value={filterClass}
                   onChange={(e) => setFilterClass(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
-                <select className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Statut</label>
+                <select className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                   <option>Tous</option>
                   <option>Actif</option>
                   <option>Inactif</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date d'ajout</label>
-                <input type="date" className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date d'ajout</label>
+                <input type="date" className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
               </div>
               <div className="flex items-end">
                 <button
                   onClick={() => setFilterClass('')}
-                  className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200"
+                  className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors duration-200"
                 >
                   Réinitialiser
                 </button>
@@ -202,40 +206,40 @@ const ChefsManagement = ({ searchTerm }) => {
 
       {/* Statistiques rapides */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gradient-to-r from-green-50 to-emerald-100 rounded-xl p-6">
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-600 text-sm font-medium">Total</p>
-              <p className="text-2xl font-bold text-green-900">{stats.total}</p>
+              <p className="text-green-600 dark:text-green-400 text-sm font-medium">Total</p>
+              <p className="text-2xl font-bold text-green-900 dark:text-green-100">{stats.total}</p>
             </div>
-            <Users className="w-8 h-8 text-green-600" />
+            <Users className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
         </div>
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-600 text-sm font-medium">Actifs</p>
-              <p className="text-2xl font-bold text-blue-900">{stats.active}</p>
+              <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">Actifs</p>
+              <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{stats.active}</p>
             </div>
-            <Award className="w-8 h-8 text-blue-600" />
+            <GraduationCap className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
         </div>
-        <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6">
+        <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-600 text-sm font-medium">Classes gérées</p>
-              <p className="text-2xl font-bold text-purple-900">{stats.classes}</p>
+              <p className="text-purple-600 dark:text-purple-400 text-sm font-medium">Classes</p>
+              <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">{stats.classes}</p>
             </div>
-            <GraduationCap className="w-8 h-8 text-purple-600" />
+            <BookOpen className="w-8 h-8 text-purple-600 dark:text-purple-400" />
           </div>
         </div>
-        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-6">
+        <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-orange-600 text-sm font-medium">Ce mois</p>
-              <p className="text-2xl font-bold text-orange-900">+{stats.thisMonth}</p>
+              <p className="text-orange-600 dark:text-orange-400 text-sm font-medium">Ce mois</p>
+              <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">+{stats.thisMonth}</p>
             </div>
-            <Calendar className="w-8 h-8 text-orange-600" />
+            <Calendar className="w-8 h-8 text-orange-600 dark:text-orange-400" />
           </div>
         </div>
       </div>
@@ -250,7 +254,7 @@ const ChefsManagement = ({ searchTerm }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300 group"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 group"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
@@ -258,46 +262,48 @@ const ChefsManagement = ({ searchTerm }) => {
                     {chef.nom?.charAt(0)}{chef.prenom?.charAt(0)}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{chef.nom} {chef.prenom}</h3>
-                    <p className="text-sm text-gray-500">Chef de classe</p>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{chef.nom} {chef.prenom}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Chef de classe</p>
                   </div>
                 </div>
                 <div className="relative">
-                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-                    <MoreVertical className="w-5 h-5 text-gray-400" />
+                  <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200">
+                    <MoreVertical className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                   </button>
                 </div>
               </div>
 
               <div className="space-y-3 mb-6">
-                <div className="flex items-center text-sm text-gray-600">
-                  <Mail className="w-4 h-4 mr-3 text-gray-400" />
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                  <Mail className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
                   {chef.email}
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <Phone className="w-4 h-4 mr-3 text-gray-400" />
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                  <Phone className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
                   {chef.telephone}
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <GraduationCap className="w-4 h-4 mr-3 text-gray-400" />
-                  <span className="font-medium text-green-600">{chef.classe}</span>
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                  <GraduationCap className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
+                  {chef.classe || 'Classe non assignée'}
                 </div>
                 {chef.adresse && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <MapPin className="w-4 h-4 mr-3 text-gray-400" />
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                    <MapPin className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
                     {chef.adresse}
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
                 <div className="flex items-center space-x-2">
-                  <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                  <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs font-medium rounded-full">
                     Actif
                   </span>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                    {chef.classe}
-                  </span>
+                  {chef.classe && (
+                    <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs font-medium rounded-full">
+                      {chef.classe}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center space-x-2">
                   <motion.button
@@ -305,7 +311,7 @@ const ChefsManagement = ({ searchTerm }) => {
                       setSelectedChef(chef);
                       setIsModalOpen(true);
                     }}
-                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
+                    className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors duration-200"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
@@ -313,7 +319,7 @@ const ChefsManagement = ({ searchTerm }) => {
                   </motion.button>
                   <motion.button
                     onClick={() => handleDelete(chef._id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors duration-200"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
@@ -326,36 +332,36 @@ const ChefsManagement = ({ searchTerm }) => {
         </div>
       ) : (
         /* Vue en tableau */
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Chef de classe
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Classe
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Contact
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Classe assignée
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Statut
                   </th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredChefs.map((chef, index) => (
                   <motion.tr
                     key={chef._id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="hover:bg-gray-50 transition-colors duration-200"
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -363,24 +369,24 @@ const ChefsManagement = ({ searchTerm }) => {
                           {chef.nom?.charAt(0)}{chef.prenom?.charAt(0)}
                         </div>
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {chef.nom} {chef.prenom}
                           </div>
-                          <div className="text-sm text-gray-500">Chef de classe</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">#{chef.matricule}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {chef.classe}
+                      <div className="text-sm text-gray-900 dark:text-white">{chef.email}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{chef.telephone}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                        {chef.classe || 'Non assignée'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{chef.email}</div>
-                      <div className="text-sm text-gray-500">{chef.telephone}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
                         Actif
                       </span>
                     </td>
@@ -391,7 +397,7 @@ const ChefsManagement = ({ searchTerm }) => {
                             setSelectedChef(chef);
                             setIsModalOpen(true);
                           }}
-                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
+                          className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors duration-200"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                         >
@@ -399,7 +405,7 @@ const ChefsManagement = ({ searchTerm }) => {
                         </motion.button>
                         <motion.button
                           onClick={() => handleDelete(chef._id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                          className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors duration-200"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                         >
@@ -422,10 +428,10 @@ const ChefsManagement = ({ searchTerm }) => {
           animate={{ opacity: 1 }}
           className="text-center py-12"
         >
-          <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun chef de classe trouvé</h3>
-          <p className="text-gray-500 mb-6">
-            {searchTerm || filterClass ? 'Aucun résultat pour vos critères de recherche.' : 'Commencez par ajouter votre premier chef de classe.'}
+          <Users className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Aucun chef de classe trouvé</h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
+            {searchTerm ? 'Aucun résultat pour votre recherche.' : 'Commencez par ajouter votre premier chef de classe.'}
           </p>
           <button
             onClick={() => {
@@ -440,7 +446,7 @@ const ChefsManagement = ({ searchTerm }) => {
         </motion.div>
       )}
 
-      {/* Modal pour ajouter/modifier */}
+      {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <ChefModal

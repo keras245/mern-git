@@ -85,8 +85,8 @@ const ProfModal = ({ prof, onClose, onSuccess }) => {
   const inputClasses = (fieldName) => `
     w-full px-4 py-3 pl-12 border rounded-xl transition-all duration-200 
     ${errors[fieldName] 
-      ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500' 
-      : 'border-gray-200 bg-gray-50 focus:ring-purple-500 focus:border-purple-500 focus:bg-white'
+      ? 'border-red-300 bg-red-50 dark:border-red-500 dark:bg-red-900/20 focus:ring-red-500 focus:border-red-500' 
+      : 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-purple-500 focus:border-purple-500 focus:bg-white dark:focus:bg-gray-600 text-gray-900 dark:text-white'
     }
   `;
 
@@ -104,7 +104,7 @@ const ProfModal = ({ prof, onClose, onSuccess }) => {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ type: "spring", duration: 0.3 }}
-          className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl"
+          className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* En-tête */}
@@ -140,19 +140,19 @@ const ProfModal = ({ prof, onClose, onSuccess }) => {
               {/* Informations personnelles */}
               <div className="space-y-6">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <User className="w-5 h-5 text-purple-600" />
+                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                    <User className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Informations personnelles</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Informations personnelles</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       ID Professeur *
                     </label>
                     <div className="relative">
-                      <Award className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Award className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                       <input
                         type="text"
                         value={formData.id_prof}
@@ -162,16 +162,16 @@ const ProfModal = ({ prof, onClose, onSuccess }) => {
                       />
                     </div>
                     {errors.id_prof && (
-                      <p className="mt-1 text-sm text-red-600">{errors.id_prof}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.id_prof}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Nom *
                     </label>
                     <div className="relative">
-                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                       <input
                         type="text"
                         value={formData.nom}
@@ -181,16 +181,16 @@ const ProfModal = ({ prof, onClose, onSuccess }) => {
                       />
                     </div>
                     {errors.nom && (
-                      <p className="mt-1 text-sm text-red-600">{errors.nom}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.nom}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Prénom *
                     </label>
                     <div className="relative">
-                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                       <input
                         type="text"
                         value={formData.prenom}
@@ -200,67 +200,53 @@ const ProfModal = ({ prof, onClose, onSuccess }) => {
                       />
                     </div>
                     {errors.prenom && (
-                      <p className="mt-1 text-sm text-red-600">{errors.prenom}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.prenom}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Téléphone *
                     </label>
                     <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                       <input
                         type="tel"
                         value={formData.telephone}
                         onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
                         className={inputClasses('telephone')}
-                        placeholder="+224 XXX XX XX XX"
+                        placeholder="+224 xxx xxx xxx"
                       />
                     </div>
                     {errors.telephone && (
-                      <p className="mt-1 text-sm text-red-600">{errors.telephone}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.telephone}</p>
                     )}
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Adresse
                     </label>
                     <div className="relative">
-                      <MapPin className="absolute left-4 top-4 w-5 h-5 text-gray-400" />
-                      <textarea
+                      <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                      <input
+                        type="text"
                         value={formData.adresse}
                         onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
-                        className="w-full px-4 py-3 pl-12 border border-gray-200 bg-gray-50 rounded-xl focus:ring-purple-500 focus:border-purple-500 focus:bg-white transition-all duration-200 resize-none"
-                        rows="3"
-                        placeholder="Adresse complète du professeur"
+                        className={inputClasses('adresse')}
+                        placeholder="Adresse complète"
                       />
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Note informative */}
-              <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-                <div className="flex items-start space-x-3">
-                  <GraduationCap className="w-5 h-5 text-purple-600 mt-0.5" />
-                  <div>
-                    <h4 className="text-sm font-medium text-purple-900">Information</h4>
-                    <p className="text-sm text-purple-700 mt-1">
-                      Les matières enseignées par ce professeur seront gérées via la section "Cours" 
-                      où vous pourrez attribuer plusieurs matières à un même professeur.
-                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Boutons d'action */}
-              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+              <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-600">
                 <motion.button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-200"
+                  className="px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-colors duration-200"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -269,12 +255,16 @@ const ProfModal = ({ prof, onClose, onSuccess }) => {
                 <motion.button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 flex items-center space-x-2 disabled:opacity-50"
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Save className="w-5 h-5" />
-                  <span>{loading ? 'Enregistrement...' : prof ? 'Modifier' : 'Créer'}</span>
+                  {loading ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  ) : (
+                    <Save className="w-5 h-5 mr-2" />
+                  )}
+                  {prof ? 'Modifier' : 'Créer'}
                 </motion.button>
               </div>
             </form>

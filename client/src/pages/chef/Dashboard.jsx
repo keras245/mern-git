@@ -155,21 +155,21 @@ const Dashboard = () => {
   };
 
   const genererNotificationsDemo = () => [
-    {
-      id: 1,
-      type: 'info',
+        {
+          id: 1,
+          type: 'info',
       message: 'Nouveau message de l\'administration',
       temps: 'Il y a 15 minutes',
-      couleur: 'bg-blue-500',
-      lu: false
-    },
-    {
-      id: 2,
-      type: 'warning',
-      message: 'Rappel : Déclaration des présences',
+          couleur: 'bg-blue-500',
+          lu: false
+        },
+        {
+          id: 2,
+          type: 'warning',
+          message: 'Rappel : Déclaration des présences',
       temps: 'Il y a 2 heures',
-      couleur: 'bg-yellow-500',
-      lu: false
+          couleur: 'bg-yellow-500',
+          lu: false
     }
   ];
 

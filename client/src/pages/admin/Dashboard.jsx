@@ -251,21 +251,21 @@ const AdminDashboard = () => {
         className="flex justify-between items-start"
       >
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Tableau de bord
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             Bienvenue dans votre espace de gestion - Université Nongo Conakry
           </p>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-2xl font-bold text-gray-900 dark:text-white">
             {currentTime.toLocaleTimeString('fr-FR', { 
               hour: '2-digit', 
               minute: '2-digit' 
             })}
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             {currentTime.toLocaleDateString('fr-FR', { 
               weekday: 'long',
               day: 'numeric',
@@ -285,23 +285,23 @@ const AdminDashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl ${stat.bgColor}`}>
+                <div className={`p-3 rounded-xl ${stat.bgColor} dark:bg-gray-700`}>
                   <Icon className={`w-6 h-6 bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`} />
                 </div>
                 <div className={`flex items-center text-sm font-medium ${
-                  stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                  stat.trend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                 }`}>
                   {stat.trend === 'up' ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
                   {stat.change}
                 </div>
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
-                <p className="text-gray-600 text-sm">{stat.title}</p>
-                <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{stat.value}</h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">{stat.title}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{stat.description}</p>
             </div>
           </motion.div>
           );
@@ -313,11 +313,11 @@ const AdminDashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Actions rapides</h2>
-          <button className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Actions rapides</h2>
+          <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium flex items-center">
             Voir tout <ArrowRight className="w-4 h-4 ml-1" />
           </button>
         </div>
@@ -330,14 +330,14 @@ const AdminDashboard = () => {
                 onClick={() => navigate(action.path)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex items-center p-4 rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 group"
+                className="flex items-center p-4 rounded-xl border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-md transition-all duration-200 group bg-white dark:bg-gray-700"
               >
                 <div className={`p-3 rounded-lg ${action.color} text-white mr-4 group-hover:scale-110 transition-transform duration-200`}>
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-gray-900 text-sm">{action.title}</p>
-                  <p className="text-xs text-gray-500">Cliquez pour accéder</p>
+                  <p className="font-medium text-gray-900 dark:text-white text-sm">{action.title}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Cliquez pour accéder</p>
                 </div>
               </motion.button>
             );
@@ -352,28 +352,29 @@ const AdminDashboard = () => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
-          className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+          className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
         >
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-gray-900">Présences cette semaine</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Présences cette semaine</h3>
             <button 
               onClick={() => navigate('/admin/attendance')}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium flex items-center"
             >
               <Eye className="w-4 h-4 mr-1" /> Détails
             </button>
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={presenceData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="name" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="name" stroke="#9CA3AF" />
+              <YAxis stroke="#9CA3AF" />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: 'white', 
-                  border: '1px solid #e5e7eb',
+                  backgroundColor: 'rgba(31, 41, 55, 0.95)', 
+                  border: '1px solid #374151',
                   borderRadius: '12px',
-                  boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+                  color: '#fff'
                 }}
               />
               <Bar dataKey="present" fill="#10B981" radius={[4, 4, 0, 0]} name="Présents" />
@@ -387,9 +388,9 @@ const AdminDashboard = () => {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
         >
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Activités récentes</h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Activités récentes</h3>
           <div className="space-y-4">
             {recentActivities.map((activity, index) => {
               const Icon = activity.icon;
@@ -399,22 +400,20 @@ const AdminDashboard = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 + index * 0.1 }}
-                  className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                  className="flex items-start space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl"
                 >
-                  <div className={`p-2 rounded-lg bg-gray-100`}>
-                    <Icon className={`w-4 h-4 ${activity.color}`} />
-            </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {activity.message}
-                    </p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
-            </div>
+                  <div className={`p-2 rounded-lg ${activity.color.replace('text-', 'bg-').replace('600', '100')} dark:bg-gray-600`}>
+                    <Icon className={`w-4 h-4 ${activity.color} dark:text-gray-300`} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{activity.message}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{activity.time}</p>
+                  </div>
                 </motion.div>
               );
             })}
           </div>
-          <button className="w-full mt-4 text-blue-600 hover:text-blue-700 text-sm font-medium py-2 hover:bg-blue-50 rounded-lg transition-colors duration-200">
+          <button className="w-full mt-4 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium py-2 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200">
             Voir toutes les activités
           </button>
         </motion.div>
@@ -425,36 +424,37 @@ const AdminDashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
       >
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-bold text-gray-900">Statistiques de présence des professeurs</h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Statistiques de présence des professeurs</h3>
           <div className="flex items-center space-x-4 text-sm">
             <div className="flex items-center">
               <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-              <span className="text-gray-600">Présents</span>
+              <span className="text-gray-600 dark:text-gray-300">Présents</span>
             </div>
             <div className="flex items-center">
               <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-              <span className="text-gray-600">Retards</span>
+              <span className="text-gray-600 dark:text-gray-300">Retards</span>
             </div>
             <div className="flex items-center">
               <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-              <span className="text-gray-600">Absents</span>
+              <span className="text-gray-600 dark:text-gray-300">Absents</span>
             </div>
           </div>
         </div>
         <ResponsiveContainer width="100%" height={350}>
           <AreaChart data={professeurPresenceData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="jour" stroke="#6b7280" />
-            <YAxis stroke="#6b7280" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis dataKey="jour" stroke="#9CA3AF" />
+            <YAxis stroke="#9CA3AF" />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'white', 
-                border: '1px solid #e5e7eb',
+                backgroundColor: 'rgba(31, 41, 55, 0.95)', 
+                border: '1px solid #374151',
                 borderRadius: '12px',
-                boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+                color: '#fff'
               }}
             />
             <Area 
@@ -493,39 +493,40 @@ const AdminDashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
       >
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Performance et Satisfaction Académique</h3>
-            <p className="text-sm text-gray-600">Évolution mensuelle des indicateurs clés</p>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Performance et Satisfaction Académique</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Évolution mensuelle des indicateurs clés</p>
           </div>
           <div className="flex items-center space-x-4 text-sm">
             <div className="flex items-center">
               <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-              <span className="text-gray-600">Satisfaction (%)</span>
+              <span className="text-gray-600 dark:text-gray-300">Satisfaction (%)</span>
             </div>
             <div className="flex items-center">
               <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-              <span className="text-gray-600">Efficacité (%)</span>
+              <span className="text-gray-600 dark:text-gray-300">Efficacité (%)</span>
             </div>
             <div className="flex items-center">
               <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
-              <span className="text-gray-600">Feedback (%)</span>
+              <span className="text-gray-600 dark:text-gray-300">Feedback (%)</span>
             </div>
           </div>
         </div>
         <ResponsiveContainer width="100%" height={400}>
           <LineChart data={performanceData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="mois" stroke="#6b7280" />
-            <YAxis stroke="#6b7280" domain={[0, 100]} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis dataKey="mois" stroke="#9CA3AF" />
+            <YAxis stroke="#9CA3AF" domain={[0, 100]} />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'white', 
-                border: '1px solid #e5e7eb',
+                backgroundColor: 'rgba(31, 41, 55, 0.95)', 
+                border: '1px solid #374151',
                 borderRadius: '12px',
-                boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+                color: '#fff'
               }}
               formatter={(value) => [`${value}%`, '']}
             />
@@ -565,9 +566,9 @@ const AdminDashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
-        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
       >
-        <h3 className="text-lg font-bold text-gray-900 mb-6">Répartition des cours par filière</h3>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Répartition des cours par filière</h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
@@ -595,9 +596,9 @@ const AdminDashboard = () => {
                     className="w-4 h-4 rounded-full mr-3"
                     style={{ backgroundColor: item.color }}
                   ></div>
-                  <span className="text-sm font-medium text-gray-700">{item.name}</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{item.name}</span>
                 </div>
-                <span className="text-sm font-bold text-gray-900">{item.value} cours</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-white">{item.value} cours</span>
               </div>
             ))}
         </div>

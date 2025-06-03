@@ -35,12 +35,12 @@ import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 
 const notificationTypes = {
-  info: { icon: Info, color: 'blue', bgColor: 'bg-blue-50', textColor: 'text-blue-600', label: 'Information' },
-  success: { icon: CheckCircle, color: 'green', bgColor: 'bg-green-50', textColor: 'text-green-600', label: 'Succès' },
-  warning: { icon: AlertCircle, color: 'yellow', bgColor: 'bg-yellow-50', textColor: 'text-yellow-600', label: 'Avertissement' },
-  error: { icon: X, color: 'red', bgColor: 'bg-red-50', textColor: 'text-red-600', label: 'Erreur' },
-  message: { icon: MessageSquare, color: 'purple', bgColor: 'bg-purple-50', textColor: 'text-purple-600', label: 'Message' },
-  schedule: { icon: Calendar, color: 'indigo', bgColor: 'bg-indigo-50', textColor: 'text-indigo-600', label: 'Emploi du temps' }
+  info: { icon: Info, color: 'blue', bgColor: 'bg-blue-50 dark:bg-blue-900/20', textColor: 'text-blue-600 dark:text-blue-400', label: 'Information' },
+  success: { icon: CheckCircle, color: 'green', bgColor: 'bg-green-50 dark:bg-green-900/20', textColor: 'text-green-600 dark:text-green-400', label: 'Succès' },
+  warning: { icon: AlertCircle, color: 'yellow', bgColor: 'bg-yellow-50 dark:bg-yellow-900/20', textColor: 'text-yellow-600 dark:text-yellow-400', label: 'Avertissement' },
+  error: { icon: X, color: 'red', bgColor: 'bg-red-50 dark:bg-red-900/20', textColor: 'text-red-600 dark:text-red-400', label: 'Erreur' },
+  message: { icon: MessageSquare, color: 'purple', bgColor: 'bg-purple-50 dark:bg-purple-900/20', textColor: 'text-purple-600 dark:text-purple-400', label: 'Message' },
+  schedule: { icon: Calendar, color: 'indigo', bgColor: 'bg-indigo-50 dark:bg-indigo-900/20', textColor: 'text-indigo-600 dark:text-indigo-400', label: 'Emploi du temps' }
 };
 
 const AdminNotifications = () => {
@@ -359,7 +359,7 @@ const AdminNotifications = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 dark:border-orange-400"></div>
       </div>
     );
   }
@@ -370,14 +370,14 @@ const AdminNotifications = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
       >
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Gestion des Notifications
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-300">
               Créez et gérez les notifications pour tous les chefs de classe
             </p>
           </div>
@@ -386,7 +386,7 @@ const AdminNotifications = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-orange-500 dark:bg-orange-600 text-white rounded-lg hover:bg-orange-600 dark:hover:bg-orange-700 transition-colors"
             >
               <Plus className="w-4 h-4" />
               Nouvelle notification
@@ -395,7 +395,7 @@ const AdminNotifications = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={chargerNotifications}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 dark:bg-blue-600 text-white rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
               Actualiser
@@ -404,7 +404,7 @@ const AdminNotifications = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={exporterNotifications}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-green-500 dark:bg-green-600 text-white rounded-lg hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
             >
               <Download className="w-4 h-4" />
               Exporter
@@ -427,15 +427,15 @@ const AdminNotifications = () => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-gray-50 rounded-lg p-4"
+                className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{stat.label}</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
                   </div>
-                  <div className={`p-3 rounded-lg ${stat.color} bg-opacity-10`}>
-                    <IconComponent className={`w-6 h-6 ${stat.color.replace('bg-', 'text-')}`} />
+                  <div className={`p-3 rounded-lg ${stat.color} bg-opacity-10 dark:bg-opacity-20`}>
+                    <IconComponent className={`w-6 h-6 ${stat.color.replace('bg-', 'text-')} dark:opacity-80`} />
                   </div>
                 </div>
               </motion.div>
@@ -449,19 +449,19 @@ const AdminNotifications = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Recherche */}
           <div className="lg:col-span-2">
             <div className="relative">
-              <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 placeholder="Rechercher..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -470,7 +470,7 @@ const AdminNotifications = () => {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           >
             <option value="all">Tous les types</option>
             {Object.entries(notificationTypes).map(([key, config]) => (
@@ -482,7 +482,7 @@ const AdminNotifications = () => {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           >
             <option value="all">Tous les statuts</option>
             <option value="unread">Non lues</option>
@@ -494,7 +494,7 @@ const AdminNotifications = () => {
           <select
             value={filterRecipient}
             onChange={(e) => setFilterRecipient(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           >
             <option value="all">Tous les destinataires</option>
             <option value="all_recipients">Envoi groupé</option>
@@ -507,22 +507,22 @@ const AdminNotifications = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between"
+            className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between"
           >
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
               {selectedNotifications.length} notification(s) sélectionnée(s)
             </span>
             <div className="flex gap-2">
               <button
                 onClick={supprimerSelections}
-                className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors flex items-center gap-1"
+                className="px-3 py-2 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors flex items-center gap-1"
               >
                 <Trash2 className="w-4 h-4" />
                 Supprimer
               </button>
               <button
                 onClick={deselectAll}
-                className="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
                 Désélectionner
               </button>
@@ -536,13 +536,13 @@ const AdminNotifications = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-white rounded-xl shadow-sm border border-gray-100"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700"
       >
         {notificationsActuelles.length === 0 ? (
           <div className="p-12 text-center">
-            <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-xl text-gray-500 mb-2">Aucune notification trouvée</p>
-            <p className="text-gray-400">
+            <Bell className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <p className="text-xl text-gray-500 dark:text-gray-400 mb-2">Aucune notification trouvée</p>
+            <p className="text-gray-400 dark:text-gray-500">
               {notifications.length === 0 
                 ? "Aucune notification n'a encore été créée"
                 : "Modifiez vos filtres pour voir plus de résultats"
@@ -553,7 +553,7 @@ const AdminNotifications = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setShowCreateModal(true)}
-                className="mt-4 flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors mx-auto"
+                className="mt-4 flex items-center gap-2 px-4 py-2 bg-orange-500 dark:bg-orange-600 text-white rounded-lg hover:bg-orange-600 dark:hover:bg-orange-700 transition-colors mx-auto"
               >
                 <Plus className="w-4 h-4" />
                 Créer la première notification
@@ -564,18 +564,18 @@ const AdminNotifications = () => {
           <>
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {notificationsFiltrees.length} notification{notificationsFiltrees.length !== 1 ? 's' : ''} trouvée{notificationsFiltrees.length !== 1 ? 's' : ''}
                 </h3>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={selectAll}
-                    className="text-sm text-orange-600 hover:text-orange-700"
+                    className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300"
                   >
                     Tout sélectionner
                   </button>
-                  <span className="text-sm text-gray-400">•</span>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-400 dark:text-gray-500">•</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
                     Page {pageActuelle} sur {nombrePages}
                   </span>
                 </div>
@@ -594,7 +594,9 @@ const AdminNotifications = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
                       className={`p-4 border rounded-lg hover:shadow-md transition-all cursor-pointer ${
-                        isSelected ? 'ring-2 ring-orange-500 ring-opacity-50 bg-orange-50' : 'bg-gray-50 border-gray-200'
+                        isSelected 
+                          ? 'ring-2 ring-orange-500 ring-opacity-50 bg-orange-50 dark:bg-orange-900/20 dark:ring-orange-400' 
+                          : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
                       }`}
                       onClick={() => toggleSelectNotification(notification._id)}
                     >
@@ -604,8 +606,8 @@ const AdminNotifications = () => {
                           <motion.div
                             className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
                               isSelected 
-                                ? 'bg-orange-500 border-orange-500' 
-                                : 'border-gray-300 hover:border-orange-400'
+                                ? 'bg-orange-500 dark:bg-orange-600 border-orange-500 dark:border-orange-600' 
+                                : 'border-gray-300 dark:border-gray-600 hover:border-orange-400 dark:hover:border-orange-500'
                             }`}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
@@ -621,22 +623,22 @@ const AdminNotifications = () => {
                           {/* Contenu */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-3 mb-2">
-                              <h3 className="font-semibold text-gray-900">
+                              <h3 className="font-semibold text-gray-900 dark:text-white">
                                 {notification.title}
                               </h3>
                               {notification.important && (
-                                <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                                <Star className="w-4 h-4 text-yellow-500 dark:text-yellow-400 fill-current" />
                               )}
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${typeConfig.bgColor} ${typeConfig.textColor}`}>
                                 {typeConfig.label}
                               </span>
                             </div>
                             
-                            <p className="text-gray-700 mb-3 line-clamp-2">
+                            <p className="text-gray-700 dark:text-gray-300 mb-3 line-clamp-2">
                               {notification.message}
                             </p>
                             
-                            <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                               <span>
                                 <User className="w-4 h-4 inline mr-1" />
                                 {notification.sender}
@@ -662,7 +664,7 @@ const AdminNotifications = () => {
                               e.stopPropagation();
                               supprimerNotification(notification._id);
                             }}
-                            className="p-2 text-red-600 hover:bg-red-100 rounded-lg"
+                            className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg"
                             title="Supprimer"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -677,16 +679,16 @@ const AdminNotifications = () => {
 
             {/* Pagination */}
             {nombrePages > 1 && (
-              <div className="px-6 py-4 border-t border-gray-200">
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
                     Affichage de {indexPremiere + 1} à {Math.min(indexDerniere, notificationsFiltrees.length)} sur {notificationsFiltrees.length}
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setPageActuelle(prev => Math.max(prev - 1, 1))}
                       disabled={pageActuelle === 1}
-                      className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
                       Précédent
                     </button>
@@ -704,8 +706,8 @@ const AdminNotifications = () => {
                             onClick={() => setPageActuelle(numero)}
                             className={`px-3 py-1 border rounded ${
                               pageActuelle === numero
-                                ? 'bg-orange-500 text-white border-orange-500'
-                                : 'border-gray-300 hover:bg-gray-50'
+                                ? 'bg-orange-500 dark:bg-orange-600 text-white border-orange-500 dark:border-orange-600'
+                                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600'
                             }`}
                           >
                             {numero}
@@ -715,7 +717,7 @@ const AdminNotifications = () => {
                         (numero === pageActuelle - 2 && numero > 1) ||
                         (numero === pageActuelle + 2 && numero < nombrePages)
                       ) {
-                        return <span key={numero} className="px-2">...</span>;
+                        return <span key={numero} className="px-2 text-gray-500 dark:text-gray-400">...</span>;
                       }
                       return null;
                     })}
@@ -723,7 +725,7 @@ const AdminNotifications = () => {
                     <button
                       onClick={() => setPageActuelle(prev => Math.min(prev + 1, nombrePages))}
                       disabled={pageActuelle === nombrePages}
-                      className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
                       Suivant
                     </button>
@@ -749,22 +751,22 @@ const AdminNotifications = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                       Créer une nouvelle notification
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-400">
                       Envoyez une notification à tous les chefs de classe ou à un chef spécifique
                     </p>
                   </div>
                   <button
                     onClick={() => setShowCreateModal(false)}
-                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                    className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -773,7 +775,7 @@ const AdminNotifications = () => {
                 <div className="space-y-6">
                   {/* Titre */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Titre *
                     </label>
                     <input
@@ -781,13 +783,13 @@ const AdminNotifications = () => {
                       value={newNotification.title}
                       onChange={(e) => setNewNotification(prev => ({ ...prev, title: e.target.value }))}
                       placeholder="Titre de la notification"
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     />
                   </div>
 
                   {/* Message */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Message *
                     </label>
                     <textarea
@@ -795,7 +797,7 @@ const AdminNotifications = () => {
                       onChange={(e) => setNewNotification(prev => ({ ...prev, message: e.target.value }))}
                       placeholder="Contenu de la notification"
                       rows={4}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
                     />
                   </div>
 
@@ -803,13 +805,13 @@ const AdminNotifications = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Type */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Type
                       </label>
                       <select
                         value={newNotification.type}
                         onChange={(e) => setNewNotification(prev => ({ ...prev, type: e.target.value }))}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                       >
                         {Object.entries(notificationTypes).map(([key, config]) => (
                           <option key={key} value={key}>{config.label}</option>
@@ -819,13 +821,13 @@ const AdminNotifications = () => {
 
                     {/* Destinataire */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Destinataire
                       </label>
                       <select
                         value={newNotification.recipientType}
                         onChange={(e) => setNewNotification(prev => ({ ...prev, recipientType: e.target.value }))}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                       >
                         <option value="all">Tous les chefs de classe</option>
                         <option value="specific">Chef spécifique</option>
@@ -836,13 +838,13 @@ const AdminNotifications = () => {
                   {/* Chef spécifique */}
                   {newNotification.recipientType === 'specific' && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Chef de classe
                       </label>
                       <select
                         value={newNotification.specificRecipient}
                         onChange={(e) => setNewNotification(prev => ({ ...prev, specificRecipient: e.target.value }))}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                       >
                         <option value="">Sélectionner un chef</option>
                         {chefs.map(chef => (
@@ -851,50 +853,53 @@ const AdminNotifications = () => {
                           </option>
                         ))}
                       </select>
-                      {chefs.length === 0 && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          Aucun chef de classe disponible
-                        </p>
-                      )}
                     </div>
                   )}
 
-                  {/* Important */}
+                  {/* Importance */}
                   <div className="flex items-center">
                     <input
                       type="checkbox"
                       id="important"
                       checked={newNotification.important}
                       onChange={(e) => setNewNotification(prev => ({ ...prev, important: e.target.checked }))}
-                      className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                      className="w-4 h-4 text-orange-600 border-gray-300 dark:border-gray-600 rounded focus:ring-orange-500 dark:bg-gray-700"
                     />
-                    <label htmlFor="important" className="ml-2 text-sm text-gray-700">
+                    <label htmlFor="important" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                       Marquer comme importante
                     </label>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
-                  <button
+                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setShowCreateModal(false)}
-                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Annuler
-                  </button>
+                  </motion.button>
+                  
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={creerNotification}
                     disabled={sendingNotification || !newNotification.title.trim() || !newNotification.message.trim()}
-                    className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 bg-orange-500 dark:bg-orange-600 text-white rounded-lg hover:bg-orange-600 dark:hover:bg-orange-700 transition-colors disabled:opacity-50"
                   >
                     {sendingNotification ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        Envoi...
+                      </>
                     ) : (
-                      <Send className="w-4 h-4" />
+                      <>
+                        <Send className="w-4 h-4" />
+                        Envoyer notification
+                      </>
                     )}
-                    {sendingNotification ? 'Envoi...' : 'Envoyer'}
                   </motion.button>
                 </div>
               </div>

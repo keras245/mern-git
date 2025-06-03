@@ -138,9 +138,9 @@ export default function Notifications() {
   const marquerCommeLue = async (id) => {
     try {
       await api.put(`/notifications/${id}/read`);
-      setNotifications(prev => prev.map(n => 
+    setNotifications(prev => prev.map(n => 
         n._id === id ? { ...n, read: true } : n
-      ));
+    ));
       showNotification('Notification marquée comme lue', 'success');
     } catch (error) {
       console.error('Erreur marquage lu:', error);
@@ -151,9 +151,9 @@ export default function Notifications() {
   const marquerCommeNonLue = async (id) => {
     try {
       await api.put(`/notifications/${id}/unread`);
-      setNotifications(prev => prev.map(n => 
+    setNotifications(prev => prev.map(n => 
         n._id === id ? { ...n, read: false } : n
-      ));
+    ));
       showNotification('Notification marquée comme non lue', 'success');
     } catch (error) {
       console.error('Erreur marquage non lu:', error);
@@ -164,9 +164,9 @@ export default function Notifications() {
   const basculerImportant = async (id) => {
     try {
       const response = await api.put(`/notifications/${id}/important`);
-      setNotifications(prev => prev.map(n => 
+    setNotifications(prev => prev.map(n => 
         n._id === id ? { ...n, important: response.data.important } : n
-      ));
+    ));
       showNotification(
         response.data.important ? 'Notification marquée comme importante' : 'Importance retirée',
         'success'
@@ -191,7 +191,7 @@ export default function Notifications() {
   const marquerToutCommeLu = async () => {
     try {
       await api.put('/notifications/mark-all-read');
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       showNotification('Toutes les notifications ont été marquées comme lues', 'success');
     } catch (error) {
       console.error('Erreur marquage global:', error);
@@ -205,7 +205,7 @@ export default function Notifications() {
         data: { ids: selectedNotifications }
       });
       setNotifications(prev => prev.filter(n => !selectedNotifications.includes(n._id)));
-      setSelectedNotifications([]);
+    setSelectedNotifications([]);
       showNotification(`${selectedNotifications.length} notification(s) supprimée(s)`, 'success');
     } catch (error) {
       console.error('Erreur suppression multiple:', error);
@@ -426,66 +426,66 @@ export default function Notifications() {
             </p>
           </motion.div>
         ) : (
-          <AnimatePresence>
-            {filteredNotifications.map((notification, index) => {
+        <AnimatePresence>
+          {filteredNotifications.map((notification, index) => {
               const typeConfig = notificationTypes[notification.type] || notificationTypes.info;
-              const Icon = typeConfig.icon;
+            const Icon = typeConfig.icon;
               const isSelected = selectedNotifications.includes(notification._id);
 
-              return (
-                <motion.div
+            return (
+              <motion.div
                   key={notification._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ delay: index * 0.05 }}
-                  className={`bg-white rounded-2xl p-6 shadow-sm border transition-all duration-200 hover:shadow-md ${
-                    !notification.read ? 'border-l-4 border-l-green-500' : 'border-gray-100'
-                  } ${isSelected ? 'ring-2 ring-green-500 ring-opacity-50' : ''}`}
-                >
-                  <div className="flex items-start space-x-4">
-                    {/* Checkbox de sélection */}
-                    <motion.button
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ delay: index * 0.05 }}
+                className={`bg-white rounded-2xl p-6 shadow-sm border transition-all duration-200 hover:shadow-md ${
+                  !notification.read ? 'border-l-4 border-l-green-500' : 'border-gray-100'
+                } ${isSelected ? 'ring-2 ring-green-500 ring-opacity-50' : ''}`}
+              >
+                <div className="flex items-start space-x-4">
+                  {/* Checkbox de sélection */}
+                  <motion.button
                       onClick={() => toggleSelectNotification(notification._id)}
-                      className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
-                        isSelected 
-                          ? 'bg-green-500 border-green-500' 
-                          : 'border-gray-300 hover:border-green-400'
-                      }`}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      {isSelected && <Check size={12} className="text-white" />}
-                    </motion.button>
+                    className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                      isSelected 
+                        ? 'bg-green-500 border-green-500' 
+                        : 'border-gray-300 hover:border-green-400'
+                    }`}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    {isSelected && <Check size={12} className="text-white" />}
+                  </motion.button>
 
-                    {/* Icône du type */}
-                    <div className={`p-3 rounded-xl ${typeConfig.bgColor} flex-shrink-0`}>
-                      <Icon className={`w-5 h-5 ${typeConfig.textColor}`} />
-                    </div>
+                  {/* Icône du type */}
+                  <div className={`p-3 rounded-xl ${typeConfig.bgColor} flex-shrink-0`}>
+                    <Icon className={`w-5 h-5 ${typeConfig.textColor}`} />
+                  </div>
 
-                    {/* Contenu */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <h3 className={`font-semibold ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
-                            {notification.title}
-                          </h3>
-                          {notification.important && (
-                            <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                          )}
-                          {!notification.read && (
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          )}
-                        </div>
-                        <div className="flex items-center space-x-2">
+                  {/* Contenu */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <h3 className={`font-semibold ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                          {notification.title}
+                        </h3>
+                        {notification.important && (
+                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                        )}
+                        {!notification.read && (
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
                           <span className="text-xs text-gray-500">
                             {formatTime(notification.createdAt || notification.time)}
                           </span>
-                          <div className="relative group">
-                            <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-                              <MoreVertical size={16} className="text-gray-400" />
-                            </button>
-                            
+                        <div className="relative group">
+                          <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                            <MoreVertical size={16} className="text-gray-400" />
+                          </button>
+                          
                             {/* Menu déroulant */}
                             <div className="absolute right-0 top-8 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
                               {!notification.read ? (
@@ -497,53 +497,53 @@ export default function Notifications() {
                                   <span>Marquer comme lu</span>
                                 </button>
                               ) : (
-                                <button
+                            <button
                                   onClick={() => marquerCommeNonLue(notification._id)}
-                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
-                                >
-                                  <Eye size={16} />
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+                            >
+                              <Eye size={16} />
                                   <span>Marquer comme non lu</span>
-                                </button>
+                            </button>
                               )}
-                              <button
+                            <button
                                 onClick={() => basculerImportant(notification._id)}
-                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
-                              >
-                                {notification.important ? <StarOff size={16} /> : <Star size={16} />}
-                                <span>{notification.important ? 'Retirer importance' : 'Marquer important'}</span>
-                              </button>
-                              <button
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+                            >
+                              {notification.important ? <StarOff size={16} /> : <Star size={16} />}
+                              <span>{notification.important ? 'Retirer importance' : 'Marquer important'}</span>
+                            </button>
+                            <button
                                 onClick={() => supprimerNotification(notification._id)}
-                                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
-                              >
-                                <Trash2 size={16} />
-                                <span>Supprimer</span>
-                              </button>
-                            </div>
+                              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                            >
+                              <Trash2 size={16} />
+                              <span>Supprimer</span>
+                            </button>
                           </div>
                         </div>
                       </div>
-
+                    </div>
+                    
                       <p className={`text-sm mb-3 ${!notification.read ? 'text-gray-700' : 'text-gray-600'}`}>
                         {notification.message}
                       </p>
-
+                    
                       <div className="flex items-center space-x-4 text-xs text-gray-500">
                         <div className="flex items-center space-x-1">
                           <User size={12} />
                           <span>{notification.sender || 'Administration'}</span>
-                        </div>
+                      </div>
                         <div className="flex items-center space-x-1">
                           <Calendar size={12} />
                           <span>{new Date(notification.createdAt || notification.time).toLocaleDateString('fr-FR')}</span>
                         </div>
-                      </div>
                     </div>
                   </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
         )}
       </div>
     </div>

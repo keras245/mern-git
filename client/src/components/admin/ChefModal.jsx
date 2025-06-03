@@ -128,8 +128,8 @@ const ChefModal = ({ chef, onClose, onSuccess }) => {
   const inputClasses = (fieldName) => `
     w-full px-4 py-3 pl-12 border rounded-xl transition-all duration-200 
     ${errors[fieldName] 
-      ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500' 
-      : 'border-gray-200 bg-gray-50 focus:ring-green-500 focus:border-green-500 focus:bg-white'
+      ? 'border-red-300 bg-red-50 dark:border-red-500 dark:bg-red-900/20 focus:ring-red-500 focus:border-red-500' 
+      : 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-green-500 focus:border-green-500 focus:bg-white dark:focus:bg-gray-600 text-gray-900 dark:text-white'
     }
   `;
 
@@ -147,7 +147,7 @@ const ChefModal = ({ chef, onClose, onSuccess }) => {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ type: "spring", duration: 0.3 }}
-          className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl"
+          className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* En-tête */}
@@ -183,38 +183,38 @@ const ChefModal = ({ chef, onClose, onSuccess }) => {
               {/* Informations personnelles */}
               <div className="space-y-6">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <User className="w-5 h-5 text-green-600" />
+                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                    <User className="w-5 h-5 text-green-600 dark:text-green-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Informations personnelles</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Informations personnelles</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Matricule *
                     </label>
                     <div className="relative">
-                      <Users className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Users className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                       <input
                         type="text"
                         value={formData.matricule}
                         onChange={(e) => setFormData({ ...formData, matricule: e.target.value })}
                         className={inputClasses('matricule')}
-                        placeholder="Ex: CHF001"
+                        placeholder="Ex: CHEF001"
                       />
                     </div>
                     {errors.matricule && (
-                      <p className="mt-1 text-sm text-red-600">{errors.matricule}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.matricule}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Nom *
                     </label>
                     <div className="relative">
-                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                       <input
                         type="text"
                         value={formData.nom}
@@ -224,16 +224,16 @@ const ChefModal = ({ chef, onClose, onSuccess }) => {
                       />
                     </div>
                     {errors.nom && (
-                      <p className="mt-1 text-sm text-red-600">{errors.nom}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.nom}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Prénom *
                     </label>
                     <div className="relative">
-                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                       <input
                         type="text"
                         value={formData.prenom}
@@ -243,139 +243,148 @@ const ChefModal = ({ chef, onClose, onSuccess }) => {
                       />
                     </div>
                     {errors.prenom && (
-                      <p className="mt-1 text-sm text-red-600">{errors.prenom}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.prenom}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Téléphone *
                     </label>
                     <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                       <input
                         type="tel"
                         value={formData.telephone}
                         onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
                         className={inputClasses('telephone')}
-                        placeholder="+224 XXX XX XX XX"
+                        placeholder="+224 xxx xxx xxx"
                       />
                     </div>
                     {errors.telephone && (
-                      <p className="mt-1 text-sm text-red-600">{errors.telephone}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.telephone}</p>
                     )}
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Email *
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className={inputClasses('email')}
+                        placeholder="email@exemple.com"
+                      />
+                    </div>
+                    {errors.email && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Adresse
+                    </label>
+                    <div className="relative">
+                      <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                      <input
+                        type="text"
+                        value={formData.adresse}
+                        onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
+                        className={inputClasses('adresse')}
+                        placeholder="Adresse complète"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Informations académiques */}
+              <div className="space-y-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                    <GraduationCap className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Informations académiques</h3>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email *
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Classe assignée *
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className={inputClasses('email')}
-                      placeholder="chef@universite.edu.gn"
-                    />
-                  </div>
-                  {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Adresse
-                  </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-4 top-4 w-5 h-5 text-gray-400" />
-                    <textarea
-                      value={formData.adresse}
-                      onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
-                      className="w-full px-4 py-3 pl-12 border border-gray-200 bg-gray-50 rounded-xl focus:ring-green-500 focus:border-green-500 focus:bg-white transition-all duration-200 resize-none"
-                      rows="3"
-                      placeholder="Adresse complète"
-                    />
-                  </div>
-                </div>
-
-                {/* Champ Programme/Classe modifié */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Programme/Classe *
-                  </label>
-                  <div className="relative">
-                    <GraduationCap className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <GraduationCap className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                     <select
                       value={formData.classe}
                       onChange={(e) => setFormData({ ...formData, classe: e.target.value })}
                       className={inputClasses('classe')}
                       disabled={loadingProgrammes}
                     >
-                      <option value="">
-                        {loadingProgrammes ? 'Chargement des programmes...' : 'Sélectionner un programme'}
-                      </option>
-                      {programmes.map(programme => (
-                        <option key={programme._id} value={`${programme.nom} - L${programme.licence} S${programme.semestre} G${programme.groupe}`}>
-                          {programme.nom} - L{programme.licence} S{programme.semestre} G{programme.groupe}
+                      <option value="">Sélectionner une classe</option>
+                      {programmes.map((programme) => (
+                        <option key={programme._id} value={programme.nom}>
+                          {programme.nom}
                         </option>
                       ))}
                     </select>
                   </div>
                   {errors.classe && (
-                    <p className="mt-1 text-sm text-red-600">{errors.classe}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.classe}</p>
+                  )}
+                  {loadingProgrammes && (
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Chargement des programmes...</p>
                   )}
                 </div>
               </div>
 
-              {/* Sécurité */}
-              <div className="space-y-4">
+              {/* Informations de connexion */}
+              <div className="space-y-6">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                    <Lock className="w-5 h-5 text-red-600" />
+                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                    <Lock className="w-5 h-5 text-green-600 dark:text-green-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Sécurité</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Informations de connexion {chef && <span className="text-sm font-normal text-gray-500 dark:text-gray-400">(Optionnel pour modification)</span>}
+                  </h3>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mot de passe * {chef && '(laisser vide pour ne pas modifier)'}
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Mot de passe {!chef && '*'}
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                     <input
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       value={formData.mot_de_passe}
                       onChange={(e) => setFormData({ ...formData, mot_de_passe: e.target.value })}
                       className={inputClasses('mot_de_passe')}
-                      placeholder="Mot de passe sécurisé"
+                      placeholder={chef ? "Nouveau mot de passe (optionnel)" : "Mot de passe"}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
                   {errors.mot_de_passe && (
-                    <p className="mt-1 text-sm text-red-600">{errors.mot_de_passe}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.mot_de_passe}</p>
                   )}
-                  <p className="mt-2 text-xs text-gray-500">
-                    Le mot de passe doit contenir au moins 8 caractères
-                  </p>
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+              {/* Boutons d'action */}
+              <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-600">
                 <motion.button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-200"
+                  className="px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-colors duration-200"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -384,12 +393,16 @@ const ChefModal = ({ chef, onClose, onSuccess }) => {
                 <motion.button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 flex items-center space-x-2 disabled:opacity-50"
+                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Save className="w-5 h-5" />
-                  <span>{loading ? 'Enregistrement...' : chef ? 'Modifier' : 'Créer'}</span>
+                  {loading ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  ) : (
+                    <Save className="w-5 h-5 mr-2" />
+                  )}
+                  {chef ? 'Modifier' : 'Créer'}
                 </motion.button>
               </div>
             </form>

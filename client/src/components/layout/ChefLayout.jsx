@@ -197,7 +197,7 @@ export default function ChefLayout() {
               >
                 <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
                   <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    {user.prenom?.[0]}{user.nom?.[0]}
+                  {user.prenom?.[0]}{user.nom?.[0]}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
@@ -216,7 +216,7 @@ export default function ChefLayout() {
                     Déconnexion
                   </button>
                 </div>
-              </motion.div>
+                  </motion.div>
             ) : (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -228,12 +228,12 @@ export default function ChefLayout() {
                   onClick={handleLogout}
                   className="w-full flex justify-center p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                   title="Déconnexion"
-                >
+          >
                   <LogOut size={20} />
                 </button>
               </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+            </AnimatePresence>
         </div>
       </motion.aside>
 

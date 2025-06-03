@@ -8,6 +8,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Middleware pour capturer les IPs réelles
+app.set('trust proxy', true);
+
 // Connexion à la base de données
 connexionDB();
 
@@ -41,6 +44,10 @@ app.use('/api/programmes', programmeRoutes);
 
 const notificationRoutes = require('./routes/notificationRoutes');
 app.use('/api/notifications', notificationRoutes);
+
+// Routes sessions
+const sessionRoutes = require('./routes/sessionRoutes');
+app.use('/api/sessions', sessionRoutes);
 
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);

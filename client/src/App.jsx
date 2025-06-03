@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import Home from './pages/Home';
 import About from './pages/About';
 import Login from './pages/Login';
@@ -38,6 +39,16 @@ const PrivateRoute = ({ children, role }) => {
 };
 
 function App() {
+  // Charger le thème sauvegardé au démarrage de l'app
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
   return (
     <NotificationProvider>
       <Router>

@@ -130,11 +130,13 @@ const ProfsManagement = ({ searchTerm }) => {
       {/* En-tête avec actions */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 space-y-4 lg:space-y-0">
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2 bg-gray-100 rounded-xl p-1">
+          <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
             <button
               onClick={() => setViewMode('grid')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                viewMode === 'grid' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
+                viewMode === 'grid' 
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
+                  : 'text-gray-600 dark:text-gray-300'
               }`}
             >
               Grille
@@ -142,7 +144,9 @@ const ProfsManagement = ({ searchTerm }) => {
             <button
               onClick={() => setViewMode('table')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                viewMode === 'table' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
+                viewMode === 'table' 
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
+                  : 'text-gray-600 dark:text-gray-300'
               }`}
             >
               Tableau
@@ -150,15 +154,15 @@ const ProfsManagement = ({ searchTerm }) => {
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors duration-200"
+            className="flex items-center px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
           >
-            <Filter className="w-5 h-5 mr-2 text-gray-500" />
-            Filtres
+            <Filter className="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-700 dark:text-gray-300">Filtres</span>
           </button>
         </div>
 
         <div className="flex items-center space-x-3">
-          <button className="flex items-center px-4 py-2 text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors duration-200">
+          <button className="flex items-center px-4 py-2 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
             <Download className="w-5 h-5 mr-2" />
             Exporter
           </button>
@@ -229,42 +233,42 @@ const ProfsManagement = ({ searchTerm }) => {
         )}
       </AnimatePresence>
 
-      {/* Statistiques rapides */}
+      {/* Statistiques rapides - COMPLÈTES */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-100 rounded-xl p-6">
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-600 text-sm font-medium">Total</p>
-              <p className="text-2xl font-bold text-purple-900">{stats.total}</p>
+              <p className="text-purple-600 dark:text-purple-400 text-sm font-medium">Total</p>
+              <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">{stats.total}</p>
             </div>
-            <GraduationCap className="w-8 h-8 text-purple-600" />
+            <GraduationCap className="w-8 h-8 text-purple-600 dark:text-purple-400" />
           </div>
         </div>
-        <div className="bg-gradient-to-r from-green-50 to-emerald-100 rounded-xl p-6">
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-600 text-sm font-medium">Disponibles</p>
-              <p className="text-2xl font-bold text-green-900">{stats.available}</p>
+              <p className="text-green-600 dark:text-green-400 text-sm font-medium">Disponibles</p>
+              <p className="text-2xl font-bold text-green-900 dark:text-green-100">{stats.available}</p>
             </div>
-            <Activity className="w-8 h-8 text-green-600" />
+            <Activity className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
         </div>
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-600 text-sm font-medium">Matières</p>
-              <p className="text-2xl font-bold text-blue-900">{stats.subjects}</p>
+              <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">Matières</p>
+              <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{stats.subjects}</p>
             </div>
-            <BookOpen className="w-8 h-8 text-blue-600" />
+            <BookOpen className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
         </div>
-        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-6">
+        <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-orange-600 text-sm font-medium">Ce mois</p>
-              <p className="text-2xl font-bold text-orange-900">+{stats.thisMonth}</p>
+              <p className="text-orange-600 dark:text-orange-400 text-sm font-medium">Ce mois</p>
+              <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">+{stats.thisMonth}</p>
             </div>
-            <TrendingUp className="w-8 h-8 text-orange-600" />
+            <TrendingUp className="w-8 h-8 text-orange-600 dark:text-orange-400" />
           </div>
         </div>
       </div>
@@ -281,7 +285,7 @@ const ProfsManagement = ({ searchTerm }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300 group"
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 group"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
@@ -289,45 +293,47 @@ const ProfsManagement = ({ searchTerm }) => {
                       {prof.nom?.charAt(0)}{prof.prenom?.charAt(0)}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{prof.nom} {prof.prenom}</h3>
-                      <p className="text-sm text-gray-500">Professeur</p>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">{prof.nom} {prof.prenom}</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Professeur</p>
                     </div>
                   </div>
                   <div className="relative">
-                    <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-                      <MoreVertical className="w-5 h-5 text-gray-400" />
+                    <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200">
+                      <MoreVertical className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                     </button>
                   </div>
                 </div>
 
                 <div className="space-y-3 mb-6">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Mail className="w-4 h-4 mr-3 text-gray-400" />
-                    {prof.email || 'Non renseigné'}
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                    <Award className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
+                    ID: {prof.id_prof}
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Phone className="w-4 h-4 mr-3 text-gray-400" />
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                    <Phone className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
                     {prof.telephone}
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <BookOpen className="w-4 h-4 mr-3 text-gray-400" />
-                    <span className="font-medium text-purple-600">{prof.matiere}</span>
-                  </div>
+                  {prof.matiere && (
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                      <BookOpen className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
+                      {prof.matiere}
+                    </div>
+                  )}
                   {prof.adresse && (
-                    <div className="flex items-center text-sm text-gray-600">
-                      <MapPin className="w-4 h-4 mr-3 text-gray-400" />
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                      <MapPin className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
                       {prof.adresse}
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
                   <div className="flex items-center space-x-2">
-                    <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                    <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs font-medium rounded-full">
                       Actif
                     </span>
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${disponibilite.color}`}>
-                      {disponibilite.count} créneaux
+                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${disponibilite.color.replace('bg-', 'bg-').replace('text-', 'dark:bg-').replace('100', '900/30').replace('800', 'dark:text-').replace('800', '300')}`}>
+                      {disponibilite.status}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -336,7 +342,7 @@ const ProfsManagement = ({ searchTerm }) => {
                         setSelectedProf(prof);
                         setIsModalOpen(true);
                       }}
-                      className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors duration-200"
+                      className="p-2 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors duration-200"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -344,7 +350,7 @@ const ProfsManagement = ({ searchTerm }) => {
                     </motion.button>
                     <motion.button
                       onClick={() => handleDelete(prof._id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                      className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors duration-200"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -358,29 +364,32 @@ const ProfsManagement = ({ searchTerm }) => {
         </div>
       ) : (
         /* Vue en tableau */
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Professeur
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Matière
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Contact
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Matière
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Disponibilité
                   </th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Statut
+                  </th>
+                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredProfs.map((prof, index) => {
                   const disponibilite = getDisponibiliteStatus(prof);
                   return (
@@ -389,7 +398,7 @@ const ProfsManagement = ({ searchTerm }) => {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="hover:bg-gray-50 transition-colors duration-200"
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -397,27 +406,31 @@ const ProfsManagement = ({ searchTerm }) => {
                             {prof.nom?.charAt(0)}{prof.prenom?.charAt(0)}
                           </div>
                           <div>
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
                               {prof.nom} {prof.prenom}
                             </div>
-                            <div className="text-sm text-gray-500">Professeur</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">#{prof.id_prof}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                          {prof.matiere}
+                        <div className="text-sm text-gray-900 dark:text-white">{prof.telephone}</div>
+                        {prof.email && <div className="text-sm text-gray-500 dark:text-gray-400">{prof.email}</div>}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                          {prof.matiere || 'Non définie'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{prof.email || 'Non renseigné'}</div>
-                        <div className="text-sm text-gray-500">{prof.telephone}</div>
+                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${disponibilite.color.replace('bg-', 'bg-').replace('text-', 'dark:bg-').replace('100', '900/30').replace('800', 'dark:text-').replace('800', '300')}`}>
+                          {disponibilite.status} ({disponibilite.count})
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${disponibilite.color}`}>
-                          {disponibilite.status}
+                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                          Actif
                         </span>
-                        <div className="text-xs text-gray-500 mt-1">{disponibilite.count} créneaux</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
@@ -426,7 +439,7 @@ const ProfsManagement = ({ searchTerm }) => {
                               setSelectedProf(prof);
                               setIsModalOpen(true);
                             }}
-                            className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors duration-200"
+                            className="p-2 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors duration-200"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
@@ -434,7 +447,7 @@ const ProfsManagement = ({ searchTerm }) => {
                           </motion.button>
                           <motion.button
                             onClick={() => handleDelete(prof._id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                            className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors duration-200"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
@@ -458,10 +471,10 @@ const ProfsManagement = ({ searchTerm }) => {
           animate={{ opacity: 1 }}
           className="text-center py-12"
         >
-          <GraduationCap className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun professeur trouvé</h3>
-          <p className="text-gray-500 mb-6">
-            {searchTerm || filterMatiere || filterDisponibilite ? 'Aucun résultat pour vos critères de recherche.' : 'Commencez par ajouter votre premier professeur.'}
+          <GraduationCap className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Aucun professeur trouvé</h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
+            {searchTerm ? 'Aucun résultat pour votre recherche.' : 'Commencez par ajouter votre premier professeur.'}
           </p>
           <button
             onClick={() => {
@@ -476,7 +489,7 @@ const ProfsManagement = ({ searchTerm }) => {
         </motion.div>
       )}
 
-      {/* Modal pour ajouter/modifier */}
+      {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <ProfModal

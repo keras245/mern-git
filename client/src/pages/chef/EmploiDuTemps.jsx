@@ -302,13 +302,13 @@ const EmploiDuTemps = () => {
             </button>
             
             {emploiDuTemps && (
-              <button
-                onClick={exporterPDF}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                <span>Exporter PDF</span>
-              </button>
+            <button
+              onClick={exporterPDF}
+              className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              <span>Exporter PDF</span>
+            </button>
             )}
           </div>
         </div>
@@ -346,42 +346,42 @@ const EmploiDuTemps = () => {
 
       {emploiDuTemps && (
         <>
-          {/* Filtres */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-          >
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Filter className="w-5 h-5 text-gray-400" />
-                  <select
-                    value={filtreJour}
-                    onChange={(e) => setFiltreJour(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    <option value="tous">Tous les jours</option>
-                    {jours.map(jour => (
-                      <option key={jour} value={jour}>{jour}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Search className="w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Rechercher une matière ou un professeur..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
+      {/* Filtres */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+      >
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Filter className="w-5 h-5 text-gray-400" />
+              <select
+                value={filtreJour}
+                onChange={(e) => setFiltreJour(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value="tous">Tous les jours</option>
+                {jours.map(jour => (
+                  <option key={jour} value={jour}>{jour}</option>
+                ))}
+              </select>
             </div>
-          </motion.div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Search className="w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+                  placeholder="Rechercher une matière ou un professeur..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+      </motion.div>
 
           {/* Grille de l'emploi du temps */}
           <motion.div

@@ -78,6 +78,6 @@ presenceSchema.pre('save', async function(next) {
 presenceSchema.index({ date: 1, id_prof: 1, creneau: 1, groupe: 1 });
 presenceSchema.index({ enregistre_par: 1, date: -1 });
 presenceSchema.index({ id_programme: 1, date: -1 });
-presenceSchema.index({ id_presence: 1 }, { unique: true });
+//presenceSchema.index({ id_presence: 1 }, { unique: true });
 
 module.exports = mongoose.model('Presence', presenceSchema);

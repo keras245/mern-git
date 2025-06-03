@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import emailjs from '@emailjs/browser';
 import Footer from '../components/layout/Footer';
 
 const Contact = () => {
@@ -11,20 +12,55 @@ const Contact = () => {
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
+
+  const EMAILJS_CONFIG = {
+    serviceId: 'service_l6x582k', 
+    templateId: 'template_3boq7s3', 
+    publicKey: 'caqi7DPV7R5W3N4e8'
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     
-    // Simulation d'envoi
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      // Paramètres pour EmailJS
+      const templateParams = {
+        from_name: formData.nom,
+        from_email: formData.email,
+        to_email: 'kerasbah3@gmail.com', // Email de destination
+        subject: formData.sujet,
+        message: formData.message,
+        to_name: 'Équipe UNNC' // Nom du destinataire
+      };
+
+      // Envoi via EmailJS
+      const result = await emailjs.send(
+        EMAILJS_CONFIG.serviceId,
+        EMAILJS_CONFIG.templateId,
+        templateParams,
+        EMAILJS_CONFIG.publicKey
+      );
+
+      console.log('Email envoyé avec succès:', result);
+      
       setSuccess(true);
       setFormData({ nom: '', email: '', sujet: '', message: '' });
       
-      // Reset success message after 3 seconds
-      setTimeout(() => setSuccess(false), 3000);
-    }, 1500);
+      // Reset success message after 5 seconds
+      setTimeout(() => setSuccess(false), 5000);
+      
+    } catch (error) {
+      console.error('Erreur envoi email:', error);
+      setError('Erreur lors de l\'envoi du message. Veuillez réessayer.');
+      
+      // Reset error message after 5 seconds
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -53,7 +89,7 @@ const Contact = () => {
         </svg>
       ),
       title: "Email",
-      content: "contact@unnc.edu.gn\nsupport@unnc.edu.gn",
+      content: "kerasbah3@gmail.com\nsupport@unnc.edu.gn",
       color: "from-green-500 to-emerald-600"
     },
     {
@@ -151,6 +187,7 @@ const Contact = () => {
                 <p className="text-gray-600">Remplissez le formulaire ci-dessous et nous vous répondrons rapidement</p>
               </div>
 
+              {/* Message de succès */}
               {success && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -160,7 +197,21 @@ const Contact = () => {
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="text-sm">Message envoyé avec succès !</span>
+                  <span className="text-sm">Message envoyé avec succès ! Nous vous répondrons bientôt.</span>
+                </motion.div>
+              )}
+
+              {/* Message d'erreur */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="mb-6 bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span className="text-sm">{error}</span>
                 </motion.div>
               )}
 
@@ -168,7 +219,7 @@ const Contact = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="nom" className="block text-sm font-medium text-gray-700 mb-2">
-                      Nom complet
+                      Nom complet *
                     </label>
                     <input
                       type="text"
@@ -184,7 +235,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                      Adresse email
+                      Adresse email *
                     </label>
                     <input
                       type="email"
@@ -202,7 +253,7 @@ const Contact = () => {
 
                 <div>
                   <label htmlFor="sujet" className="block text-sm font-medium text-gray-700 mb-2">
-                    Sujet
+                    Sujet *
                   </label>
                   <input
                     type="text"
@@ -219,7 +270,7 @@ const Contact = () => {
 
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                    Message
+                    Message *
                   </label>
                   <textarea
                     name="message"
@@ -303,7 +354,7 @@ const Contact = () => {
                 </div>
                 <div className="mt-6 p-4 bg-blue-100 rounded-xl">
                   <p className="text-sm text-blue-800">
-                    <strong>Urgences :</strong> Pour les problèmes critiques, contactez-nous par email à support@unnc.edu.gn
+                    <strong>Urgences :</strong> Pour les problèmes critiques, contactez-nous par email à kerasbah3@gmail.com
                   </p>
                 </div>
               </div>

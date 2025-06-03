@@ -331,7 +331,7 @@ const AdminFeedback = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 dark:border-orange-400"></div>
       </div>
     );
   }
@@ -342,14 +342,14 @@ const AdminFeedback = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
       >
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Gestion des Feedbacks
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-300">
               Consultez et gérez tous les feedbacks des chefs de classe
             </p>
           </div>
@@ -358,7 +358,7 @@ const AdminFeedback = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={chargerFeedbacks}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 dark:bg-blue-600 text-white rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
               Actualiser
@@ -367,7 +367,7 @@ const AdminFeedback = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={exporterFeedbacks}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-green-500 dark:bg-green-600 text-white rounded-lg hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
             >
               <Download className="w-4 h-4" />
               Exporter
@@ -391,15 +391,15 @@ const AdminFeedback = () => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-gray-50 rounded-lg p-4"
+                className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{stat.label}</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
                   </div>
-                  <div className={`p-3 rounded-lg ${stat.color} bg-opacity-10`}>
-                    <IconComponent className={`w-6 h-6 ${stat.color.replace('bg-', 'text-')}`} />
+                  <div className={`p-3 rounded-lg ${stat.color} bg-opacity-10 dark:bg-opacity-20`}>
+                    <IconComponent className={`w-6 h-6 ${stat.color.replace('bg-', 'text-')} dark:opacity-80`} />
                   </div>
                 </div>
               </motion.div>
@@ -413,19 +413,19 @@ const AdminFeedback = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
           {/* Recherche */}
           <div className="lg:col-span-2">
             <div className="relative">
-              <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 placeholder="Rechercher..."
                 value={filtres.recherche}
                 onChange={(e) => setFiltres(prev => ({ ...prev, recherche: e.target.value }))}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -434,7 +434,7 @@ const AdminFeedback = () => {
           <select
             value={filtres.statut}
             onChange={(e) => setFiltres(prev => ({ ...prev, statut: e.target.value }))}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           >
             <option value="tous">Tous les statuts</option>
             <option value="brouillon">Brouillons</option>
@@ -446,7 +446,7 @@ const AdminFeedback = () => {
           <select
             value={filtres.type}
             onChange={(e) => setFiltres(prev => ({ ...prev, type: e.target.value }))}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           >
             <option value="tous">Tous les types</option>
             <option value="general">Général</option>
@@ -459,7 +459,7 @@ const AdminFeedback = () => {
           <select
             value={filtres.priorite}
             onChange={(e) => setFiltres(prev => ({ ...prev, priorite: e.target.value }))}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           >
             <option value="tous">Toutes priorités</option>
             <option value="faible">Faible</option>
@@ -473,17 +473,17 @@ const AdminFeedback = () => {
             type="date"
             value={filtres.date}
             onChange={(e) => setFiltres(prev => ({ ...prev, date: e.target.value }))}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           />
         </div>
 
         {/* Tri */}
-        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-200">
-          <span className="text-sm text-gray-600">Trier par :</span>
+        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <span className="text-sm text-gray-600 dark:text-gray-400">Trier par :</span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           >
             <option value="date">Date</option>
             <option value="statut">Statut</option>
@@ -492,7 +492,7 @@ const AdminFeedback = () => {
           </select>
           <button
             onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-            className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 hover:text-gray-900"
+            className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
           >
             {sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             {sortOrder === 'asc' ? 'Croissant' : 'Décroissant'}
@@ -505,13 +505,13 @@ const AdminFeedback = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-white rounded-xl shadow-sm border border-gray-100"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700"
       >
         {feedbacksActuels.length === 0 ? (
           <div className="p-12 text-center">
-            <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-xl text-gray-500 mb-2">Aucun feedback trouvé</p>
-            <p className="text-gray-400">
+            <MessageSquare className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <p className="text-xl text-gray-500 dark:text-gray-400 mb-2">Aucun feedback trouvé</p>
+            <p className="text-gray-400 dark:text-gray-500">
               {feedbacks.length === 0 
                 ? "Aucun feedback n'a encore été envoyé"
                 : "Modifiez vos filtres pour voir plus de résultats"
@@ -522,10 +522,10 @@ const AdminFeedback = () => {
           <>
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {feedbacksFiltres.length} feedback{feedbacksFiltres.length !== 1 ? 's' : ''} trouvé{feedbacksFiltres.length !== 1 ? 's' : ''}
                 </h3>
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
                   Page {pageActuelle} sur {nombrePages}
                 </div>
               </div>
@@ -538,41 +538,58 @@ const AdminFeedback = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
                     className={`p-4 border rounded-lg hover:shadow-md transition-all cursor-pointer ${
-                      !feedback.lu ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'
+                      !feedback.lu 
+                        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' 
+                        : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
                     }`}
                     onClick={() => voirDetails(feedback)}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-gray-900 dark:text-white">
                             {feedback.id_chef?.prenom} {feedback.id_chef?.nom}
                           </span>
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
                             {feedback.id_chef?.classe}
                           </span>
-                          {feedback.id_cours && (
-                            <span className="text-sm text-blue-600">
-                              {feedback.id_cours.nom_matiere}
+                          {!feedback.lu && (
+                            <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                              Nouveau
                             </span>
                           )}
-                          {!feedback.lu && (
-                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                          )}
                         </div>
-                        
-                        <p className="text-gray-700 mb-3 line-clamp-2">
-                          {feedback.contenu}
-                        </p>
-                        
-                        <div className="flex items-center gap-3">
+
+                        <div className="flex items-center gap-2 mb-2">
                           {getStatutBadge(feedback.statut)}
                           {getPrioriteBadge(feedback.priorite)}
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 capitalize bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">
+                            {feedback.type}
+                          </span>
+                        </div>
+
+                        <p className="text-gray-700 dark:text-gray-300 text-sm line-clamp-2 mb-2">
+                          {feedback.contenu}
+                        </p>
+
+                        {feedback.id_cours && (
+                          <div className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 mb-2">
+                            <BookOpen className="w-4 h-4" />
+                            {feedback.id_cours.nom_matiere}
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
                             {new Date(feedback.date || feedback.createdAt).toLocaleDateString('fr-FR')}
                           </span>
-                          <span className="text-xs text-gray-500 capitalize">
-                            {feedback.type}
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {new Date(feedback.date || feedback.createdAt).toLocaleTimeString('fr-FR', {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
                           </span>
                         </div>
                       </div>
@@ -585,12 +602,12 @@ const AdminFeedback = () => {
                             e.stopPropagation();
                             voirDetails(feedback);
                           }}
-                          className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg"
+                          className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg"
                           title="Voir détails"
                         >
                           <Eye className="w-4 h-4" />
                         </motion.button>
-                        
+
                         {(feedback.statut === 'envoye' || feedback.reponse) && (
                           <motion.button
                             whileHover={{ scale: 1.1 }}
@@ -599,7 +616,7 @@ const AdminFeedback = () => {
                               e.stopPropagation();
                               ouvrirModalReponse(feedback);
                             }}
-                            className="p-2 text-green-600 hover:bg-green-100 rounded-lg"
+                            className="p-2 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/20 rounded-lg"
                             title="Répondre"
                           >
                             <Reply className="w-4 h-4" />
@@ -613,7 +630,7 @@ const AdminFeedback = () => {
                             e.stopPropagation();
                             supprimerFeedback(feedback._id);
                           }}
-                          className="p-2 text-red-600 hover:bg-red-100 rounded-lg"
+                          className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg"
                           title="Supprimer"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -627,16 +644,16 @@ const AdminFeedback = () => {
 
             {/* Pagination */}
             {nombrePages > 1 && (
-              <div className="px-6 py-4 border-t border-gray-200">
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
                     Affichage de {indexPremierFeedback + 1} à {Math.min(indexDernierFeedback, feedbacksFiltres.length)} sur {feedbacksFiltres.length}
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setPageActuelle(prev => Math.max(prev - 1, 1))}
                       disabled={pageActuelle === 1}
-                      className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
                       Précédent
                     </button>
@@ -654,8 +671,8 @@ const AdminFeedback = () => {
                             onClick={() => setPageActuelle(numero)}
                             className={`px-3 py-1 border rounded ${
                               pageActuelle === numero
-                                ? 'bg-orange-500 text-white border-orange-500'
-                                : 'border-gray-300 hover:bg-gray-50'
+                                ? 'bg-orange-500 dark:bg-orange-600 text-white border-orange-500 dark:border-orange-600'
+                                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600'
                             }`}
                           >
                             {numero}
@@ -665,7 +682,7 @@ const AdminFeedback = () => {
                         (numero === pageActuelle - 2 && numero > 1) ||
                         (numero === pageActuelle + 2 && numero < nombrePages)
                       ) {
-                        return <span key={numero} className="px-2">...</span>;
+                        return <span key={numero} className="px-2 text-gray-500 dark:text-gray-400">...</span>;
                       }
                       return null;
                     })}
@@ -673,7 +690,7 @@ const AdminFeedback = () => {
                     <button
                       onClick={() => setPageActuelle(prev => Math.min(prev + 1, nombrePages))}
                       disabled={pageActuelle === nombrePages}
-                      className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
                       Suivant
                     </button>
@@ -699,26 +716,26 @@ const AdminFeedback = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                       Détails du Feedback
                     </h3>
                     <div className="flex items-center gap-3">
                       {getStatutBadge(feedbackSelectionne.statut)}
                       {getPrioriteBadge(feedbackSelectionne.priorite)}
-                      <span className="text-sm text-gray-500 capitalize">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 capitalize">
                         {feedbackSelectionne.type}
                       </span>
                     </div>
                   </div>
                   <button
                     onClick={() => setModalVisible(false)}
-                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                    className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -726,33 +743,33 @@ const AdminFeedback = () => {
 
                 <div className="space-y-6">
                   {/* Informations chef */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Informations du chef de classe</h4>
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Informations du chef de classe</h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <span className="text-sm text-gray-600">Nom complet :</span>
-                        <p className="font-medium">{feedbackSelectionne.id_chef?.prenom} {feedbackSelectionne.id_chef?.nom}</p>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Nom complet :</span>
+                        <p className="font-medium text-gray-900 dark:text-white">{feedbackSelectionne.id_chef?.prenom} {feedbackSelectionne.id_chef?.nom}</p>
                       </div>
                       <div>
-                        <span className="text-sm text-gray-600">Classe :</span>
-                        <p className="font-medium">{feedbackSelectionne.id_chef?.classe}</p>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Classe :</span>
+                        <p className="font-medium text-gray-900 dark:text-white">{feedbackSelectionne.id_chef?.classe}</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Cours concerné */}
                   {feedbackSelectionne.id_cours && (
-                    <div className="bg-blue-50 rounded-lg p-4">
-                      <h4 className="font-medium text-gray-900 mb-2">Cours concerné</h4>
-                      <p className="text-blue-700 font-medium">{feedbackSelectionne.id_cours.nom_matiere}</p>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">Cours concerné</h4>
+                      <p className="text-blue-700 dark:text-blue-400 font-medium">{feedbackSelectionne.id_cours.nom_matiere}</p>
                     </div>
                   )}
 
                   {/* Contenu */}
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Contenu du feedback</h4>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Contenu du feedback</h4>
+                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                         {feedbackSelectionne.contenu}
                       </p>
                     </div>
@@ -761,13 +778,13 @@ const AdminFeedback = () => {
                   {/* Réponse existante */}
                   {feedbackSelectionne.reponse && (
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-3">Réponse de l'administration</h4>
-                      <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
-                        <p className="text-green-700 leading-relaxed whitespace-pre-wrap">
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-3">Réponse de l'administration</h4>
+                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border-l-4 border-green-400 dark:border-green-500">
+                        <p className="text-green-700 dark:text-green-400 leading-relaxed whitespace-pre-wrap">
                           {feedbackSelectionne.reponse}
                         </p>
                         {feedbackSelectionne.date_reponse && (
-                          <p className="text-sm text-green-600 mt-2">
+                          <p className="text-sm text-green-600 dark:text-green-500 mt-2">
                             Répondu le {new Date(feedbackSelectionne.date_reponse).toLocaleDateString('fr-FR')}
                           </p>
                         )}
@@ -776,31 +793,31 @@ const AdminFeedback = () => {
                   )}
 
                   {/* Métadonnées */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Informations</h4>
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Informations</h4>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="text-gray-600">ID Feedback :</span>
-                        <p className="font-mono">{feedbackSelectionne.id_feedback}</p>
+                        <span className="text-gray-600 dark:text-gray-400">ID Feedback :</span>
+                        <p className="font-mono text-gray-900 dark:text-white">{feedbackSelectionne.id_feedback}</p>
                       </div>
                       <div>
-                        <span className="text-gray-600">Date de création :</span>
-                        <p>{new Date(feedbackSelectionne.date || feedbackSelectionne.createdAt).toLocaleDateString('fr-FR')}</p>
+                        <span className="text-gray-600 dark:text-gray-400">Date de création :</span>
+                        <p className="text-gray-900 dark:text-white">{new Date(feedbackSelectionne.date || feedbackSelectionne.createdAt).toLocaleDateString('fr-FR')}</p>
                       </div>
                       <div>
-                        <span className="text-gray-600">Heure :</span>
-                        <p>{new Date(feedbackSelectionne.date || feedbackSelectionne.createdAt).toLocaleTimeString('fr-FR')}</p>
+                        <span className="text-gray-600 dark:text-gray-400">Heure :</span>
+                        <p className="text-gray-900 dark:text-white">{new Date(feedbackSelectionne.date || feedbackSelectionne.createdAt).toLocaleTimeString('fr-FR')}</p>
                       </div>
                       <div>
-                        <span className="text-gray-600">Lu :</span>
-                        <p>{feedbackSelectionne.lu ? 'Oui' : 'Non'}</p>
+                        <span className="text-gray-600 dark:text-gray-400">Lu :</span>
+                        <p className="text-gray-900 dark:text-white">{feedbackSelectionne.lu ? 'Oui' : 'Non'}</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                   {(feedbackSelectionne.statut === 'envoye' || feedbackSelectionne.reponse) && (
                     <motion.button
                       whileHover={{ scale: 1.02 }}
@@ -809,7 +826,7 @@ const AdminFeedback = () => {
                         setModalVisible(false);
                         ouvrirModalReponse(feedbackSelectionne);
                       }}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-green-500 dark:bg-green-600 text-white rounded-lg hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
                     >
                       <Reply className="w-4 h-4" />
                       {feedbackSelectionne.reponse ? 'Modifier la réponse' : 'Répondre'}
@@ -820,7 +837,7 @@ const AdminFeedback = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => supprimerFeedback(feedbackSelectionne._id)}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-red-500 dark:bg-red-600 text-white rounded-lg hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                     Supprimer
@@ -846,80 +863,80 @@ const AdminFeedback = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                       {feedbackSelectionne.reponse ? 'Modifier la réponse' : 'Répondre au feedback'}
                     </h3>
-                    <p className="text-gray-600">
-                      Feedback de {feedbackSelectionne.id_chef?.prenom} {feedbackSelectionne.id_chef?.nom}
+                    <p className="text-gray-600 dark:text-gray-400">
+                      De : {feedbackSelectionne.id_chef?.prenom} {feedbackSelectionne.id_chef?.nom}
                     </p>
                   </div>
                   <button
                     onClick={() => setModalReponse(false)}
-                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                    className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                {/* Feedback original */}
-                <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                  <h4 className="font-medium text-gray-900 mb-2">Feedback original :</h4>
-                  <p className="text-gray-700 leading-relaxed">
-                    {feedbackSelectionne.contenu}
-                  </p>
-                </div>
+                <div className="space-y-4">
+                  {/* Contenu original */}
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">Feedback original :</h4>
+                    <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                      {feedbackSelectionne.contenu}
+                    </p>
+                  </div>
 
-                {/* Zone de réponse */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Votre réponse *
-                  </label>
-                  <textarea
-                    value={reponse}
-                    onChange={(e) => setReponse(e.target.value)}
-                    placeholder="Saisissez votre réponse..."
-                    rows={6}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-                  />
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-sm text-gray-500">
-                      {reponse.length} caractères
-                    </span>
-                    {reponse.length < 10 && (
-                      <span className="text-sm text-red-500">
-                        Réponse trop courte (minimum 10 caractères)
-                      </span>
-                    )}
+                  {/* Textarea réponse */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Votre réponse :
+                    </label>
+                    <textarea
+                      value={reponse}
+                      onChange={(e) => setReponse(e.target.value)}
+                      rows={8}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                      placeholder="Rédigez votre réponse ici..."
+                    />
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-                  <button
+                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setModalReponse(false)}
-                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Annuler
-                  </button>
+                  </motion.button>
+                  
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={envoyerReponse}
-                    disabled={envoyantReponse || reponse.trim().length < 10}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={envoyantReponse || !reponse.trim()}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-500 dark:bg-green-600 text-white rounded-lg hover:bg-green-600 dark:hover:bg-green-700 transition-colors disabled:opacity-50"
                   >
                     {envoyantReponse ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        Envoi...
+                      </>
                     ) : (
-                      <Send className="w-4 h-4" />
+                      <>
+                        <Send className="w-4 h-4" />
+                        {feedbackSelectionne.reponse ? 'Modifier' : 'Envoyer'}
+                      </>
                     )}
-                    {envoyantReponse ? 'Envoi...' : 'Envoyer la réponse'}
                   </motion.button>
                 </div>
               </div>
