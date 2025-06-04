@@ -22,6 +22,8 @@ import AdminPresences from './pages/admin/Presences';
 import AdminFeedback from './pages/admin/Feedback';
 import AdminNotifications from './pages/admin/Notifications';
 import AdminSettings from './pages/admin/Settings';
+import ForgotPassword from './pages/admin/ForgotPassword';
+import ResetPassword from './pages/admin/ResetPassword';
 
 const PrivateRoute = ({ children, role }) => {
   const token = localStorage.getItem('token');
@@ -58,6 +60,10 @@ function App() {
           <Route path="/about" element={<AppLayout><About /></AppLayout>} />
           <Route path="/contact" element={<AppLayout><Contact /></AppLayout>} />
           <Route path="/login" element={<AppLayout><Login /></AppLayout>} />
+          
+          {/* NOUVELLES ROUTES pour la récupération de mot de passe */}
+          <Route path="/admin/forgot-password" element={<AppLayout><ForgotPassword /></AppLayout>} />
+          <Route path="/admin/reset-password/:token" element={<AppLayout><ResetPassword /></AppLayout>} />
 
           {/* Espace admin avec sidebar */}
           <Route

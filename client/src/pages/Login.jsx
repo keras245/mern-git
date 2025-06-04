@@ -318,16 +318,31 @@ const Login = () => {
                   <div className="flex items-center justify-center">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                     Connexion en cours...
-            </div>
+                  </div>
                 ) : (
                   <div className="flex items-center justify-center">
                     <span>Se connecter</span>
                     <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
-              </div>
+                  </div>
                 )}
               </motion.button>
+
+              {/* NOUVEAU : Lien "Mot de passe oublié" (seulement pour admin) */}
+              {formData.role === 'admin' && (
+                <div className="text-center">
+                  <Link
+                    to="/admin/forgot-password"
+                    className="text-sm text-blue-600 hover:text-blue-800 transition-colors duration-200 flex items-center justify-center"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Mot de passe oublié ?
+                  </Link>
+                </div>
+              )}
 
               {/* Lien retour */}
               <div className="text-center">
@@ -341,7 +356,7 @@ const Login = () => {
                   Retour à l'accueil
                 </Link>
               </div>
-          </form>
+            </form>
           </motion.div>
         </motion.div>
       </main>

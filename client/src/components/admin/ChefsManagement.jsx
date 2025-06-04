@@ -301,8 +301,8 @@ const ChefsManagement = ({ searchTerm }) => {
                   </span>
                   {chef.classe && (
                     <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs font-medium rounded-full">
-                      {chef.classe}
-                    </span>
+                    {chef.classe}
+                  </span>
                   )}
                 </div>
                 <div className="flex items-center space-x-2">

@@ -264,40 +264,40 @@ const ChefModal = ({ chef, onClose, onSuccess }) => {
                     {errors.telephone && (
                       <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.telephone}</p>
                     )}
-                  </div>
+                </div>
 
-                  <div>
+                <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Email *
-                    </label>
-                    <div className="relative">
+                    Email *
+                  </label>
+                  <div className="relative">
                       <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className={inputClasses('email')}
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className={inputClasses('email')}
                         placeholder="email@exemple.com"
-                      />
-                    </div>
-                    {errors.email && (
-                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
-                    )}
+                    />
                   </div>
+                  {errors.email && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+                  )}
+                </div>
 
-                  <div>
+                <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Adresse
-                    </label>
-                    <div className="relative">
+                    Adresse
+                  </label>
+                  <div className="relative">
                       <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                       <input
                         type="text"
-                        value={formData.adresse}
-                        onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
+                      value={formData.adresse}
+                      onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
                         className={inputClasses('adresse')}
-                        placeholder="Adresse complète"
-                      />
+                      placeholder="Adresse complète"
+                    />
                     </div>
                   </div>
                 </div>

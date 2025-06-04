@@ -404,11 +404,11 @@ const AdminDashboard = () => {
                 >
                   <div className={`p-2 rounded-lg ${activity.color.replace('text-', 'bg-').replace('600', '100')} dark:bg-gray-600`}>
                     <Icon className={`w-4 h-4 ${activity.color} dark:text-gray-300`} />
-                  </div>
+            </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900 dark:text-white">{activity.message}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{activity.time}</p>
-                  </div>
+            </div>
                 </motion.div>
               );
             })}

@@ -317,7 +317,7 @@ const ProfsManagement = ({ searchTerm }) => {
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                       <BookOpen className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
                       {prof.matiere}
-                    </div>
+                  </div>
                   )}
                   {prof.adresse && (
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">

@@ -1,4 +1,4 @@
-# Fichiers et dossiers à ignorer dans le dossier client
+word# Fichiers et dossiers à ignorer dans le dossier client
 /client/node_modules
 /client/.env
 /client/package-lock.json
