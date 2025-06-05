@@ -1027,6 +1027,38 @@ const emploiDuTempsController = {
       console.error('Erreur sauvegarde emploi:', error);
       res.status(500).json({ message: error.message });
     }
+  },
+
+  // NOUVEAU: Créer un emploi du temps vide
+  creerEmploiVide: async (req, res) => {
+    try {
+      const { programme, groupe } = req.body;
+      
+      console.log('Création emploi vide:', { programme, groupe });
+
+      if (!programme) {
+        return res.status(400).json({ message: "Programme est requis" });
+      }
+
+      const emploiDuTemps = new EmploiDuTemps({
+        programme: programme,
+        groupe: groupe || 1,
+        seances: [], // Emploi vide
+        statut: 'brouillon',
+        dateCreation: new Date()
+      });
+
+      await emploiDuTemps.save();
+      
+      // Retourner avec populate pour l'affichage
+      const emploiComplet = await EmploiDuTemps.findById(emploiDuTemps._id)
+        .populate('programme', 'nom licence semestre');
+
+      res.json(emploiComplet);
+    } catch (error) {
+      console.error('Erreur création emploi vide:', error);
+      res.status(500).json({ message: error.message });
+    }
   }
 };
 

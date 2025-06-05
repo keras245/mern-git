@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { useNotification } from '../../../context/NotificationContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -261,17 +261,38 @@ const GenererEmploi = () => {
     setModeEdition(true);
   };
 
-  // Sauvegarder une séance modifiée
+  // CORRIGER la sauvegarde de séance pour gérer les emplois vides
   const sauvegarderSeance = async () => {
     try {
       const token = localStorage.getItem('token');
       
+      // ✅ CORRECTION: Gérer le cas d'un emploi vide (pas encore sauvegardé)
+      let emploiId = emploiDuTemps?._id;
+      
+      if (!emploiId) {
+        // Créer d'abord l'emploi du temps vide
+        console.log('Création d\'un nouvel emploi du temps...');
+        const responseCreation = await axios.post(
+          'http://localhost:3832/api/emplois/creer-vide',
+          {
+            programme: selectedProgramme,
+            groupe: parseInt(selectedGroupe)
+          },
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        
+        emploiId = responseCreation.data._id;
+        setEmploiDuTemps(responseCreation.data);
+        console.log('Emploi du temps créé:', emploiId);
+      }
+      
       if (seanceEnEdition.isNew) {
         // Ajouter nouvelle séance
+        console.log('Ajout d\'une nouvelle séance...');
         const response = await axios.post(
           'http://localhost:3832/api/emplois/ajouter-seance',
           {
-            emploiDuTempsId: emploiDuTemps._id,
+            emploiDuTempsId: emploiId,
             seance: {
               cours: seanceEnEdition.cours,
               professeur: seanceEnEdition.professeur,
@@ -288,7 +309,7 @@ const GenererEmploi = () => {
         const response = await axios.put(
           `http://localhost:3832/api/emplois/modifier-seance`,
           {
-            emploiDuTempsId: emploiDuTemps._id,
+            emploiDuTempsId: emploiId,
             ancienneSeance: { jour: seanceEnEdition.jour, creneau: seanceEnEdition.creneau },
             nouvelleSeance: {
               cours: seanceEnEdition.cours,
@@ -307,6 +328,7 @@ const GenererEmploi = () => {
       setSeanceEnEdition(null);
       showNotification('Séance mise à jour avec succès', 'success');
     } catch (error) {
+      console.error('Erreur sauvegarde séance:', error);
       showNotification(error.response?.data?.message || 'Erreur lors de la modification', 'error');
     }
   };
@@ -380,6 +402,69 @@ const GenererEmploi = () => {
   const sallesFiltrees = salles.filter(s =>
     !filtres.salle || s.nom.toLowerCase().includes(filtres.salle.toLowerCase())
   );
+
+  // ✅ NOUVEAU: Filtrage intelligent des professeurs selon le cours sélectionné
+  const professeursFiltresParCours = useMemo(() => {
+    if (!seanceEnEdition?.cours) {
+      return []; // Aucun prof si pas de cours sélectionné
+    }
+    
+    const coursSelectionne = cours.find(c => c._id === seanceEnEdition.cours);
+    if (!coursSelectionne) return [];
+    
+    // Retourner uniquement les profs assignés à ce cours
+    return coursSelectionne.id_prof || [];
+  }, [seanceEnEdition?.cours, cours]);
+
+  // ✅ NOUVEAU: Filtrage intelligent des salles selon le créneau sélectionné
+  const sallesFiltreesParCreneau = useMemo(() => {
+    if (!seanceEnEdition?.jour || !seanceEnEdition?.creneau) {
+      return []; // Aucune salle si pas de créneau sélectionné
+    }
+    
+    // Retourner uniquement les salles disponibles pour ce jour/créneau
+    return salles.filter(salle => {
+      return salle.disponibilite && salle.disponibilite.some(dispo => 
+        dispo.jour === seanceEnEdition.jour && 
+        dispo.creneaux.includes(seanceEnEdition.creneau)
+      );
+    });
+  }, [seanceEnEdition?.jour, seanceEnEdition?.creneau, salles]);
+
+  // ✅ NOUVEAU: Validation avancée
+  const validerSeance = () => {
+    const errors = [];
+    
+    if (!seanceEnEdition.cours) {
+      errors.push('Veuillez sélectionner un cours');
+      return errors;
+    }
+    
+    if (!seanceEnEdition.professeur) {
+      errors.push('Veuillez sélectionner un professeur');
+      return errors;
+    }
+    
+    if (!seanceEnEdition.salle) {
+      errors.push('Veuillez sélectionner une salle');
+      return errors;
+    }
+    
+    // Vérifier que le prof sélectionné est disponible pour ce créneau
+    const profSelectionne = professeurs.find(p => p._id === seanceEnEdition.professeur);
+    if (profSelectionne) {
+      const profDisponible = profSelectionne.disponibilite && profSelectionne.disponibilite.some(dispo => 
+        dispo.jour === seanceEnEdition.jour && 
+        dispo.creneaux.includes(seanceEnEdition.creneau)
+      );
+      
+      if (!profDisponible) {
+        errors.push(`${profSelectionne.nom} ${profSelectionne.prenom} n'est pas disponible le ${seanceEnEdition.jour} de ${seanceEnEdition.creneau}`);
+      }
+    }
+    
+    return errors;
+  };
 
   // Composant d'analyse des données
   const AnalyseDonnees = () => {
@@ -590,10 +675,12 @@ const GenererEmploi = () => {
     );
   };
 
-  // Modal d'édition de séance
+  // MODAL AMÉLIORÉ
   const ModalEditionSeance = () => {
     if (!modeEdition || !seanceEnEdition) return null;
 
+    const erreurs = validerSeance();
+    
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -621,11 +708,18 @@ const GenererEmploi = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cours
+                Cours *
               </label>
               <select
                 value={seanceEnEdition.cours}
-                onChange={(e) => setSeanceEnEdition({...seanceEnEdition, cours: e.target.value})}
+                onChange={(e) => {
+                  setSeanceEnEdition({
+                    ...seanceEnEdition, 
+                    cours: e.target.value,
+                    professeur: '', // Réinitialiser le prof quand on change de cours
+                    salle: '' // Réinitialiser la salle
+                  });
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Sélectionner un cours</option>
@@ -637,15 +731,21 @@ const GenererEmploi = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Professeur
+                Professeur * {seanceEnEdition.cours && `(${professeursFiltresParCours.length} disponible(s))`}
               </label>
               <select
                 value={seanceEnEdition.professeur}
                 onChange={(e) => setSeanceEnEdition({...seanceEnEdition, professeur: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                disabled={!seanceEnEdition.cours}
               >
-                <option value="">Sélectionner un professeur</option>
-                {professeursFiltres.map(p => (
+                <option value="">
+                  {!seanceEnEdition.cours 
+                    ? 'Sélectionnez d\'abord un cours' 
+                    : 'Sélectionner le professeur du cours'
+                  }
+                </option>
+                {professeursFiltresParCours.map(p => (
                   <option key={p._id} value={p._id}>{p.nom} {p.prenom}</option>
                 ))}
               </select>
@@ -653,19 +753,34 @@ const GenererEmploi = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Salle
+                Salle * {seanceEnEdition.jour && seanceEnEdition.creneau && `(${sallesFiltreesParCreneau.length} disponible(s) ce créneau)`}
               </label>
               <select
                 value={seanceEnEdition.salle}
                 onChange={(e) => setSeanceEnEdition({...seanceEnEdition, salle: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">Sélectionner une salle</option>
-                {sallesFiltrees.map(s => (
+                <option value="">Sélectionner une salle disponible</option>
+                {sallesFiltreesParCreneau.map(s => (
                   <option key={s._id} value={s._id}>{s.nom} ({s.type})</option>
                 ))}
               </select>
             </div>
+
+            {/* Affichage des erreurs */}
+            {erreurs.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded p-3">
+                <h4 className="font-medium text-red-800 mb-1 flex items-center">
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  Problèmes détectés
+                </h4>
+                <ul className="text-sm text-red-700 space-y-1">
+                  {erreurs.map((erreur, index) => (
+                    <li key={index}>• {erreur}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end space-x-3 mt-6">
@@ -676,8 +791,14 @@ const GenererEmploi = () => {
               Annuler
             </button>
             <button
-              onClick={sauvegarderSeance}
-              disabled={!seanceEnEdition.cours || !seanceEnEdition.professeur || !seanceEnEdition.salle}
+              onClick={() => {
+                if (erreurs.length === 0) {
+                  sauvegarderSeance();
+                } else {
+                  showNotification('Veuillez corriger les erreurs avant de sauvegarder', 'error');
+                }
+              }}
+              disabled={erreurs.length > 0}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
             >
               <Save className="w-4 h-4 mr-2" />

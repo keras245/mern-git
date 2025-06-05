@@ -36,4 +36,7 @@ router.get('/:programmeId/:groupe', auth, emploiDuTempsController.getEmploiByPro
 router.put('/:id', auth, emploiDuTempsController.updateEmploi);
 router.delete('/:id', auth, emploiDuTempsController.deleteEmploi);
 
+// Nouvel endpoint pour créer un emploi vide
+router.post('/creer-vide', emploiDuTempsController.creerEmploiVide);
+
 module.exports = router;
