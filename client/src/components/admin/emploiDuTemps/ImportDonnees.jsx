@@ -82,15 +82,32 @@ const ImportDonnees = () => {
 
   const chargerSallesExistantes = async () => {
     try {
+      setIsLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.get('http://localhost:3832/api/salles', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      console.log('Salles chargées:', response.data.length);
       setSallesExistantes(response.data);
     } catch (error) {
+      console.error('Erreur chargement salles:', error);
       showNotification('Erreur lors du chargement des salles', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // Recharger les salles quand on change de mode
+  useEffect(() => {
+    if (modeActuel === 'consulter') {
+      chargerSallesExistantes();
+    }
+  }, [modeActuel]);
+
+  // Debugging des sélections
+  useEffect(() => {
+    console.log('Salles sélectionnées mises à jour:', sallesSelectionnees);
+  }, [sallesSelectionnees]);
 
   // Filtrer les salles selon le terme de recherche
   const sallesFiltrees = sallesExistantes.filter(salle => 
@@ -98,92 +115,153 @@ const ImportDonnees = () => {
     salle.id_salle.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Ajouter/retirer un créneau pour une salle
-  const toggleCreneau = (salleId, jour, creneau) => {
-    if (modeActuel !== 'importer') return; // Empêcher la modification en mode consultation
-    
-    // Vérifier si le créneau existe déjà dans les données permanentes
-    const salleExistante = sallesExistantes.find(s => s.id_salle === salleId);
-    if (salleExistante && salleExistante.disponibilite) {
-      const jourData = salleExistante.disponibilite.find(d => d.jour === jour);
-      if (jourData && jourData.creneaux.includes(creneau)) {
-        showNotification('Ce créneau est déjà configuré pour cette salle', 'warning');
-        return; // Empêcher la modification d'un créneau déjà existant
-      }
+  // AJOUTER l'état disponibilites comme pour les profs
+  const [disponibilites, setDisponibilites] = useState({});
+
+  // MODIFIER handleSalleChange pour charger les dispos existantes
+  const handleSalleChange = (salleId) => {
+    setSalleSelectionnee(salleId);
+    const salle = sallesExistantes.find(s => s.id_salle === salleId);
+    if (salle) {
+      // Charger les disponibilités existantes de la salle
+      const dispos = {};
+      joursDisponibles.forEach(jour => {
+        dispos[jour] = salle.disponibilite?.find(d => d.jour === jour)?.creneaux || [];
+      });
+      setDisponibilites(dispos);
+    } else {
+      setDisponibilites({});
     }
+  };
+
+  // REMPLACER toggleCreneau par la logique des profs
+  const toggleCreneau = (jour, creneau) => {
+    if (modeActuel !== 'importer') return;
     
-    setSallesSelectionnees(prev => {
-      const salleIndex = prev.findIndex(s => s.id_salle === salleId);
+    setDisponibilites(prev => {
+      const newDispos = { ...prev };
+      if (!newDispos[jour]) newDispos[jour] = [];
       
-      if (salleIndex === -1) {
-        return [...prev, {
-          id_salle: salleId,
-          disponibilite: [{ jour, creneaux: [creneau] }]
-        }];
-      }
-
-      const salle = { ...prev[salleIndex] };
-      const disponibilite = [...salle.disponibilite];
-      const jourIndex = disponibilite.findIndex(d => d.jour === jour);
-
-      if (jourIndex === -1) {
-        disponibilite.push({ jour, creneaux: [creneau] });
+      if (newDispos[jour].includes(creneau)) {
+        newDispos[jour] = newDispos[jour].filter(c => c !== creneau);
       } else {
-        const creneaux = [...disponibilite[jourIndex].creneaux];
-        const creneauIndex = creneaux.indexOf(creneau);
-        
-        if (creneauIndex === -1) {
-          creneaux.push(creneau);
-        } else {
-          creneaux.splice(creneauIndex, 1);
-        }
-
-        if (creneaux.length === 0) {
-          disponibilite.splice(jourIndex, 1);
-        } else {
-          disponibilite[jourIndex] = { jour, creneaux };
-        }
+        newDispos[jour] = [...newDispos[jour], creneau];
       }
-
-      salle.disponibilite = disponibilite;
-
-      if (disponibilite.length === 0) {
-        return prev.filter(s => s.id_salle !== salleId);
-      }
-
-      const newSalles = [...prev];
-      newSalles[salleIndex] = salle;
-      return newSalles;
+      
+      return newDispos;
     });
   };
 
-  // Vérifier si un créneau est sélectionné
+  // REMPLACER estCreneauSelectionne par la logique des profs
   const estCreneauSelectionne = (salleId, jour, creneau) => {
     if (modeActuel === 'consulter') {
-      // En mode consultation, vérifier les données existantes
+      // Mode consultation : vérifier les données sauvegardées
       const salle = sallesExistantes.find(s => s.id_salle === salleId);
-      if (!salle || !salle.disponibilite) return false;
-    const jourData = salle.disponibilite.find(d => d.jour === jour);
-    return jourData ? jourData.creneaux.includes(creneau) : false;
+      if (!salle?.disponibilite) return false;
+      
+      const jourData = salle.disponibilite.find(d => d.jour === jour);
+      return jourData?.creneaux?.includes(creneau) || false;
     } else {
-      // En mode import, vérifier d'abord les données existantes puis les sélections temporaires
-      const salleExistante = sallesExistantes.find(s => s.id_salle === salleId);
-      let isExistant = false;
-      if (salleExistante && salleExistante.disponibilite) {
-        const jourData = salleExistante.disponibilite.find(d => d.jour === jour);
-        isExistant = jourData ? jourData.creneaux.includes(creneau) : false;
-      }
-      
-      // Vérifier les sélections temporaires
-      const salleSelectionnee = sallesSelectionnees.find(s => s.id_salle === salleId);
-      let isTemporaire = false;
-      if (salleSelectionnee) {
-        const jourData = salleSelectionnee.disponibilite.find(d => d.jour === jour);
-        isTemporaire = jourData ? jourData.creneaux.includes(creneau) : false;
-      }
-      
-      return isExistant || isTemporaire;
+      // Mode import : utiliser l'état local des disponibilités
+      return disponibilites[jour]?.includes(creneau) || false;
     }
+  };
+
+  // AJOUTER la fonction de sauvegarde (EXACTEMENT COMME LES PROFS)
+  const handleSubmit = async () => {
+    if (!salleSelectionnee || modeActuel !== 'importer') return;
+
+    const disponibilitesArray = Object.entries(disponibilites)
+      .filter(([_, creneaux]) => creneaux.length > 0)
+      .map(([jour, creneaux]) => ({
+        jour,
+        creneaux
+      }));
+
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('token');
+      
+      await axios.post(
+        'http://localhost:3832/api/salles/update-disponibilites',
+        { 
+          salles: [{
+            id_salle: salleSelectionnee,
+            disponibilite: disponibilitesArray
+          }]
+        },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      
+      showNotification('Disponibilités mises à jour avec succès', 'success');
+      
+      // Recharger automatiquement les données
+      await chargerSallesExistantes();
+      
+      // Mettre à jour l'affichage local immédiatement
+      setSallesExistantes(prevSalles => 
+        prevSalles.map(salle => 
+          salle.id_salle === salleSelectionnee 
+            ? { ...salle, disponibilite: disponibilitesArray }
+            : salle
+        )
+      );
+      
+      // Mettre à jour l'affichage des disponibilités
+      const newDispos = {};
+      joursDisponibles.forEach(jour => {
+        const jourDispo = disponibilitesArray.find(d => d.jour === jour);
+        newDispos[jour] = jourDispo ? jourDispo.creneaux : [];
+      });
+      setDisponibilites(newDispos);
+      
+    } catch (error) {
+      showNotification('Erreur lors de la mise à jour des disponibilités', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // MODIFIER les fonctions des boutons pour utiliser disponibilites
+  const toutSelectionnerSalle = (salleId) => {
+    const nouvellesDispos = {};
+    joursDisponibles.forEach(jour => {
+      nouvellesDispos[jour] = [...creneauxDisponibles];
+    });
+    setDisponibilites(nouvellesDispos);
+  };
+
+  const toutDeselectionnerSalle = (salleId) => {
+    const nouvellesDispos = {};
+    joursDisponibles.forEach(jour => {
+      nouvellesDispos[jour] = [];
+    });
+    setDisponibilites(nouvellesDispos);
+  };
+
+  const reinitialiserSalle = (salleId) => {
+    // Recharger les disponibilités originales de la salle
+    handleSalleChange(salleId);
+  };
+
+  // Améliorer l'affichage des créneaux avec les états
+  const getCreneauState = (salleId, jour, creneau) => {
+    const salleExistante = sallesExistantes.find(s => s.id_salle === salleId);
+    const isExistant = salleExistante?.disponibilite?.find(d => d.jour === jour)?.creneaux.includes(creneau) || false;
+    
+    const salleSelectionnee = sallesSelectionnees.find(s => s.id_salle === salleId);
+    const isTemporaire = salleSelectionnee?.disponibilite?.find(d => d.jour === jour)?.creneaux.includes(creneau) || false;
+    
+    if (isExistant && isTemporaire) {
+      return { type: 'conserve', label: '✅ Conservé', class: 'bg-green-100 text-green-800 border-green-200' };
+    }
+    if (isExistant && !isTemporaire) {
+      return { type: 'supprime', label: '🗑️ À supprimer', class: 'bg-red-100 text-red-800 border-red-200' };
+    }
+    if (!isExistant && isTemporaire) {
+      return { type: 'nouveau', label: '➕ Nouveau', class: 'bg-orange-100 text-orange-800 border-orange-200' };
+    }
+    return { type: 'non_selectionne', label: '❌ Non disponible', class: 'bg-gray-100 text-gray-600 border-gray-200' };
   };
 
   // Parser les données textuelles
@@ -293,36 +371,47 @@ const ImportDonnees = () => {
       let dataToImport = [];
       
       if (activeTab === 'manual') {
-        dataToImport = sallesSelectionnees;
+        // Pour l'import manuel, on envoie les sélections avec la logique de remplacement complet
+        dataToImport = sallesSelectionnees.map(salle => ({
+          id_salle: salle.id_salle,
+          disponibilite: salle.disponibilite
+          // Pas de champ "operation" -> le backend remplacera complètement
+        }));
       } else {
         dataToImport = preview;
       }
 
+      if (dataToImport.length === 0) {
+        showNotification('Aucune donnée à importer', 'warning');
+        return;
+      }
+
+      console.log('Données à importer:', dataToImport);
+
       const response = await axios.post(
         'http://localhost:3832/api/salles/update-disponibilites',
         { salles: dataToImport },
-        { headers: { 'Authorization': `Bearer ${token}` } }
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
-      setImportedData(dataToImport);
-      setShowImportedData(true);
-      showNotification('Disponibilités mises à jour avec succès', 'success');
-      
-      // Recharger les données et reset
+      // Recharger les données après import
       await chargerSallesExistantes();
-      if (activeTab === 'manual') {
-        setSallesSelectionnees([]);
-        setSalleSelectionnee('');
-      } else {
-        setPreview([]);
-        setShowPreview(false);
-        setManualData('');
-        setFile(null);
-      }
       
+      // Réinitialiser les sélections
+      setSallesSelectionnees([]);
+      setSalleSelectionnee('');
+      setPreview([]);
+      setShowPreview(false);
+      
+      showNotification(`${response.data.salles.length} salle(s) mise(s) à jour avec succès`, 'success');
     } catch (error) {
-      console.error('Erreur lors de la mise à jour:', error);
-      showNotification('Erreur lors de la mise à jour', 'error');
+      console.error('Erreur import:', error);
+      showNotification(error.response?.data?.message || 'Erreur lors de l\'import', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -718,7 +807,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                     </label>
                     <select
                       value={salleSelectionnee}
-                      onChange={(e) => setSalleSelectionnee(e.target.value)}
+                      onChange={(e) => handleSalleChange(e.target.value)}
                             className="w-full max-w-md px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all appearance-none cursor-pointer"
                     >
                       <option value="">Choisir une salle...</option>
@@ -733,22 +822,17 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                         {/* Configuration des créneaux */}
                 <AnimatePresence>
                   {salleSelectionnee && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                              className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl border-2 border-orange-200 p-6 mb-8"
-                    >
+                    <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl border-2 border-orange-200 p-6 mb-8">
                       <div className="flex items-center gap-3 mb-6">
-                                <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
+                        <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
                           <span className="text-white text-xl">🏢</span>
                         </div>
                         <div>
-                                  <h4 className="text-xl font-bold text-orange-900">
+                          <h4 className="text-xl font-bold text-orange-900">
                             {getSalleSelectionnee()?.nom}
                           </h4>
-                                  <p className="text-orange-700">
-                                    Cliquez sur les créneaux pour les activer/désactiver
+                          <p className="text-orange-700">
+                            Cliquez sur les créneaux pour les activer/désactiver
                           </p>
                         </div>
                       </div>
@@ -756,56 +840,100 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                       {/* Grille de disponibilité */}
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {joursDisponibles.map(jour => (
-                          <motion.div 
-                            key={jour} 
-                            whileHover={{ scale: 1.02 }}
-                                    className="bg-white rounded-xl border border-orange-200 p-4 shadow-sm"
-                          >
+                          <div key={jour} className="bg-white rounded-xl border border-orange-200 p-4 shadow-sm">
                             <h5 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                      <Clock className="w-4 h-4 text-orange-500" />
+                              <Clock className="w-4 h-4 text-orange-500" />
                               {jour}
                             </h5>
                             <div className="space-y-3">
-                                      {creneauxDisponibles.map(creneau => {
-                                        const isSelected = estCreneauSelectionne(salleSelectionnee, jour, creneau);
-                                        const salleExistante = sallesExistantes.find(s => s.id_salle === salleSelectionnee);
-                                        const isExistant = salleExistante?.disponibilite?.find(d => d.jour === jour)?.creneaux.includes(creneau) || false;
-                                        
-                                        return (
-                                          <label key={creneau} className={`flex items-center cursor-pointer group ${isExistant ? 'opacity-60' : ''}`}>
-                                  <input
-                                    type="checkbox"
-                                              checked={isSelected}
-                                    onChange={() => toggleCreneau(salleSelectionnee, jour, creneau)}
-                                              disabled={isExistant}
-                                              className="mr-3 h-5 w-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded transition-all disabled:opacity-50"
-                                            />
-                                            <span className={`text-sm transition-colors ${
-                                              isExistant 
-                                                ? 'text-gray-400 line-through' 
-                                                : 'text-gray-700 group-hover:text-orange-600'
-                                            }`}>
-                                    {creneau}
-                                              {isExistant && <span className="ml-2 text-xs text-gray-400">(déjà configuré)</span>}
-                                  </span>
-                                </label>
-                                        );
-                                      })}
+                              {creneauxDisponibles.map(creneau => {
+                                const isSelected = estCreneauSelectionne(salleSelectionnee, jour, creneau);
+                                
+                                return (
+                                  <label key={creneau} className="flex items-center cursor-pointer group">
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={() => toggleCreneau(jour, creneau)}
+                                      className="mr-3 h-5 w-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded transition-all"
+                                    />
+                                    <span className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                      isSelected 
+                                        ? 'bg-orange-100 text-orange-800 border border-orange-200' 
+                                        : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                                    }`}>
+                                      {creneau}
+                                    </span>
+                                  </label>
+                                );
+                              })}
                             </div>
-                          </motion.div>
+                          </div>
                         ))}
                       </div>
-                    </motion.div>
+
+                      {/* Boutons d'action */}
+                      <div className="space-y-4">
+                        {/* Boutons d'action rapide */}
+                        <div className="flex justify-between items-center pt-4 border-t border-orange-200">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => toutSelectionnerSalle(salleSelectionnee)}
+                              className="px-3 py-2 bg-orange-500 text-white rounded-lg text-sm hover:bg-orange-600 transition-colors"
+                            >
+                              Tout sélectionner
+                            </button>
+                            <button
+                              onClick={() => toutDeselectionnerSalle(salleSelectionnee)}
+                              className="px-3 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
+                            >
+                              Tout désélectionner
+                            </button>
+                            
+                          </div>
+                          
+                          <div className="text-sm text-orange-700">
+                            {(() => {
+                              const nombreCreneaux = Object.values(disponibilites).reduce((acc, creneaux) => acc + creneaux.length, 0);
+                              return nombreCreneaux > 0 ? `${nombreCreneaux} créneaux sélectionnés` : 'Aucun créneau sélectionné';
+                            })()}
+                          </div>
+                        </div>
+
+                        {/* BOUTON ENREGISTRER (EXACTEMENT COMME LES PROFS) */}
+                        <div className="flex justify-center pt-6">
+                          <button
+                            onClick={handleSubmit}
+                            disabled={isLoading}
+                            className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                          >
+                            <div className="flex items-center gap-3">
+                              {isLoading ? (
+                                <>
+                                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                  <span>Enregistrement...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="text-xl">💾</span>
+                                  <span>Enregistrer les disponibilités</span>
+                                </>
+                              )}
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </AnimatePresence>
 
-                        {/* Bouton d'import pour sélection manuelle */}
+                {/* Bouton d'import pour sélection manuelle */}
                 {sallesSelectionnees.length > 0 && (
                   <div className="flex justify-center">
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={importerDonnees}
+                      onClick={handleSubmit}
                       disabled={isLoading}
                               className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -813,12 +941,12 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                         {isLoading ? (
                           <>
                             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            <span>Mise à jour...</span>
+                            <span>Enregistrement...</span>
                           </>
                         ) : (
                           <>
-                            <Save className="w-5 h-5" />
-                            <span>Mettre à jour les disponibilités</span>
+                            <span className="text-xl">💾</span>
+                            <span>Enregistrer les disponibilités</span>
                           </>
                         )}
                       </div>
@@ -896,7 +1024,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                           exit={{ opacity: 0, scale: 0.8 }}
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={importerDonnees}
+                          onClick={handleSubmit}
                           disabled={isLoading}
                                   className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                         >
@@ -906,7 +1034,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                             ) : (
                               <Save className="w-5 h-5" />
                             )}
-                            <span>{isLoading ? 'Mise à jour...' : 'Mettre à jour'}</span>
+                            <span>{isLoading ? 'Enregistrement...' : 'Enregistrer'}</span>
                           </div>
                         </motion.button>
                       )}
@@ -1078,7 +1206,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                                 exit={{ opacity: 0, scale: 0.8 }}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={importerDonnees}
+                                onClick={handleSubmit}
                                 disabled={isLoading}
                                         className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                               >
@@ -1088,7 +1216,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                                   ) : (
                                     <Save className="w-5 h-5" />
                                   )}
-                                  <span>{isLoading ? 'Mise à jour...' : 'Mettre à jour'}</span>
+                                  <span>{isLoading ? 'Enregistrement...' : 'Enregistrer'}</span>
                                 </div>
                               </motion.button>
                             )}

@@ -3,8 +3,7 @@ const mongoose = require('mongoose');
 const programmeSchema = new mongoose.Schema({
   id_programme: {
     type: String,
-    unique: true,
-    required: true
+    unique: true
   },
   nom: {
     type: String,
@@ -48,6 +47,33 @@ const programmeSchema = new mongoose.Schema({
   description: {
     type: String,
     required: true
+  }
+});
+
+// Hook pour générer automatiquement l'ID au format PRG001
+programmeSchema.pre('save', async function(next) {
+  try {
+    if (!this.id_programme) {
+      const dernierProgramme = await this.constructor.findOne(
+        { id_programme: { $regex: /^PRG\d+$/ } },
+        {},
+        { sort: { 'id_programme': -1 } }
+      );
+      
+      let numero = 1;
+      
+      if (dernierProgramme && dernierProgramme.id_programme) {
+        const match = dernierProgramme.id_programme.match(/^PRG(\d+)$/);
+        if (match) {
+          numero = parseInt(match[1]) + 1;
+        }
+      }
+
+      this.id_programme = `PRG${numero.toString().padStart(3, '0')}`;
+    }
+    next();
+  } catch (error) {
+    next(error);
   }
 });
 

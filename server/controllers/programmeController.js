@@ -22,17 +22,8 @@ const programmeController = {
         });
       }
 
-      // Générer l'id_programme
-      const nomCourt = nom
-        .split(' ')
-        .map(word => word[0])
-        .join('')
-        .toUpperCase();
-      
-      const id_programme = `PRG-${nomCourt}-${licenceNum}-${groupe}`;
-
+      // Ne plus générer manuellement l'id_programme, laisser le hook le faire
       const programme = new Programme({
-        id_programme,
         nom,
         licence: licenceNum,
         semestre: semestreNum,

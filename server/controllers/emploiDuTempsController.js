@@ -116,157 +116,260 @@ const emploiDuTempsController = {
     }
   },
 
-  // Génération automatique de l'emploi du temps
+  // ALGORITHME AMÉLIORÉ avec 6 heures et noms des profs
   genererEmploiAutomatique: async (req, res) => {
     try {
-      const { programme, groupe } = req.body;
+      const { id_programme, groupe } = req.body;
       
-      console.log('Génération emploi pour:', { programme, groupe });
+      console.log('\n=== GÉNÉRATION AVEC 6 HEURES ===');
+      console.log('Programme:', id_programme, 'Groupe:', groupe);
 
-      // Validation des paramètres
-      if (!programme || !groupe) {
-        return res.status(400).json({ 
-          message: "Programme et groupe sont requis" 
-        });
+      if (!id_programme) {
+        return res.status(400).json({ message: "Programme est requis" });
       }
 
-      // 1. Récupérer tous les cours du programme
-      const cours = await Cours.find({ id_programme: programme }).populate('id_prof');
+      // 1. Récupérer les cours avec LEUR professeur assigné
+      const cours = await Cours.find({ id_programme: id_programme })
+        .populate({
+          path: 'id_prof',
+          select: 'nom prenom disponibilite'
+        });
       
-      console.log(`Cours trouvés pour le programme ${programme}:`, cours.length);
+      console.log(`📚 Cours trouvés: ${cours.length}`);
       
       if (cours.length === 0) {
         return res.status(400).json({
-          message: "Aucun cours trouvé pour ce programme",
-          details: "Veuillez d'abord créer des cours pour ce programme"
+          message: "Aucun cours trouvé pour ce programme"
         });
       }
-      
-      // 2. Récupérer toutes les salles disponibles
-      const salles = await Salle.find();
-      
-      // 3. Récupérer tous les professeurs avec leurs disponibilités
-      const professeurs = await Professeur.find();
 
-      console.log(`Génération pour ${cours.length} cours`);
+      // 2. Récupérer toutes les salles
+      const salles = await Salle.find({ 
+        disponibilite: { $exists: true, $ne: [] } 
+      });
+      
+      console.log(`🏢 Salles disponibles: ${salles.length}`);
 
-      // Tableau pour stocker les séances générées
+      // 3. Récupérer les créneaux déjà occupés
+      const emploisExistants = await EmploiDuTemps.find({});
+      const creneauxOccupes = new Set();
+      
+      emploisExistants.forEach(emploi => {
+        emploi.seances.forEach(seance => {
+          creneauxOccupes.add(`prof-${seance.professeur}-${seance.jour}-${seance.creneau}`);
+          creneauxOccupes.add(`salle-${seance.salle}-${seance.jour}-${seance.creneau}`);
+          creneauxOccupes.add(`groupe-${emploi.programme}-${emploi.groupe}-${seance.jour}-${seance.creneau}`);
+        });
+      });
+
+      const conflitsDetailles = [];
       const seances = [];
-      const conflits = [];
 
-      // Pour chaque cours
+      // 4. LOGIQUE AMÉLIORÉE pour chaque cours
       for (const coursItem of cours) {
-        console.log(`Traitement du cours: ${coursItem.nom_matiere}`);
+        console.log(`\n📖 Cours: ${coursItem.nom_matiere}`);
         
-        // Déterminer le type de salle préféré (Machine/Ordinaire)
-        const typeSallePreferee = coursItem.nom_matiere.toLowerCase().includes('tp') ? 'Machine' : 'Ordinaire';
-
-        // Trouver une salle disponible du type préféré
-        const sallesDisponibles = salles.filter(salle => {
-          return salle.type === typeSallePreferee && salle.disponibilite && salle.disponibilite.length > 0;
-        });
-
-        // Si pas de salle du type préféré, prendre n'importe quelle salle disponible
-        const toutesLesSalles = sallesDisponibles.length ? sallesDisponibles : salles.filter(s => s.disponibilite && s.disponibilite.length > 0);
-
-        // Trouver un professeur disponible qui enseigne ce cours
-        const profsDisponibles = professeurs.filter(prof => {
-          return coursItem.id_prof.some(cp => cp._id.toString() === prof._id.toString()) && 
-                 prof.disponibilite && prof.disponibilite.length > 0;
-        });
-
-        if (!profsDisponibles.length || !toutesLesSalles.length) {
-          conflits.push(`Impossible d'attribuer le cours "${coursItem.nom_matiere}" - Ressources insuffisantes`);
+        // Récupérer LE professeur du cours
+        if (!coursItem.id_prof || coursItem.id_prof.length === 0) {
+          conflitsDetailles.push({
+            cours: coursItem.nom_matiere,
+            type: 'Aucun professeur assigné',
+            details: `Le cours "${coursItem.nom_matiere}" n'a pas de professeur assigné`,
+            suggestions: ['Assigner un professeur au cours']
+          });
           continue;
         }
 
-        // Pour chaque jour de la semaine
-        const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-        const creneauxHoraires = ['08h30 - 11h30', '12h00 - 15h00', '15h30 - 18h30'];
+        const professeur = coursItem.id_prof[0];
+        console.log(`👨‍🏫 Professeur: ${professeur.nom} ${professeur.prenom}`);
 
-        // Trouver un créneau disponible
-        let creneauTrouve = false;
-        for (const jour of jours) {
-          if (creneauTrouve) break;
+        // Vérifier que le prof a des disponibilités
+        if (!professeur.disponibilite || professeur.disponibilite.length === 0) {
+          conflitsDetailles.push({
+            cours: coursItem.nom_matiere,
+            type: 'Professeur sans disponibilités',
+            details: `${professeur.nom} ${professeur.prenom} n'a pas de disponibilités définies`,
+            suggestions: ['Définir les disponibilités du professeur']
+          });
+          continue;
+        }
 
-          for (const creneau of creneauxHoraires) {
-            // Vérifier si le créneau est libre pour la salle et le professeur
-            const salle = toutesLesSalles.find(s => 
-              s.disponibilite.some(d => d.jour === jour && d.creneaux.includes(creneau)) &&
-              !seances.some(seance => seance.salle.toString() === s._id.toString() && seance.jour === jour && seance.creneau === creneau)
+        // ✅ NOUVEAU: Calculer le nombre total de créneaux disponibles du prof
+        const totalCreneauxProf = professeur.disponibilite.reduce((total, dispo) => {
+          return total + dispo.creneaux.length;
+        }, 0);
+
+        console.log(`📅 Total créneaux disponibles du prof: ${totalCreneauxProf}`);
+
+        // ✅ LOGIQUE 6 HEURES: Si le prof a 2+ créneaux, essayer d'attribuer 2 créneaux
+        const creneauxAAttribuer = totalCreneauxProf >= 2 ? 2 : 1;
+        console.log(`🎯 Créneaux à attribuer pour ce cours: ${creneauxAAttribuer} (${creneauxAAttribuer * 3}h)`);
+
+        let creneauxTrouves = [];
+        let detailsRecherche = [];
+
+        // Créer une liste de tous les créneaux disponibles du prof
+        const creneauxProfDisponibles = [];
+        professeur.disponibilite.forEach(dispo => {
+          dispo.creneaux.forEach(creneau => {
+            creneauxProfDisponibles.push({
+              jour: dispo.jour,
+              creneau: creneau
+            });
+          });
+        });
+
+        console.log(`📋 Créneaux prof disponibles:`, creneauxProfDisponibles);
+
+        // Chercher les créneaux nécessaires
+        for (const creneauProf of creneauxProfDisponibles) {
+          if (creneauxTrouves.length >= creneauxAAttribuer) break;
+
+          const { jour, creneau } = creneauProf;
+          console.log(`\n⏰ Test: ${jour} ${creneau}`);
+
+          // Vérifier si le professeur n'est pas déjà occupé
+          const keyProf = `prof-${professeur._id}-${jour}-${creneau}`;
+          if (creneauxOccupes.has(keyProf)) {
+            console.log(`   ❌ Prof ${professeur.nom} ${professeur.prenom} déjà occupé ce créneau`);
+            detailsRecherche.push(`${jour} ${creneau}: Prof occupé (${professeur.nom} ${professeur.prenom})`);
+            continue;
+          }
+
+          // Vérifier si le groupe n'est pas déjà occupé
+          const keyGroupe = `groupe-${id_programme}-${groupe}-${jour}-${creneau}`;
+          const groupeOccupe = creneauxOccupes.has(keyGroupe) || 
+              seances.some(s => s.jour === jour && s.creneau === creneau) ||
+              creneauxTrouves.some(c => c.jour === jour && c.creneau === creneau);
+          
+          if (groupeOccupe) {
+            console.log(`   ❌ Groupe déjà occupé ce créneau`);
+            detailsRecherche.push(`${jour} ${creneau}: Groupe occupé`);
+            continue;
+          }
+
+          // CHERCHER UNE SALLE LIBRE
+          let salleLibre = null;
+          for (const salle of salles) {
+            // Vérifier que la salle est disponible ce jour/créneau
+            const salleDisponible = salle.disponibilite.some(d => 
+              d.jour === jour && d.creneaux.includes(creneau)
             );
+            
+            if (!salleDisponible) continue;
 
-            const prof = profsDisponibles.find(p => 
-              p.disponibilite.some(d => d.jour === jour && d.creneaux.includes(creneau)) &&
-              !seances.some(seance => seance.professeur.toString() === p._id.toString() && seance.jour === jour && seance.creneau === creneau)
-            );
+            // Vérifier que la salle n'est pas occupée
+            const keySalle = `salle-${salle._id}-${jour}-${creneau}`;
+            const salleOccupee = creneauxOccupes.has(keySalle) || 
+                seances.some(s => s.salle.toString() === salle._id.toString() && s.jour === jour && s.creneau === creneau) ||
+                creneauxTrouves.some(c => c.salle && c.salle._id.toString() === salle._id.toString() && c.jour === jour && c.creneau === creneau);
 
-            if (salle && prof) {
-              // Vérifier s'il n'y a pas déjà une séance à ce créneau pour ce groupe
-              const creneauOccupe = seances.some(s => 
-                s.jour === jour && 
-                s.creneau === creneau
-              );
-
-              if (!creneauOccupe) {
-                seances.push({
-                  cours: coursItem._id,
-                  professeur: prof._id,
-                  salle: salle._id,
-                  jour,
-                  creneau
-                });
-                creneauTrouve = true;
-                console.log(`Cours "${coursItem.nom_matiere}" attribué: ${jour} ${creneau}`);
-                break;
-              }
+            if (!salleOccupee) {
+              salleLibre = salle;
+              break;
             }
+          }
+
+          if (salleLibre) {
+            // ✅ CRÉNEAU TROUVÉ !
+            creneauxTrouves.push({
+              jour,
+              creneau,
+              professeur: professeur,
+              salle: salleLibre
+            });
+
+            console.log(`   ✅ Créneau ${creneauxTrouves.length}/${creneauxAAttribuer} trouvé: ${jour} ${creneau} - Salle ${salleLibre.nom}`);
+          } else {
+            console.log(`   ❌ Aucune salle libre`);
+            detailsRecherche.push(`${jour} ${creneau}: Aucune salle libre`);
           }
         }
 
-        if (!creneauTrouve) {
-          conflits.push(`Impossible d'attribuer le cours "${coursItem.nom_matiere}" - Aucun créneau libre trouvé`);
+        // Vérifier si on a trouvé assez de créneaux
+        if (creneauxTrouves.length > 0) {
+          // 🎉 ATTRIBUTION RÉUSSIE (même si pas l'idéal)
+          creneauxTrouves.forEach(creneauInfo => {
+            const nouvelleSeance = {
+              cours: coursItem._id,
+              professeur: creneauInfo.professeur._id,
+              salle: creneauInfo.salle._id,
+              jour: creneauInfo.jour,
+              creneau: creneauInfo.creneau
+            };
+
+            seances.push(nouvelleSeance);
+
+            // Marquer comme occupé
+            creneauxOccupes.add(`prof-${creneauInfo.professeur._id}-${creneauInfo.jour}-${creneauInfo.creneau}`);
+            creneauxOccupes.add(`salle-${creneauInfo.salle._id}-${creneauInfo.jour}-${creneauInfo.creneau}`);
+            creneauxOccupes.add(`groupe-${id_programme}-${groupe}-${creneauInfo.jour}-${creneauInfo.creneau}`);
+
+            console.log(`✅ Séance créée: ${creneauInfo.jour} ${creneauInfo.creneau} - Prof ${creneauInfo.professeur.nom} - Salle ${creneauInfo.salle.nom}`);
+          });
+
+          const heuresAttribuees = creneauxTrouves.length * 3;
+          const heuresIdeales = creneauxAAttribuer * 3;
+          
+          if (creneauxTrouves.length < creneauxAAttribuer) {
+            console.log(`⚠️ COURS PARTIELLEMENT ATTRIBUÉ: ${creneauxTrouves.length}/${creneauxAAttribuer} créneaux (${heuresAttribuees}h/${heuresIdeales}h)`);
+            
+            // Ajouter un avertissement mais pas un conflit bloquant
+            conflitsDetailles.push({
+              cours: coursItem.nom_matiere,
+              type: 'Attribution partielle',
+              details: `Cours attribué avec seulement ${heuresAttribuees}h au lieu de ${heuresIdeales}h idéales pour ${professeur.nom} ${professeur.prenom}`,
+              suggestions: ['Ajouter plus de créneaux disponibles pour compléter les heures']
+            });
+          } else {
+            console.log(`🎉 COURS COMPLÈTEMENT ATTRIBUÉ: ${creneauxTrouves.length} créneaux (${heuresAttribuees}h)`);
+          }
+        } else {
+          console.log(`❌ CONFLIT TOTAL: Aucun créneau trouvé`);
+          
+          conflitsDetailles.push({
+            cours: coursItem.nom_matiere,
+            type: 'Aucun créneau disponible',
+            details: `Aucun créneau libre trouvé pour ${professeur.nom} ${professeur.prenom}. Problèmes: ${detailsRecherche.slice(-3).join('; ')}`,
+            suggestions: ['Ajouter plus de salles disponibles', 'Augmenter les disponibilités des professeurs']
+          });
         }
       }
 
-      // MODIFICATION : Ne pas sauvegarder automatiquement, juste retourner les données temporaires
-      // Populer les données pour l'affichage
-      const seancesPopulees = await Promise.all(
-        seances.map(async (seance) => {
-          const cours = await Cours.findById(seance.cours).select('nom_matiere duree');
-          const professeur = await Professeur.findById(seance.professeur).select('nom prenom');
-          const salle = await Salle.findById(seance.salle).select('nom type');
-          
-          return {
-            ...seance,
-            cours,
-            professeur,
-            salle
-          };
-        })
-      );
+      // 5. Créer l'emploi du temps
+      let emploiDuTemps = null;
+      if (seances.length > 0) {
+        emploiDuTemps = new EmploiDuTemps({
+          programme: id_programme,
+          groupe: groupe || 1,
+          seances: seances,
+          statut: conflitsDetailles.length > 0 ? 'brouillon' : 'actif',
+          dateCreation: new Date()
+        });
 
-      // Retourner l'emploi du temps temporaire avec toutes les références peuplées
-      const response = {
-        programme,
-        groupe,
-        seances: seancesPopulees,
-        conflits,
-        totalSeances: seances.length,
-        totalConflits: conflits.length,
-        isTemporary: true // Marquer comme temporaire
-      };
+        await emploiDuTemps.save();
+        
+        // Peupler les données
+        emploiDuTemps = await EmploiDuTemps.findById(emploiDuTemps._id)
+          .populate('seances.cours', 'nom_matiere duree')
+          .populate('seances.professeur', 'nom prenom')
+          .populate('seances.salle', 'nom type');
+      }
 
-      console.log(`Emploi du temps généré (temporaire): ${seances.length} séances, ${conflits.length} conflits`);
+      const totalHeures = seances.length * 3;
+      console.log(`\n🏁 RÉSULTAT: ${seances.length} créneaux (${totalHeures}h) planifiés, ${conflitsDetailles.length} conflits`);
 
-      res.status(200).json(response);
+      res.json({
+        message: `Génération terminée. ${seances.length} créneaux (${totalHeures}h) planifiés, ${conflitsDetailles.length} conflits détectés.`,
+        emploiDuTemps: emploiDuTemps,
+        seances: seances.length,
+        conflits: conflitsDetailles,
+        statut: conflitsDetailles.length > 0 ? 'brouillon' : 'actif'
+      });
 
     } catch (error) {
-      console.error('Erreur génération emploi du temps:', error);
-      res.status(500).json({
-        message: "Erreur lors de la génération de l'emploi du temps",
-        error: error.message
-      });
+      console.error('Erreur génération automatique:', error);
+      res.status(500).json({ message: error.message });
     }
   },
 
@@ -858,22 +961,22 @@ const emploiDuTempsController = {
     }
   },
 
-  // Nouvelle méthode pour récupérer un emploi du temps par ID
+  // Récupérer un emploi du temps par ID
   getEmploiById: async (req, res) => {
     try {
       const { id } = req.params;
       
-      const emploi = await EmploiDuTemps.findById(id)
-        .populate('programme', 'nom licence semestre')
-        .populate('seances.cours', 'nom_matiere')
+      const emploiDuTemps = await EmploiDuTemps.findById(id)
+        .populate('seances.cours', 'nom_matiere duree')
         .populate('seances.professeur', 'nom prenom')
-        .populate('seances.salle', 'nom type');
+        .populate('seances.salle', 'nom type')
+        .populate('programme', 'nom licence semestre');
 
-      if (!emploi) {
-        return res.status(404).json({ message: 'Emploi du temps non trouvé' });
+      if (!emploiDuTemps) {
+        return res.status(404).json({ message: "Emploi du temps non trouvé" });
       }
 
-      res.json(emploi);
+      res.json(emploiDuTemps);
     } catch (error) {
       console.error('Erreur récupération emploi:', error);
       res.status(500).json({ message: error.message });

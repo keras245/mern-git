@@ -14,10 +14,13 @@ const salleController = {
         type
       });
 
-        await salle.save();
-        res.status(201).json(salle);
+      await salle.save();
+      res.status(201).json(salle);
     } catch (error) {
       console.error('Erreur création salle:', error);
+      if (error.code === 11000) {
+        return res.status(400).json({ message: 'Cette salle existe déjà' });
+      }
       res.status(400).json({ message: error.message });
     }
   },
@@ -92,12 +95,10 @@ const salleController = {
     try {
       const { salles } = req.body;
       
-      // Transformation des données
       const sallesFormatted = salles.map(salle => {
         const disponibilite = [];
         const creneauxParJour = {};
         
-        // Grouper les créneaux par jour
         salle.creneaux.forEach(creneau => {
           const [jour, horaire] = creneau.split(' ');
           if (!creneauxParJour[jour]) {
@@ -106,15 +107,13 @@ const salleController = {
           creneauxParJour[jour].push(horaire);
         });
         
-        // Formater pour le modèle
         Object.entries(creneauxParJour).forEach(([jour, creneaux]) => {
           disponibilite.push({ jour, creneaux });
         });
 
         return {
-          id_salle: `S${Math.random().toString(36).substr(2, 6)}`,
           nom: salle.nom,
-          type_salle: salle.nom.toLowerCase().includes('machine') ? 'Machine' : 'Ordinaire',
+          type: salle.nom.toLowerCase().includes('machine') ? 'Machine' : 'Ordinaire',
           capacite: 30,
           disponibilite
         };
@@ -279,8 +278,9 @@ const salleController = {
             continue;
           }
 
-          // Mettre à jour la disponibilité
+          // LOGIQUE EXACTE DES PROFESSEURS : REMPLACEMENT COMPLET
           salle.disponibilite = salleData.disponibilite || [];
+          
           await salle.save();
 
           resultats.push({
@@ -303,7 +303,7 @@ const salleController = {
       console.error('Erreur mise à jour disponibilités:', error);
       res.status(500).json({ message: error.message });
     }
-    }
+  }
 };
 
 module.exports = salleController;

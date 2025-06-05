@@ -202,18 +202,33 @@ const GenererEmploi = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       
-      console.log('Génération avec:', { programme: selectedProgramme, groupe: selectedGroupe });
+      console.log('Génération avec:', { id_programme: selectedProgramme, groupe: selectedGroupe });
       
       const response = await axios.post(
         'http://localhost:3832/api/emplois/generer-automatique',
         { 
-        programme: selectedProgramme,
+          id_programme: selectedProgramme,
           groupe: parseInt(selectedGroupe)
         },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
-      setEmploiDuTemps(response.data);
+      console.log('Réponse backend:', response.data);
+
+      // CORRECTION: Adapter la structure de réponse
+      if (response.data.emploiDuTemps) {
+        // Récupérer l'emploi du temps avec les données peuplées
+        const emploiComplet = await axios.get(
+          `http://localhost:3832/api/emplois/${response.data.emploiDuTemps._id}`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        
+        setEmploiDuTemps(emploiComplet.data);
+      } else {
+        // Aucun emploi du temps créé (tous les cours en conflit)
+        setEmploiDuTemps({ seances: [] });
+      }
+      
       setConflits(response.data.conflits || []);
       
       if (response.data.conflits && response.data.conflits.length > 0) {
@@ -1053,16 +1068,28 @@ const GenererEmploi = () => {
               </div>
 
               {conflits.length > 0 && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
-                  <h4 className="font-medium text-yellow-800 mb-2 flex items-center">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+                  <h4 className="font-medium text-red-800 mb-3 flex items-center">
                     <AlertTriangle className="w-4 h-4 mr-2" />
-                    Conflits détectés ({conflits.length})
+                    Problèmes détectés ({conflits.length})
                   </h4>
-                  <ul className="text-sm text-yellow-700 space-y-1">
+                  <div className="space-y-2">
                     {conflits.map((conflit, index) => (
-                      <li key={index}>• {conflit}</li>
+                      <div key={index} className="bg-white border border-red-200 rounded p-3">
+                        <div className="font-medium text-red-900 mb-1">
+                          📚 {conflit.cours}
+                        </div>
+                        <div className="text-sm text-red-700 mb-2">
+                          ⚠️ {conflit.details}
+                        </div>
+                        {conflit.suggestions && (
+                          <div className="text-xs text-red-600">
+                            💡 <span className="font-medium">Solutions:</span> {conflit.suggestions.join(', ')}
+                          </div>
+                        )}
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               )}
             </div>

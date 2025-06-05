@@ -114,10 +114,29 @@ const DisponibiliteProf = () => {
         { disponibilite: disponibilitesArray },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
+      
       showNotification('Disponibilités mises à jour avec succès', 'success');
-      // Recharger les données pour mettre à jour l'affichage
+      
+      // CORRECTION : Recharger automatiquement les données
       await loadProfesseurs();
-      handleProfesseurChange(selectedProf);
+      
+      // Mettre à jour l'affichage local immédiatement
+      setProfesseurs(prevProfs => 
+        prevProfs.map(prof => 
+          prof._id === selectedProf 
+            ? { ...prof, disponibilite: disponibilitesArray }
+            : prof
+        )
+      );
+      
+      // Mettre à jour l'affichage des disponibilités
+      const newDispos = {};
+      JOURS.forEach(jour => {
+        const jourDispo = disponibilitesArray.find(d => d.jour === jour);
+        newDispos[jour] = jourDispo ? jourDispo.creneaux : [];
+      });
+      setDisponibilites(newDispos);
+      
     } catch (error) {
       showNotification('Erreur lors de la mise à jour des disponibilités', 'error');
     } finally {

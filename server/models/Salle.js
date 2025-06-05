@@ -35,18 +35,22 @@ const salleSchema = new mongoose.Schema({
 salleSchema.pre('save', async function(next) {
   try {
     if (!this.id_salle) {
-      const derniereSalle = await this.constructor.findOne({}, {}, { sort: { 'id_salle': -1 } });
+      const derniereSalle = await this.constructor.findOne(
+        { id_salle: { $regex: /^SLL\d+$/ } },
+        {},
+        { sort: { 'id_salle': -1 } }
+      );
+      
       let numero = 1;
       
       if (derniereSalle && derniereSalle.id_salle) {
-        const match = derniereSalle.id_salle.match(/\d+$/);
+        const match = derniereSalle.id_salle.match(/^SLL(\d+)$/);
         if (match) {
-          numero = parseInt(match[0]) + 1;
+          numero = parseInt(match[1]) + 1;
         }
       }
 
-      const typePrefix = this.type === 'Machine' ? 'M' : 'O';
-      this.id_salle = `SLL-${typePrefix}-${numero.toString().padStart(3, '0')}`;
+      this.id_salle = `SLL${numero.toString().padStart(3, '0')}`;
     }
     next();
   } catch (error) {
