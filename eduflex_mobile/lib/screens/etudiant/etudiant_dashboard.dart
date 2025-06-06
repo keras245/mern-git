@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../utils/constants.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
@@ -28,11 +27,16 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
     try {
       final apiService = ApiService();
       final data = await apiService.getProfilEtudiant();
+
+      print('🔍 Données reçues du backend:');
+      print(data);
+
       setState(() {
-        userData = data;
+        userData = data['etudiant'];
         isLoading = false;
       });
     } catch (e) {
+      print('❌ Erreur chargement données: $e');
       setState(() {
         error = e.toString();
         isLoading = false;
@@ -98,6 +102,9 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
   }
 
   Widget _buildHeader() {
+    final nom = userData?['nom']?.toString() ?? 'Étudiant';
+    final programme = userData?['programme_id'];
+
     return Container(
       padding: EdgeInsets.all(AppSizes.lg),
       child: Row(
@@ -119,13 +126,13 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Salut ${userData?['nom'] ?? 'Étudiant'} !',
+                  'Salut $nom !',
                   style: AppTextStyles.headingMedium.copyWith(
                     color: AppColors.white,
                   ),
                 ),
                 Text(
-                  _buildProgrammeComplet(userData?['programme']),
+                  _buildProgrammeComplet(programme),
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.white.withOpacity(0.8),
                   ),
@@ -147,36 +154,11 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
 
   Widget _buildDateTimeCard() {
     final now = DateTime.now();
-    final dateFormatter = DateFormat('dd/MM/yyyy');
-    final timeFormatter = DateFormat('HH:mm');
 
-    final jours = [
-      'Lundi',
-      'Mardi',
-      'Mercredi',
-      'Jeudi',
-      'Vendredi',
-      'Samedi',
-      'Dimanche'
-    ];
-    final mois = [
-      'Jan',
-      'Fév',
-      'Mar',
-      'Avr',
-      'Mai',
-      'Jun',
-      'Jul',
-      'Aoû',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Déc'
-    ];
-
-    final jourNom = jours[now.weekday - 1];
-    final moisNom = mois[now.month - 1];
-    final dateComplete = '$jourNom ${now.day} $moisNom ${now.year}';
+    final dateString =
+        '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
+    final timeString =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: AppSizes.lg),
@@ -196,7 +178,7 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
                       color: AppColors.etudiant, size: 20),
                   SizedBox(height: 4),
                   Text(
-                    dateComplete,
+                    dateString,
                     style: AppTextStyles.bodySmall.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -213,7 +195,7 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
                   Icon(Icons.access_time, color: AppColors.etudiant, size: 20),
                   SizedBox(height: 4),
                   Text(
-                    timeFormatter.format(now),
+                    timeString,
                     style: AppTextStyles.headingSmall.copyWith(
                       color: AppColors.etudiant,
                     ),
@@ -230,7 +212,7 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
   String _buildProgrammeComplet(dynamic programme) {
     if (programme == null) return 'Programme';
 
-    final nom = programme['nom'] ?? 'Programme';
+    final nom = programme['nom']?.toString() ?? 'Programme';
     final licence = programme['licence'];
     final semestre = programme['semestre'];
 
@@ -365,6 +347,10 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
   }
 
   Widget _buildQuickInfo() {
+    final matricule = userData?['matricule']?.toString() ?? 'N/A';
+    final programme = userData?['programme_id'];
+    final groupe = userData?['groupe']?.toString() ?? 'N/A';
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -385,7 +371,7 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
                 Icon(Icons.school, color: AppColors.etudiant, size: 20),
                 SizedBox(width: AppSizes.sm),
                 Text(
-                  'Matricule: ${userData?['matricule'] ?? 'N/A'}',
+                  'Matricule: $matricule',
                   style: AppTextStyles.bodyMedium,
                 ),
               ],
@@ -397,7 +383,7 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
                 SizedBox(width: AppSizes.sm),
                 Expanded(
                   child: Text(
-                    _buildProgrammeComplet(userData?['programme']),
+                    'Programme: ${_buildProgrammeComplet(programme)}',
                     style: AppTextStyles.bodyMedium,
                   ),
                 ),
@@ -409,7 +395,7 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
                 Icon(Icons.group, color: AppColors.etudiant, size: 20),
                 SizedBox(width: AppSizes.sm),
                 Text(
-                  'Groupe: ${userData?['groupe'] ?? 'N/A'}',
+                  'Groupe: $groupe',
                   style: AppTextStyles.bodyMedium,
                 ),
               ],

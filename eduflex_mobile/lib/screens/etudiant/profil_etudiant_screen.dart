@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../../utils/constants.dart';
 import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
@@ -23,11 +25,16 @@ class _ProfilEtudiantScreenState extends State<ProfilEtudiantScreen> {
     try {
       final apiService = ApiService();
       final data = await apiService.getProfilEtudiant();
+
+      print('🔍 Données profil reçues:');
+      print(data);
+
       setState(() {
         profil = data;
         isLoading = false;
       });
     } catch (e) {
+      print('❌ Erreur chargement profil: $e');
       setState(() {
         error = e.toString();
         isLoading = false;
@@ -224,6 +231,8 @@ class _ProfilEtudiantScreenState extends State<ProfilEtudiantScreen> {
                   _buildProgrammeText(etudiant['programme_id'])),
               _buildInfoRow(
                   Icons.group, 'Groupe', _safeString(etudiant['groupe'])),
+              _buildPaiementRow(etudiant['pourcentage_paiement'] ?? 0,
+                  etudiant['pourcentage_paiement_seuil'] ?? 75),
               _buildInfoRow(Icons.verified, 'Statut',
                   _getStatutText(etudiant['statut_compte'])),
             ],
@@ -241,6 +250,19 @@ class _ProfilEtudiantScreenState extends State<ProfilEtudiantScreen> {
     final semestre = programme['semestre'];
 
     return '$nom - L$licence S$semestre';
+  }
+
+  String _getStatutText(dynamic statut) {
+    switch (statut?.toString()) {
+      case 'actif':
+        return 'Compte actif';
+      case 'en_attente':
+        return 'En attente de validation';
+      case 'suspendu':
+        return 'Compte suspendu';
+      default:
+        return 'Statut inconnu';
+    }
   }
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
@@ -317,11 +339,13 @@ class _ProfilEtudiantScreenState extends State<ProfilEtudiantScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.info, color: AppColors.gray500),
+                      Icon(Icons.info_outline, color: AppColors.gray400),
                       SizedBox(width: AppSizes.sm),
                       Text(
                         'Aucune présence enregistrée',
-                        style: AppTextStyles.bodyMedium,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.gray600,
+                        ),
                       ),
                     ],
                   ),
@@ -329,7 +353,8 @@ class _ProfilEtudiantScreenState extends State<ProfilEtudiantScreen> {
               else
                 ...presences
                     .take(5)
-                    .map((presence) => _buildPresenceItem(presence)),
+                    .map((presence) => _buildPresenceItem(presence))
+                    .toList(),
             ],
           ),
         ),
@@ -338,116 +363,141 @@ class _ProfilEtudiantScreenState extends State<ProfilEtudiantScreen> {
   }
 
   Widget _buildPresenceItem(Map<String, dynamic> presence) {
-    Color statusColor;
-    IconData statusIcon;
-    String statusText;
-
-    final statut = _safeString(presence['statut']).toLowerCase();
-
-    switch (statut) {
-      case 'confirmé':
-        statusColor = AppColors.success;
-        statusIcon = Icons.check_circle;
-        statusText = 'Confirmé';
-        break;
-      case 'en_attente':
-        statusColor = AppColors.warning;
-        statusIcon = Icons.schedule;
-        statusText = 'En attente';
-        break;
-      case 'refusé':
-        statusColor = AppColors.danger;
-        statusIcon = Icons.cancel;
-        statusText = 'Refusé';
-        break;
-      default:
-        statusColor = AppColors.gray500;
-        statusIcon = Icons.help;
-        statusText = 'Inconnu';
-    }
-
     return Container(
       margin: EdgeInsets.only(bottom: AppSizes.sm),
       padding: EdgeInsets.all(AppSizes.md),
       decoration: BoxDecoration(
         color: AppColors.gray50,
         borderRadius: BorderRadius.circular(AppSizes.radiusSm),
-        border: Border(
-          left: BorderSide(
-            width: 4,
-            color: statusColor,
-          ),
-        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  _safeString(presence['cours_id']?['nom']),
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: AppColors.success,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          SizedBox(width: AppSizes.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  presence['cours_id']?['nom'] ?? 'Cours non défini',
                   style: AppTextStyles.labelMedium,
                 ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppSizes.sm,
-                  vertical: 4,
+                Text(
+                  _formatDate(presence['createdAt']),
+                  style: AppTextStyles.bodySmall,
                 ),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(AppSizes.radiusSm),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(statusIcon, size: 14, color: statusColor),
-                    SizedBox(width: 4),
-                    Text(
-                      statusText,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: statusColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: AppSizes.sm),
-          Text(
-            '${_safeString(presence['jour'])} - ${_safeString(presence['creneau'])}',
-            style: AppTextStyles.bodySmall,
-          ),
-          if (presence['remarques'] != null &&
-              presence['remarques'].toString().isNotEmpty)
-            Padding(
-              padding: EdgeInsets.only(top: AppSizes.sm),
-              child: Text(
-                'Note: ${_safeString(presence['remarques'])}',
-                style: AppTextStyles.bodySmall.copyWith(
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
+              ],
             ),
+          ),
         ],
       ),
     );
   }
 
-  String _getStatutText(dynamic statut) {
-    final statutStr = _safeString(statut).toLowerCase();
-    switch (statutStr) {
-      case 'validé':
-        return 'Compte validé ✅';
-      case 'en_attente':
-        return 'En attente de validation ⏳';
-      case 'suspendu':
-        return 'Compte suspendu ❌';
-      default:
-        return 'Statut inconnu ❓';
+  String _formatDate(dynamic date) {
+    if (date == null) return 'Date inconnue';
+    try {
+      final DateTime parsedDate = DateTime.parse(date.toString());
+      return '${parsedDate.day}/${parsedDate.month}/${parsedDate.year}';
+    } catch (e) {
+      return 'Date invalide';
     }
+  }
+
+  Widget _buildPaiementRow(int pourcentagePaye, int seuilRequis) {
+    final Color statusColor =
+        _getPaiementStatusColor(pourcentagePaye, seuilRequis);
+    final String statusText =
+        _getPaiementStatusText(pourcentagePaye, seuilRequis);
+
+    return Container(
+      margin: EdgeInsets.only(bottom: AppSizes.md),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: statusColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              Icons.payment,
+              color: statusColor,
+              size: 20,
+            ),
+          ),
+          SizedBox(width: AppSizes.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Statut Paiement',
+                  style: AppTextStyles.labelMedium,
+                ),
+                SizedBox(height: 4),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppSizes.sm,
+                        vertical: AppSizes.xs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+                      ),
+                      child: Text(
+                        '$pourcentagePaye%',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: statusColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: AppSizes.sm),
+                    Text(
+                      statusText,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Seuil requis: $seuilRequis%',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.gray600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getPaiementStatusColor(int pourcentage, int seuil) {
+    if (pourcentage >= seuil) return AppColors.success;
+    if (pourcentage >= (seuil * 0.7)) return AppColors.warning;
+    return AppColors.danger;
+  }
+
+  String _getPaiementStatusText(int pourcentage, int seuil) {
+    if (pourcentage >= seuil) return 'Accès autorisé';
+    if (pourcentage >= (seuil * 0.7)) return 'Presque atteint';
+    return 'Accès restreint';
   }
 }

@@ -17,6 +17,10 @@ router.post('/login/vigile', mobileController.loginVigile);
 router.get('/comptable/etudiants', auth, mobileController.getEtudiants);
 router.post('/comptable/paiement', auth, mobileController.enregistrerPaiement);
 
+// ✅ NOUVELLES ROUTES - GESTION PAIEMENTS
+router.get('/comptable/etudiant/matricule/:matricule', auth, mobileController.rechercherEtudiantParMatricule);
+router.put('/comptable/etudiant/:id/paiement', auth, mobileController.mettreAJourPaiementEtudiant);
+
 // ✅ NOUVELLES ROUTES - GESTION COMPTABLES
 router.get('/comptable/comptables', auth, mobileController.getComptables);
 router.put('/comptable/comptable/:id', auth, mobileController.modifierComptable);

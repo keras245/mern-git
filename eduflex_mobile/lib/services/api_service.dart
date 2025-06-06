@@ -433,9 +433,50 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+      return data;
     } else {
       throw Exception('Erreur lors de la récupération du profil');
+    }
+  }
+
+  // ✅ AJOUT: Rechercher étudiant par matricule
+  Future<Map<String, dynamic>> rechercherEtudiantParMatricule(
+      String matricule) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/mobile/comptable/etudiant/matricule/$matricule'),
+      headers: await _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['etudiant'];
+    } else {
+      final error = jsonDecode(response.body);
+      throw Exception(error['message'] ?? 'Étudiant non trouvé');
+    }
+  }
+
+  // ✅ AJOUT: Mettre à jour le paiement d'un étudiant
+  Future<Map<String, dynamic>> mettreAJourPaiementEtudiant({
+    required String etudiantId,
+    required int pourcentagePaiement,
+    required int seuilAcces,
+  }) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/mobile/comptable/etudiant/$etudiantId/paiement'),
+      headers: await _headers,
+      body: jsonEncode({
+        'pourcentage_paiement': pourcentagePaiement,
+        'pourcentage_paiement_seuil': seuilAcces,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final error = jsonDecode(response.body);
+      throw Exception(error['message'] ?? 'Erreur lors de la mise à jour');
     }
   }
 }

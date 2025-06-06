@@ -4,8 +4,8 @@ const bcrypt = require('bcryptjs');
 const etudiantSchema = new mongoose.Schema({
   matricule: {
     type: String,
-    unique: true,
-    required: true
+    required: true,
+    unique: true
   },
   nom: {
     type: String,
@@ -17,8 +17,8 @@ const etudiantSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    unique: true,
-    required: true
+    required: true,
+    unique: true
   },
   telephone: {
     type: String,
@@ -38,17 +38,11 @@ const etudiantSchema = new mongoose.Schema({
   },
   groupe: {
     type: Number,
-    required: true,
-    min: 1
+    required: true
   },
   qr_code: {
     type: String,
     unique: true
-  },
-  statut_compte: {
-    type: String,
-    enum: ['en_attente', 'valide', 'suspendu'],
-    default: 'en_attente'
   },
   chef_classe_validateur: {
     type: mongoose.Schema.Types.ObjectId,
@@ -57,9 +51,17 @@ const etudiantSchema = new mongoose.Schema({
   date_validation_compte: {
     type: Date
   },
+  pourcentage_paiement: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100
+  },
   pourcentage_paiement_seuil: {
     type: Number,
-    default: 75
+    default: 75,
+    min: 0,
+    max: 100
   },
   derniere_entree_fac: {
     type: Date

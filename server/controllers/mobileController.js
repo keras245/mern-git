@@ -13,15 +13,7 @@ const jwt = require('jsonwebtoken');
 
 exports.creerEtudiant = async (req, res) => {
   try {
-    const { matricule, nom, prenom, email, telephone, mot_de_passe, programme_id, groupe } = req.body;
-    
-    // Vérifier que le programme existe
-    const programme = await Programme.findById(programme_id);
-    if (!programme) {
-      return res.status(400).json({ message: 'Programme non trouvé' });
-    }
-
-    const etudiant = new Etudiant({
+    const {
       matricule,
       nom,
       prenom,
@@ -30,26 +22,70 @@ exports.creerEtudiant = async (req, res) => {
       mot_de_passe,
       programme_id,
       groupe
+    } = req.body;
+
+    // Validation des champs obligatoires
+    if (!matricule || !nom || !prenom || !email || !telephone || !mot_de_passe || !programme_id || !groupe) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tous les champs sont obligatoires'
+      });
+    }
+
+    // Vérifier si l'étudiant existe déjà
+    const etudiantExistant = await Etudiant.findOne({
+      $or: [{ matricule }, { email }]
     });
 
-    await etudiant.save();
+    if (etudiantExistant) {
+      return res.status(400).json({
+        success: false,
+        message: 'Un étudiant avec ce matricule ou cet email existe déjà'
+      });
+    }
 
-    const etudiantPopule = await Etudiant.findById(etudiant._id)
-      .populate('programme_id', 'nom licence semestre')
-      .select('-mot_de_passe');
+    // Générer le QR code
+    const qrCode = `EDU-${matricule}-${Date.now()}`;
+
+    // Hasher le mot de passe
+    const motDePasseHash = await bcrypt.hash(mot_de_passe, 10);
+
+    // Créer l'étudiant
+    const nouvelEtudiant = new Etudiant({
+      matricule,
+      nom,
+      prenom,
+      email,
+      telephone,
+      mot_de_passe: motDePasseHash,
+      programme_id,
+      groupe,
+      qr_code: qrCode,
+      pourcentage_paiement: 0,
+      pourcentage_paiement_seuil: 75
+    });
+
+    await nouvelEtudiant.save();
 
     res.status(201).json({
+      success: true,
       message: 'Étudiant créé avec succès',
-      etudiant: etudiantPopule
+      etudiant: {
+        id: nouvelEtudiant._id,
+        matricule: nouvelEtudiant.matricule,
+        nom: nouvelEtudiant.nom,
+        prenom: nouvelEtudiant.prenom,
+        email: nouvelEtudiant.email,
+        qr_code: nouvelEtudiant.qr_code
+      }
     });
 
   } catch (error) {
     console.error('Erreur création étudiant:', error);
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyValue)[0];
-      return res.status(400).json({ message: `${field} déjà utilisé` });
-    }
-    res.status(500).json({ message: 'Erreur serveur' });
+    res.status(500).json({
+      success: false,
+      message: 'Erreur serveur lors de la création de l\'étudiant'
+    });
   }
 };
 
@@ -151,7 +187,6 @@ exports.loginEtudiant = async (req, res) => {
         qr_code: etudiant.qr_code,
         programme: etudiant.programme_id,
         groupe: etudiant.groupe,
-        statut_compte: etudiant.statut_compte,
         type: 'etudiant'
       }
     });
@@ -362,92 +397,62 @@ exports.getEtudiants = async (req, res) => {
 exports.scanQRCode = async (req, res) => {
   try {
     const { qr_code } = req.body;
-    const vigile_id = req.user.id;
-    
-    console.log('Scan QR:', { qr_code, vigile_id });
-    
-    // Trouver l'étudiant par QR code
-    const etudiant = await Etudiant.findOne({ qr_code })
-      .populate('programme_id', 'nom');
-    
+
+    if (!qr_code) {
+      return res.status(400).json({
+        success: false,
+        message: 'QR code requis'
+      });
+    }
+
+    // Chercher l'étudiant avec ce QR code
+    const etudiant = await Etudiant.findOne({ qr_code }).populate('programme_id');
+
     if (!etudiant) {
-      return res.json({ 
-        autorisation: false,
-        message: 'QR Code invalide',
-        son: 'error'
+      return res.status(404).json({
+        success: false,
+        message: 'QR code invalide'
       });
     }
-    
-    // Vérifier le statut du compte
-    if (etudiant.statut_compte !== 'valide') {
-      await AccesEntree.create({
-        etudiant_id: etudiant._id,
-        vigile_id,
-        qr_code_scanne: qr_code,
-        autorisation: false,
-        pourcentage_paiement: 0,
-        motif_refus: 'Compte non validé'
-      });
-      
-      return res.json({
-        autorisation: false,
-        message: 'Compte étudiant non validé',
-        etudiant: {
-          nom: etudiant.nom,
-          prenom: etudiant.prenom,
-          matricule: etudiant.matricule
-        },
-        son: 'error'
-      });
-    }
-    
-    // Vérifier les paiements
-    const dernierPaiement = await Paiement.findOne({ etudiant_id: etudiant._id })
-      .sort({ createdAt: -1 });
-    
-    const pourcentagePaiement = dernierPaiement ? dernierPaiement.pourcentage_paye : 0;
-    const seuilRequis = etudiant.pourcentage_paiement_seuil;
-    
-    const autorisation = pourcentagePaiement >= seuilRequis;
-    
+
+    // Vérifier le paiement
+    const paiementValide = etudiant.pourcentage_paiement >= etudiant.pourcentage_paiement_seuil;
+
     // Enregistrer l'accès
-    await AccesEntree.create({
+    const acces = new AccesEntree({
       etudiant_id: etudiant._id,
-      vigile_id,
-      qr_code_scanne: qr_code,
-      autorisation,
-      pourcentage_paiement: pourcentagePaiement,
-      motif_refus: autorisation ? null : 'Paiement insuffisant'
+      date_entree: new Date(),
+      statut_acces: paiementValide ? 'autorise' : 'refuse',
+      raison: paiementValide ? 'Paiement conforme' : 'Paiement insuffisant'
     });
-    
-    // Mettre à jour la dernière entrée si autorisé
-    if (autorisation) {
+
+    await acces.save();
+
+    // Mettre à jour la dernière entrée
+    if (paiementValide) {
       etudiant.derniere_entree_fac = new Date();
       await etudiant.save();
     }
-    
+
     res.json({
-      autorisation,
-      message: autorisation 
-        ? 'Accès autorisé ✅' 
-        : `Paiement insuffisant ❌ (${pourcentagePaiement}% / ${seuilRequis}% requis)`,
+      success: true,
+      acces_autorise: paiementValide,
+      message: paiementValide ? 'Accès autorisé' : 'Accès refusé - Paiement insuffisant',
       etudiant: {
         nom: etudiant.nom,
         prenom: etudiant.prenom,
         matricule: etudiant.matricule,
-        programme: etudiant.programme_id?.nom,
-        pourcentage_paiement: pourcentagePaiement,
-        seuil_requis: seuilRequis
-      },
-      son: autorisation ? 'success' : 'error'
+        programme: etudiant.programme_id?.nom || 'Non défini',
+        pourcentage_paiement: etudiant.pourcentage_paiement,
+        seuil_requis: etudiant.pourcentage_paiement_seuil
+      }
     });
-    
+
   } catch (error) {
-    console.error('Erreur scan QR:', error);
-    res.status(500).json({ 
-      autorisation: false,
-      message: 'Erreur système',
-      son: 'error'
+    console.error('Erreur scan QR code:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur serveur'
     });
   }
 };
@@ -461,7 +466,7 @@ exports.validerEtudiant = async (req, res) => {
     const etudiant = await Etudiant.findByIdAndUpdate(
       etudiant_id,
       { 
-        statut_compte: 'valide',
+        statut_compte: 'actif',
         date_validation_compte: new Date()
       },
       { new: true }
@@ -1068,6 +1073,123 @@ exports.getProfilEtudiant = async (req, res) => {
   } catch (error) {
     console.error('Erreur récupération profil étudiant:', error);
     res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+
+// ✅ AJOUT: Rechercher un étudiant par matricule (pour comptable)
+exports.rechercherEtudiantParMatricule = async (req, res) => {
+  try {
+    const { matricule } = req.params;
+    
+    console.log('🔍 Recherche étudiant par matricule:', matricule);
+    
+    const etudiant = await Etudiant.findOne({ matricule })
+      .populate('programme_id', 'nom licence semestre')
+      .select('-mot_de_passe');
+    
+    if (!etudiant) {
+      return res.status(404).json({ 
+        message: 'Aucun étudiant trouvé avec ce matricule' 
+      });
+    }
+    
+    console.log('✅ Étudiant trouvé:', etudiant.nom, etudiant.prenom);
+    
+    res.json({
+      success: true,
+      etudiant: etudiant
+    });
+    
+  } catch (error) {
+    console.error('Erreur recherche étudiant par matricule:', error);
+    res.status(500).json({ 
+      message: 'Erreur serveur lors de la recherche',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// ✅ CORRECTION COMPLÈTE: Fonction simplifiée sans montants
+exports.mettreAJourPaiementEtudiant = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { pourcentage_paiement, pourcentage_paiement_seuil, remarques } = req.body;
+
+    console.log(`📝 Mise à jour paiement étudiant ${id}:`, {
+      pourcentage_paiement,
+      pourcentage_paiement_seuil,
+      remarques
+    });
+
+    // Validation
+    if (pourcentage_paiement < 0 || pourcentage_paiement > 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Le pourcentage de paiement doit être entre 0 et 100'
+      });
+    }
+
+    if (pourcentage_paiement_seuil < 0 || pourcentage_paiement_seuil > 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Le seuil de paiement doit être entre 0 et 100'
+      });
+    }
+
+    // Trouver l'étudiant
+    const etudiant = await Etudiant.findById(id);
+    if (!etudiant) {
+      return res.status(404).json({
+        success: false,
+        message: 'Étudiant non trouvé'
+      });
+    }
+
+    // Mettre à jour les champs
+    etudiant.pourcentage_paiement = pourcentage_paiement;
+    etudiant.pourcentage_paiement_seuil = pourcentage_paiement_seuil;
+
+    await etudiant.save();
+
+    // Mettre à jour ou créer l'enregistrement de paiement
+    const paiementData = {
+      etudiant_id: etudiant._id,
+      pourcentage_paye: pourcentage_paiement,
+      statut: pourcentage_paiement >= pourcentage_paiement_seuil ? 'complet' : 'partiel',
+      remarques: remarques || '',
+      date_mise_a_jour: new Date()
+    };
+
+    const paiementExistant = await Paiement.findOne({ etudiant_id: etudiant._id });
+    
+    if (paiementExistant) {
+      await Paiement.findByIdAndUpdate(paiementExistant._id, paiementData);
+    } else {
+      const nouveauPaiement = new Paiement(paiementData);
+      await nouveauPaiement.save();
+    }
+
+    console.log('✅ Paiement mis à jour avec succès');
+
+    res.json({
+      success: true,
+      message: 'Paiement mis à jour avec succès',
+      etudiant: {
+        id: etudiant._id,
+        matricule: etudiant.matricule,
+        nom: etudiant.nom,
+        prenom: etudiant.prenom,
+        pourcentage_paiement: etudiant.pourcentage_paiement,
+        pourcentage_paiement_seuil: etudiant.pourcentage_paiement_seuil
+      }
+    });
+
+  } catch (error) {
+    console.error('Erreur mise à jour paiement étudiant:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur serveur lors de la mise à jour du paiement'
+    });
   }
 };
 

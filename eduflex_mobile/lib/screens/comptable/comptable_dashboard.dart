@@ -5,7 +5,6 @@ import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
 import '../../models/etudiant.dart';
 import 'gestion_paiements.dart';
-import 'recherche_etudiant.dart';
 import 'gestion_utilisateurs.dart';
 
 class ComptableDashboard extends StatefulWidget {
@@ -20,7 +19,6 @@ class _ComptableDashboardState extends State<ComptableDashboard> {
   final List<Widget> _pages = [
     ComptableHomeScreen(),
     GestionPaiements(),
-    RechercheEtudiant(),
     GestionUtilisateurs(),
   ];
 
@@ -30,14 +28,83 @@ class _ComptableDashboardState extends State<ComptableDashboard> {
     final comptable = authService.comptable;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Dashboard Comptable'),
-        backgroundColor: AppColors.primary500,
-        foregroundColor: AppColors.white,
-        elevation: 0,
-        actions: [
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.comptable,
+              AppColors.comptable.withOpacity(0.8),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(comptable),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.gray50,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(AppSizes.radiusXl),
+                      topRight: Radius.circular(AppSizes.radiusXl),
+                    ),
+                  ),
+                  child: _pages[_selectedIndex],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNavigation(),
+    );
+  }
+
+  Widget _buildHeader(dynamic comptable) {
+    final nom = comptable?.nom ?? 'Comptable';
+    final prenom = comptable?.prenom ?? '';
+    final idComptable = comptable?.idComptable ?? '';
+
+    return Container(
+      padding: EdgeInsets.all(AppSizes.lg),
+      child: Row(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: AppColors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Center(
+              child: Text('💰', style: TextStyle(fontSize: 30)),
+            ),
+          ),
+          SizedBox(width: AppSizes.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Salut $nom !',
+                  style: AppTextStyles.headingMedium.copyWith(
+                    color: AppColors.white,
+                  ),
+                ),
+                Text(
+                  'Gestion des paiements',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.white.withOpacity(0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
           PopupMenuButton<String>(
-            icon: Icon(Icons.account_circle_rounded),
+            icon: Icon(Icons.account_circle_rounded, color: AppColors.white),
             onSelected: (value) {
               if (value == 'logout') {
                 _handleLogout(context);
@@ -54,11 +121,15 @@ class _ComptableDashboardState extends State<ComptableDashboard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${comptable?.prenom} ${comptable?.nom}',
+                          prenom.isNotEmpty && nom.isNotEmpty
+                              ? '$prenom $nom'
+                              : 'Comptable',
                           style: AppTextStyles.labelMedium,
                         ),
                         Text(
-                          comptable?.idComptable ?? '',
+                          idComptable.isNotEmpty
+                              ? idComptable
+                              : 'ID non défini',
                           style: AppTextStyles.bodySmall,
                         ),
                       ],
@@ -81,79 +152,70 @@ class _ComptableDashboardState extends State<ComptableDashboard> {
           ),
         ],
       ),
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.gray200.withOpacity(0.5),
-              blurRadius: 10,
-              offset: Offset(0, -5),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) => setState(() => _selectedIndex = index),
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: AppColors.primary500,
-          unselectedItemColor: AppColors.gray400,
-          backgroundColor: AppColors.white,
-          elevation: 0,
-          selectedLabelStyle: TextStyle(fontSize: 12),
-          unselectedLabelStyle: TextStyle(fontSize: 11),
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_rounded),
-              activeIcon: Container(
-                padding: EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: AppColors.primary100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.dashboard_rounded),
+    );
+  }
+
+  Widget _buildBottomNavigation() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gray200.withOpacity(0.5),
+            blurRadius: 10,
+            offset: Offset(0, -5),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) => setState(() => _selectedIndex = index),
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: AppColors.comptable,
+        unselectedItemColor: AppColors.gray400,
+        backgroundColor: AppColors.white,
+        elevation: 0,
+        selectedLabelStyle:
+            TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: TextStyle(fontSize: 11),
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_rounded),
+            activeIcon: Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.comptable.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              label: 'Accueil',
+              child: Icon(Icons.dashboard_rounded),
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.payment_rounded),
-              activeIcon: Container(
-                padding: EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: AppColors.primary100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.payment_rounded),
+            label: 'Accueil',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.payment_rounded),
+            activeIcon: Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.comptable.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              label: 'Paiements',
+              child: Icon(Icons.payment_rounded),
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.search_rounded),
-              activeIcon: Container(
-                padding: EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: AppColors.primary100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.search_rounded),
+            label: 'Paiements',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.admin_panel_settings_rounded),
+            activeIcon: Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.comptable.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              label: 'Recherche',
+              child: Icon(Icons.admin_panel_settings_rounded),
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.admin_panel_settings_rounded),
-              activeIcon: Container(
-                padding: EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: AppColors.primary100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.admin_panel_settings_rounded),
-              ),
-              label: 'Gestion',
-            ),
-          ],
-        ),
+            label: 'Gestion',
+          ),
+        ],
       ),
     );
   }
@@ -161,22 +223,40 @@ class _ComptableDashboardState extends State<ComptableDashboard> {
   void _handleLogout(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSizes.radiusLg),
           ),
-          title: Text('Déconnexion'),
+          title: Row(
+            children: [
+              Icon(Icons.logout_rounded, color: AppColors.danger),
+              SizedBox(width: AppSizes.sm),
+              Text('Déconnexion'),
+            ],
+          ),
           content: Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text('Annuler'),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Provider.of<AuthService>(context, listen: false).logout();
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+
+                try {
+                  await AuthService().logout();
+                  Navigator.of(context)
+                      .pushNamedAndRemoveUntil('/login', (route) => false);
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Erreur lors de la déconnexion'),
+                      backgroundColor: AppColors.danger,
+                    ),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.danger,
@@ -189,6 +269,12 @@ class _ComptableDashboardState extends State<ComptableDashboard> {
       },
     );
   }
+
+  void changeTab(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 }
 
 class ComptableHomeScreen extends StatefulWidget {
@@ -197,57 +283,10 @@ class ComptableHomeScreen extends StatefulWidget {
 }
 
 class _ComptableHomeScreenState extends State<ComptableHomeScreen> {
-  final ApiService _apiService = ApiService();
-  List<Etudiant> _etudiants = [];
-  bool _isLoading = true;
-  Map<String, dynamic> _statistiques = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    if (!mounted) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      final etudiantsData = await _apiService.getEtudiants();
-
-      if (!mounted) return;
-
-      final etudiants =
-          etudiantsData.map((data) => Etudiant.fromJson(data)).toList();
-
-      final totalEtudiants = etudiants.length;
-      final etudiantsValides =
-          etudiants.where((e) => e.statutCompte == 'valide').length;
-      final etudiantsEnAttente =
-          etudiants.where((e) => e.statutCompte == 'en_attente').length;
-
-      setState(() {
-        _etudiants = etudiants;
-        _statistiques = {
-          'total': totalEtudiants,
-          'valides': etudiantsValides,
-          'en_attente': etudiantsEnAttente,
-          'suspendus': totalEtudiants - etudiantsValides - etudiantsEnAttente,
-        };
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Connexion au serveur en cours...'),
-          backgroundColor: AppColors.warning,
-        ),
-      );
-    }
+  void _navigateToTab(int index) {
+    final dashboard =
+        context.findAncestorStateOfType<_ComptableDashboardState>();
+    dashboard?.changeTab(index);
   }
 
   @override
@@ -255,247 +294,208 @@ class _ComptableHomeScreenState extends State<ComptableHomeScreen> {
     final authService = Provider.of<AuthService>(context);
     final comptable = authService.comptable;
 
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      child: SingleChildScrollView(
-        physics: AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.all(AppSizes.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(AppSizes.lg),
-              decoration: BoxDecoration(
-                gradient: AppColors.comptableGradient,
-                borderRadius: BorderRadius.circular(AppSizes.radiusXl),
+    final prenom = comptable?.prenom ?? '';
+    final nom = comptable?.nom ?? 'Comptable';
+    final idComptable = comptable?.idComptable ?? '';
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(AppSizes.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(AppSizes.xl),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.comptable,
+                  AppColors.comptable.withOpacity(0.8),
+                  AppColors.comptable.withOpacity(0.6),
+                ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: AppColors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Center(
-                          child: Text('💰', style: TextStyle(fontSize: 24)),
+              borderRadius: BorderRadius.circular(AppSizes.radiusXl),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.comptable.withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        color: AppColors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(35),
+                        border: Border.all(
+                          color: AppColors.white.withOpacity(0.3),
+                          width: 2,
                         ),
                       ),
-                      SizedBox(width: AppSizes.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Bienvenue,',
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                color: AppColors.white.withOpacity(0.9),
-                              ),
+                      child: Center(
+                        child: Text('💰', style: TextStyle(fontSize: 28)),
+                      ),
+                    ),
+                    SizedBox(width: AppSizes.lg),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Bienvenue,',
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.white.withOpacity(0.9),
+                              fontWeight: FontWeight.w400,
                             ),
-                            Text(
-                              '${comptable?.prenom} ${comptable?.nom}',
-                              style: AppTextStyles.headingMedium.copyWith(
-                                color: AppColors.white,
-                              ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            prenom.isNotEmpty && nom.isNotEmpty
+                                ? '$prenom $nom'
+                                : nom,
+                            style: AppTextStyles.headingLarge.copyWith(
+                              color: AppColors.white,
+                              fontWeight: FontWeight.bold,
                             ),
-                            Text(
-                              'Comptable - ${comptable?.idComptable}',
+                          ),
+                          SizedBox(height: 2),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppSizes.sm,
+                              vertical: AppSizes.xs,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.white.withOpacity(0.2),
+                              borderRadius:
+                                  BorderRadius.circular(AppSizes.radiusSm),
+                            ),
+                            child: Text(
+                              idComptable.isNotEmpty
+                                  ? 'Comptable • $idComptable'
+                                  : 'Comptable',
                               style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.white.withOpacity(0.8),
+                                color: AppColors.white,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                          ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: AppSizes.lg),
+                Container(
+                  padding: EdgeInsets.all(AppSizes.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.trending_up_rounded,
+                          color: AppColors.white, size: 20),
+                      SizedBox(width: AppSizes.sm),
+                      Text(
+                        'Tableau de bord des paiements',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            SizedBox(height: AppSizes.lg),
-            Text(
-              'Statistiques',
-              style: AppTextStyles.headingSmall,
-            ),
-            SizedBox(height: AppSizes.md),
-            if (_isLoading)
-              Center(
-                child: Column(
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: AppSizes.md),
-                    Text('Chargement des données...'),
-                  ],
-                ),
-              )
-            else
-              GridView.count(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                mainAxisSpacing: AppSizes.md,
-                crossAxisSpacing: AppSizes.md,
-                childAspectRatio: 1.2,
-                children: [
-                  _buildStatCard(
-                    title: 'Total Étudiants',
-                    value: '${_statistiques['total'] ?? 0}',
-                    icon: Icons.people_rounded,
-                    color: AppColors.info,
-                  ),
-                  _buildStatCard(
-                    title: 'Comptes Validés',
-                    value: '${_statistiques['valides'] ?? 0}',
-                    icon: Icons.check_circle_rounded,
-                    color: AppColors.success,
-                  ),
-                  _buildStatCard(
-                    title: 'En Attente',
-                    value: '${_statistiques['en_attente'] ?? 0}',
-                    icon: Icons.pending_rounded,
-                    color: AppColors.warning,
-                  ),
-                  _buildStatCard(
-                    title: 'Suspendus',
-                    value: '${_statistiques['suspendus'] ?? 0}',
-                    icon: Icons.block_rounded,
-                    color: AppColors.danger,
-                  ),
-                ],
-              ),
-            SizedBox(height: AppSizes.lg),
-            Text(
-              'Actions Rapides',
-              style: AppTextStyles.headingSmall,
-            ),
-            SizedBox(height: AppSizes.md),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildActionButton(
-                    title: 'Nouveau Paiement',
-                    icon: Icons.add_card_rounded,
-                    onTap: () {
-                      // Action pour nouveau paiement
-                    },
-                  ),
-                ),
-                SizedBox(width: AppSizes.md),
-                Expanded(
-                  child: _buildActionButton(
-                    title: 'Rechercher',
-                    icon: Icons.search_rounded,
-                    onTap: () {
-                      // Action pour recherche
-                    },
-                  ),
                 ),
               ],
             ),
-            SizedBox(height: AppSizes.lg),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Étudiants Récents',
-                  style: AppTextStyles.headingSmall,
+          ),
+          SizedBox(height: AppSizes.xl),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Actions Rapides',
+                style: AppTextStyles.headingMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.gray800,
                 ),
-                TextButton(
-                  onPressed: () {
-                    // Aller vers la liste complète
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSizes.sm,
+                  vertical: AppSizes.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.comptable.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+                ),
+                child: Text(
+                  'Gestion',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.comptable,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: AppSizes.lg),
+          Row(
+            children: [
+              Expanded(
+                child: _buildModernActionCard(
+                  title: 'Paiements',
+                  subtitle: 'Gestion des paiements',
+                  icon: Icons.payment_rounded,
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.success,
+                      AppColors.success.withOpacity(0.7)
+                    ],
+                  ),
+                  onTap: () {
+                    _navigateToTab(1);
                   },
-                  child: Text('Voir tout'),
-                ),
-              ],
-            ),
-            SizedBox(height: AppSizes.md),
-            if (_etudiants.isNotEmpty)
-              ...(_etudiants
-                  .take(3)
-                  .map((etudiant) => _buildEtudiantCard(etudiant)))
-            else if (!_isLoading)
-              Center(
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.wifi_off_rounded,
-                      size: 48,
-                      color: AppColors.gray400,
-                    ),
-                    SizedBox(height: AppSizes.md),
-                    Text(
-                      'Données non disponibles',
-                      style: AppTextStyles.bodyMedium,
-                    ),
-                    Text(
-                      'Vérifiez votre connexion',
-                      style: AppTextStyles.bodySmall,
-                    ),
-                  ],
                 ),
               ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatCard({
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(AppSizes.md),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-        border: Border.all(color: AppColors.gray200),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.gray100,
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          SizedBox(height: AppSizes.sm),
-          Text(
-            value,
-            style: AppTextStyles.headingMedium.copyWith(color: color),
-          ),
-          SizedBox(height: AppSizes.xs),
-          Text(
-            title,
-            style: AppTextStyles.bodySmall,
-            textAlign: TextAlign.center,
+              SizedBox(width: AppSizes.md),
+              Expanded(
+                child: _buildModernActionCard(
+                  title: 'Gestion',
+                  subtitle: 'Utilisateurs & rôles',
+                  icon: Icons.admin_panel_settings_rounded,
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.warning,
+                      AppColors.warning.withOpacity(0.7)
+                    ],
+                  ),
+                  onTap: () {
+                    _navigateToTab(2);
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActionButton({
+  Widget _buildModernActionCard({
     required String title,
+    required String subtitle,
     required IconData icon,
+    required Gradient gradient,
     required VoidCallback onTap,
   }) {
     return Material(
@@ -504,106 +504,51 @@ class _ComptableHomeScreenState extends State<ComptableHomeScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSizes.radiusLg),
         child: Container(
-          padding: EdgeInsets.all(AppSizes.md),
+          padding: EdgeInsets.all(AppSizes.lg),
           decoration: BoxDecoration(
-            color: AppColors.primary50,
+            gradient: gradient,
             borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-            border: Border.all(color: AppColors.primary200),
+            boxShadow: [
+              BoxShadow(
+                color: gradient.colors.first.withOpacity(0.3),
+                blurRadius: 12,
+                offset: Offset(0, 6),
+              ),
+            ],
           ),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: AppColors.primary500, size: 32),
-              SizedBox(height: AppSizes.sm),
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: AppColors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Icon(icon, color: AppColors.white, size: 24),
+              ),
+              SizedBox(height: AppSizes.md),
               Text(
                 title,
                 style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.primary700,
+                  color: AppColors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: AppSizes.xs),
+              Text(
+                subtitle,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.white.withOpacity(0.9),
                 ),
                 textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildEtudiantCard(Etudiant etudiant) {
-    Color statusColor;
-    String statusText;
-
-    switch (etudiant.statutCompte) {
-      case 'valide':
-        statusColor = AppColors.success;
-        statusText = 'Validé';
-        break;
-      case 'en_attente':
-        statusColor = AppColors.warning;
-        statusText = 'En attente';
-        break;
-      default:
-        statusColor = AppColors.danger;
-        statusText = 'Suspendu';
-    }
-
-    return Container(
-      margin: EdgeInsets.only(bottom: AppSizes.md),
-      padding: EdgeInsets.all(AppSizes.md),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-        border: Border.all(color: AppColors.gray200),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: AppColors.primary100,
-            child: Text(
-              '${etudiant.prenom[0]}${etudiant.nom[0]}',
-              style: AppTextStyles.labelMedium.copyWith(
-                color: AppColors.primary700,
-              ),
-            ),
-          ),
-          SizedBox(width: AppSizes.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${etudiant.prenom} ${etudiant.nom}',
-                  style: AppTextStyles.labelMedium,
-                ),
-                Text(
-                  etudiant.matricule,
-                  style: AppTextStyles.bodySmall,
-                ),
-                Text(
-                  etudiant.programme?.nom ?? 'Programme non défini',
-                  style: AppTextStyles.bodySmall,
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSizes.sm,
-              vertical: AppSizes.xs,
-            ),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(AppSizes.radiusSm),
-            ),
-            child: Text(
-              statusText,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: statusColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
