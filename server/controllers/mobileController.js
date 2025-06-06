@@ -297,29 +297,69 @@ exports.enregistrerPaiement = async (req, res) => {
 
 exports.getEtudiants = async (req, res) => {
   try {
-    const { search } = req.query;
+    console.log('📥 Paramètres de recherche étudiants:', req.query);
     
-    let query = {};
-    if (search) {
-      query = {
-        $or: [
-          { nom: { $regex: search, $options: 'i' } },
-          { prenom: { $regex: search, $options: 'i' } },
-          { matricule: { $regex: search, $options: 'i' } }
-        ]
-      };
+    const { classe, statut, search } = req.query;
+    
+    let filter = {};
+    
+    if (statut) {
+      filter.statut_compte = statut;
     }
-
-    const etudiants = await Etudiant.find(query)
+    
+    if (search) {
+      filter.$or = [
+        { nom: { $regex: search, $options: 'i' } },
+        { prenom: { $regex: search, $options: 'i' } },
+        { matricule: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    console.log('🔍 Récupération de tous les étudiants...');
+    let etudiants = await Etudiant.find(filter)
       .populate('programme_id', 'nom licence semestre')
       .select('-mot_de_passe')
-      .limit(20);
-
-    res.json({ etudiants });
-
+      .sort({ nom: 1, prenom: 1 });
+    
+    console.log(`📊 ${etudiants.length} étudiants trouvés avant filtrage`);
+    console.log('📋 Détails étudiants:', etudiants.map(e => ({
+      nom: e.nom,
+      programme: e.programme_id?.nom
+    })));
+    
+    // ✅ Filtrage par classe si spécifiée
+    if (classe) {
+      console.log('🔍 Filtrage par classe:', classe);
+      
+      etudiants = etudiants.filter(e => {
+        if (!e.programme_id || !e.programme_id.nom) return false;
+        
+        const programmeNom = e.programme_id.nom.toLowerCase();
+        const classeRecherchee = classe.toLowerCase();
+        
+        // Essayer différentes stratégies de matching
+        const match1 = programmeNom.includes(classeRecherchee.split(' - ')[0]); // "Génie Civil"
+        const match2 = classeRecherchee.includes(programmeNom); // "Génie Civil - L4 S7 G1" contient "Génie Civil"
+        const match3 = programmeNom === classeRecherchee; // Match exact
+        
+        console.log(`🔍 Test "${programmeNom}" vs "${classeRecherchee}": match1=${match1}, match2=${match2}, match3=${match3}`);
+        
+        return match1 || match2 || match3;
+      });
+      
+      console.log(`📊 ${etudiants.length} étudiants après filtrage par classe`);
+    }
+    
+    console.log(`✅ Résultat final: ${etudiants.length} étudiants`);
+    
+    // ✅ CORRECTION MAJEURE : Retourner directement le tableau
+    res.json(etudiants);
   } catch (error) {
-    console.error('Erreur récupération étudiants:', error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    console.error('❌ Erreur récupération étudiants:', error);
+    res.status(500).json({
+      message: 'Erreur serveur lors de la récupération des étudiants',
+      error: error.message
+    });
   }
 };
 
@@ -612,6 +652,216 @@ exports.getHistoriqueAcces = async (req, res) => {
   } catch (error) {
     console.error('Erreur récupération historique:', error);
     res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+
+// ===== NOUVELLES FONCTIONS POUR CHEF DE CLASSE =====
+
+// Fonction getEtudiantById (si elle n'existe pas déjà)
+exports.getEtudiantById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const etudiant = await Etudiant.findById(id)
+      .populate('programme_id', 'nom licence semestre')
+      .select('-mot_de_passe');
+    
+    if (!etudiant) {
+      return res.status(404).json({ message: 'Étudiant non trouvé' });
+    }
+    
+    res.json(etudiant);
+  } catch (error) {
+    console.error('Erreur récupération étudiant:', error);
+    res.status(500).json({
+      message: 'Erreur serveur lors de la récupération de l\'étudiant',
+      error: error.message
+    });
+  }
+};
+
+// Fonction updateEtudiant 
+exports.updateEtudiant = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { matricule, nom, prenom, email, telephone, programme_id, groupe } = req.body;
+    
+    const updateData = { matricule, nom, prenom, email, telephone, programme_id, groupe };
+    
+    const etudiant = await Etudiant.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    ).populate('programme_id', 'nom licence semestre').select('-mot_de_passe');
+    
+    if (!etudiant) {
+      return res.status(404).json({ message: 'Étudiant non trouvé' });
+    }
+    
+    res.json({
+      message: 'Étudiant modifié avec succès',
+      etudiant
+    });
+  } catch (error) {
+    console.error('Erreur modification étudiant:', error);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      return res.status(400).json({ message: `${field} déjà utilisé` });
+    }
+    res.status(500).json({
+      message: 'Erreur serveur lors de la modification',
+      error: error.message
+    });
+  }
+};
+
+// Fonction deleteEtudiant
+exports.deleteEtudiant = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const etudiant = await Etudiant.findByIdAndDelete(id);
+    
+    if (!etudiant) {
+      return res.status(404).json({ message: 'Étudiant non trouvé' });
+    }
+    
+    res.json({ message: 'Étudiant supprimé avec succès' });
+  } catch (error) {
+    console.error('Erreur suppression étudiant:', error);
+    res.status(500).json({
+      message: 'Erreur serveur lors de la suppression',
+      error: error.message
+    });
+  }
+};
+
+// Fonction getProgrammes 
+exports.getProgrammes = async (req, res) => {
+  try {
+    const programmes = await Programme.find({})
+      .select('nom licence semestre')
+      .sort({ nom: 1 });
+    
+    res.json(programmes);
+  } catch (error) {
+    console.error('Erreur récupération programmes:', error);
+    res.status(500).json({
+      message: 'Erreur serveur lors de la récupération des programmes',
+      error: error.message
+    });
+  }
+};
+
+// Fonction getPresencesEnAttente
+exports.getPresencesEnAttente = async (req, res) => {
+  try {
+    const { classe } = req.query;
+    
+    let filter = { statut: 'en_attente' };
+    
+    // Si une classe est spécifiée, filtrer par classe
+    if (classe) {
+      // Récupérer les étudiants de cette classe
+      const etudiants = await Etudiant.find()
+        .populate('programme_id', 'nom')
+        .select('_id');
+      
+      const etudiantsClasse = etudiants.filter(e => 
+        e.programme_id && e.programme_id.nom.toLowerCase().includes(classe.toLowerCase())
+      );
+      
+      const etudiantIds = etudiantsClasse.map(e => e._id);
+      filter.etudiant_id = { $in: etudiantIds };
+    }
+    
+    const presences = await PresenceEtudiant.find(filter)
+      .populate('etudiant_id', 'nom prenom matricule programme_id')
+      .populate('cours_id', 'nom')
+      .populate({
+        path: 'etudiant_id',
+        populate: {
+          path: 'programme_id',
+          select: 'nom licence'
+        }
+      })
+      .sort({ createdAt: -1 });
+    
+    res.json(presences);
+  } catch (error) {
+    console.error('Erreur récupération présences en attente:', error);
+    res.status(500).json({
+      message: 'Erreur serveur lors de la récupération des présences',
+      error: error.message
+    });
+  }
+};
+
+// Fonction confirmerPresence
+exports.confirmerPresence = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const chef_id = req.user?.id; // ID du chef de classe connecté
+    
+    const presence = await PresenceEtudiant.findByIdAndUpdate(
+      id,
+      { 
+        statut: 'confirmee',
+        chef_validateur: chef_id,
+        date_validation: new Date()
+      },
+      { new: true }
+    ).populate('etudiant_id', 'nom prenom matricule');
+    
+    if (!presence) {
+      return res.status(404).json({ message: 'Présence non trouvée' });
+    }
+    
+    res.json({
+      message: 'Présence confirmée avec succès',
+      presence
+    });
+  } catch (error) {
+    console.error('Erreur confirmation présence:', error);
+    res.status(500).json({
+      message: 'Erreur serveur lors de la confirmation',
+      error: error.message
+    });
+  }
+};
+
+// Fonction rejeterPresence
+exports.rejeterPresence = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { motif } = req.body;
+    const chef_id = req.user?.id;
+    
+    const presence = await PresenceEtudiant.findByIdAndUpdate(
+      id,
+      { 
+        statut: 'rejetee',
+        chef_validateur: chef_id,
+        date_validation: new Date(),
+        motif_rejet: motif
+      },
+      { new: true }
+    ).populate('etudiant_id', 'nom prenom matricule');
+    
+    if (!presence) {
+      return res.status(404).json({ message: 'Présence non trouvée' });
+    }
+    
+    res.json({
+      message: 'Présence rejetée avec succès',
+      presence
+    });
+  } catch (error) {
+    console.error('Erreur rejet présence:', error);
+    res.status(500).json({
+      message: 'Erreur serveur lors du rejet',
+      error: error.message
+    });
   }
 };
 

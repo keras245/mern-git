@@ -11,7 +11,9 @@ import {
   MessageSquare,
   Bell,
   User,
-  Settings
+  Settings,
+  Users,
+  UserCheck
 } from 'lucide-react';
 import api from '../../services/api';
 
@@ -21,6 +23,8 @@ const menuItems = [
   { title: 'Présences', path: '/chef/presences', icon: CheckSquare, color: 'from-purple-500 to-purple-600' },
   { title: 'Feedback', path: '/chef/feedback', icon: MessageSquare, color: 'from-orange-500 to-orange-600' },
   { title: 'Notifications', path: '/chef/notifications', icon: Bell, color: 'from-red-500 to-red-600' },
+  { title: 'Ma Classe', path: '/chef/ma-classe', icon: Users, color: 'from-indigo-500 to-indigo-600' },
+  { title: 'Validation Présences', path: '/chef/validation-presences', icon: UserCheck, color: 'from-teal-500 to-teal-600' },
 ];
 
 export default function ChefLayout() {

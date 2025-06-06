@@ -18,6 +18,8 @@ import ChefEmploiDuTemps from './pages/chef/EmploiDuTemps';
 import ChefPresences from './pages/chef/Presences';
 import ChefFeedback from './pages/chef/Feedback';
 import ChefNotifications from './pages/chef/Notifications';
+import MaClasse from './pages/chef/MaClasse';
+import ConfirmationPresences from './pages/chef/ConfirmationPresences';
 import AdminPresences from './pages/admin/Presences';
 import AdminFeedback from './pages/admin/Feedback';
 import AdminNotifications from './pages/admin/Notifications';
@@ -99,6 +101,9 @@ function App() {
             <Route path="presences" element={<ChefPresences />} />
             <Route path="feedback" element={<ChefFeedback />} />
             <Route path="notifications" element={<ChefNotifications />} />
+            <Route path="ma-classe" element={<MaClasse />} />
+            <Route path="validation-presences" element={<ConfirmationPresences />} />
+            
           </Route>
         </Routes>
       </Router>

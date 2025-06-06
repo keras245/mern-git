@@ -31,6 +31,22 @@ router.delete('/comptable/vigile/:id', auth, mobileController.supprimerVigile);
 router.post('/vigile/scan-qr', auth, mobileController.scanQRCode);
 router.get('/vigile/historique', auth, mobileController.getHistoriqueAcces);
 
+// ✅ AJOUT NOUVELLES ROUTES CHEF DE CLASSE =====
+// Routes pour "Ma Classe" - CRUD étudiants
+router.get('/etudiants', mobileController.getEtudiants);
+router.get('/etudiants/:id', mobileController.getEtudiantById);
+router.put('/etudiants/:id', auth, mobileController.updateEtudiant);
+router.delete('/etudiants/:id', auth, mobileController.deleteEtudiant);
+router.patch('/etudiants/:id/validate', auth, mobileController.validerEtudiant);
+
+// Routes pour "Validation Présences"
+router.get('/presences/en-attente', mobileController.getPresencesEnAttente);
+router.patch('/presences/:id/confirmer', auth, mobileController.confirmerPresence);
+router.patch('/presences/:id/rejeter', auth, mobileController.rejeterPresence);
+
+// Route pour obtenir les programmes (pour le formulaire étudiant)
+router.get('/programmes', mobileController.getProgrammes);
+
 // ===== UTILS =====
 router.post('/test/valider-etudiant', mobileController.validerEtudiant);
 
