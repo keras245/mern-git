@@ -31,6 +31,11 @@ router.delete('/comptable/vigile/:id', auth, mobileController.supprimerVigile);
 router.post('/vigile/scan-qr', auth, mobileController.scanQRCode);
 router.get('/vigile/historique', auth, mobileController.getHistoriqueAcces);
 
+// ===== ÉTUDIANT (protégé) =====
+router.get('/etudiant/emploi-du-temps', auth, mobileController.getEmploiDuTempsEtudiant);
+router.post('/etudiant/demande-presence', auth, mobileController.envoyerDemandePresence);
+router.get('/etudiant/profil', auth, mobileController.getProfilEtudiant);
+
 // ✅ AJOUT NOUVELLES ROUTES CHEF DE CLASSE =====
 // Routes pour "Ma Classe" - CRUD étudiants
 router.get('/etudiants', mobileController.getEtudiants);

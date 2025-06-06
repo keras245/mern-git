@@ -5,6 +5,10 @@ import 'screens/auth/role_selection_screen.dart';
 import 'screens/comptable/comptable_dashboard.dart';
 import 'screens/vigile/vigile_dashboard.dart';
 import 'screens/etudiant/etudiant_dashboard.dart';
+import 'screens/auth/login_screen.dart';
+import 'navigation/comptable_navigator.dart';
+import 'navigation/vigile_navigator.dart';
+import 'navigation/etudiant_navigator.dart';
 import 'utils/constants.dart';
 
 void main() {
@@ -28,97 +32,88 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
           fontFamily: 'System', // Utilise la police système
         ),
-        home: AuthWrapper(),
+        home: AuthCheck(),
+        routes: {
+          '/login': (context) => RoleSelectionScreen(),
+          '/comptable': (context) => ComptableNavigator(),
+          '/vigile': (context) => VigileNavigator(),
+          '/etudiant': (context) => EtudiantNavigator(),
+        },
         debugShowCheckedModeBanner: false,
       ),
     );
   }
 }
 
-class AuthWrapper extends StatefulWidget {
+class AuthCheck extends StatefulWidget {
   @override
-  _AuthWrapperState createState() => _AuthWrapperState();
+  _AuthCheckState createState() => _AuthCheckState();
 }
 
-class _AuthWrapperState extends State<AuthWrapper> {
+class _AuthCheckState extends State<AuthCheck> {
   @override
   void initState() {
     super.initState();
-    // Vérifier l'état d'authentification au démarrage
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthService>().checkAuthStatus();
-    });
+    _checkAuthStatus();
+  }
+
+  _checkAuthStatus() async {
+    try {
+      final user = await AuthService.getCurrentUser();
+      if (user != null) {
+        String route;
+        switch (user['type']) {
+          case 'comptable':
+            route = '/comptable';
+            break;
+          case 'vigile':
+            route = '/vigile';
+            break;
+          case 'etudiant':
+            route = '/etudiant';
+            break;
+          default:
+            route = '/login';
+        }
+        Navigator.of(context).pushReplacementNamed(route);
+      } else {
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
+    } catch (e) {
+      Navigator.of(context).pushReplacementNamed('/login');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthService>(
-      builder: (context, authService, child) {
-        if (authService.isLoading) {
-          return Scaffold(
-            body: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.primary50,
-                    AppColors.white,
-                    AppColors.primary100,
-                  ],
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '🎓',
+                style: TextStyle(fontSize: 80),
+              ),
+              SizedBox(height: AppSizes.lg),
+              Text(
+                'EduFlex',
+                style: AppTextStyles.headingLarge.copyWith(
+                  color: AppColors.white,
                 ),
               ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        borderRadius: BorderRadius.circular(AppSizes.radius2Xl),
-                      ),
-                      child: Icon(
-                        Icons.school_rounded,
-                        size: 40,
-                        color: AppColors.white,
-                      ),
-                    ),
-                    SizedBox(height: AppSizes.lg),
-                    CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColors.primary500,
-                      ),
-                    ),
-                    SizedBox(height: AppSizes.lg),
-                    Text(
-                      'EduFlex Mobile',
-                      style: AppTextStyles.headingMedium,
-                    ),
-                  ],
-                ),
+              SizedBox(height: AppSizes.md),
+              CircularProgressIndicator(
+                color: AppColors.white,
               ),
-            ),
-          );
-        }
-
-        if (!authService.isAuthenticated) {
-          return RoleSelectionScreen();
-        }
-
-        // Router selon le type d'utilisateur
-        switch (authService.userType) {
-          case 'comptable':
-            return ComptableDashboard();
-          case 'vigile':
-            return VigileScreen();
-          case 'etudiant':
-            return EtudiantDashboard();
-          default:
-            return RoleSelectionScreen();
-        }
-      },
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

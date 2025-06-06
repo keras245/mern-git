@@ -233,8 +233,8 @@ const emploiDuTempsController = {
           if (creneauxOccupes.has(keyProf)) {
             console.log(`   ❌ Prof ${professeur.nom} ${professeur.prenom} déjà occupé ce créneau`);
             detailsRecherche.push(`${jour} ${creneau}: Prof occupé (${professeur.nom} ${professeur.prenom})`);
-            continue;
-          }
+          continue;
+        }
 
           // Vérifier si le groupe n'est pas déjà occupé
           const keyGroupe = `groupe-${id_programme}-${groupe}-${jour}-${creneau}`;
@@ -266,9 +266,9 @@ const emploiDuTempsController = {
 
             if (!salleOccupee) {
               salleLibre = salle;
-              break;
+                break;
+              }
             }
-          }
 
           if (salleLibre) {
             // ✅ CRÉNEAU TROUVÉ !
@@ -345,10 +345,10 @@ const emploiDuTempsController = {
           seances: seances,
           statut: conflitsDetailles.length > 0 ? 'brouillon' : 'actif',
           dateCreation: new Date()
-        });
+      });
 
-        await emploiDuTemps.save();
-        
+      await emploiDuTemps.save();
+
         // Peupler les données
         emploiDuTemps = await EmploiDuTemps.findById(emploiDuTemps._id)
           .populate('seances.cours', 'nom_matiere duree')

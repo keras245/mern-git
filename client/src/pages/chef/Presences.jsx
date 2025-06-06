@@ -453,7 +453,7 @@ const Presences = () => {
 
       {programme && classeInfo && (
         <>
-          {/* Statistiques */}
+      {/* Statistiques */}
           <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -512,8 +512,8 @@ const Presences = () => {
                   <p className="text-2xl font-bold text-orange-600">{stats.retards}</p>
                 </div>
                 <Clock className="w-8 h-8 text-orange-600" />
-              </div>
-            </motion.div>
+          </div>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -534,7 +534,7 @@ const Presences = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45 }}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
         >
           <div className="flex items-center justify-between">
             <div>
@@ -644,7 +644,7 @@ const Presences = () => {
                             <BookOpen className="w-3 h-3" />
                             <span>{seanceData.cours?.type || 'Cours'}</span>
                         </span>
-                        </div>
+                      </div>
                     </div>
                   </div>
 

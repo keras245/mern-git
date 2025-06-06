@@ -144,7 +144,7 @@ const ImportDonnees = () => {
       
       if (newDispos[jour].includes(creneau)) {
         newDispos[jour] = newDispos[jour].filter(c => c !== creneau);
-      } else {
+        } else {
         newDispos[jour] = [...newDispos[jour], creneau];
       }
       
@@ -161,7 +161,7 @@ const ImportDonnees = () => {
       
       const jourData = salle.disponibilite.find(d => d.jour === jour);
       return jourData?.creneaux?.includes(creneau) || false;
-    } else {
+        } else {
       // Mode import : utiliser l'état local des disponibilités
       return disponibilites[jour]?.includes(creneau) || false;
     }
@@ -403,10 +403,10 @@ const ImportDonnees = () => {
       await chargerSallesExistantes();
       
       // Réinitialiser les sélections
-      setSallesSelectionnees([]);
-      setSalleSelectionnee('');
-      setPreview([]);
-      setShowPreview(false);
+        setSallesSelectionnees([]);
+        setSalleSelectionnee('');
+        setPreview([]);
+        setShowPreview(false);
       
       showNotification(`${response.data.salles.length} salle(s) mise(s) à jour avec succès`, 'success');
     } catch (error) {
@@ -850,9 +850,9 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                                 const isSelected = estCreneauSelectionne(salleSelectionnee, jour, creneau);
                                 
                                 return (
-                                  <label key={creneau} className="flex items-center cursor-pointer group">
-                                    <input
-                                      type="checkbox"
+                                <label key={creneau} className="flex items-center cursor-pointer group">
+                                  <input
+                                    type="checkbox"
                                       checked={isSelected}
                                       onChange={() => toggleCreneau(jour, creneau)}
                                       className="mr-3 h-5 w-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded transition-all"
@@ -862,9 +862,9 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                                         ? 'bg-orange-100 text-orange-800 border border-orange-200' 
                                         : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
                                     }`}>
-                                      {creneau}
-                                    </span>
-                                  </label>
+                                    {creneau}
+                                  </span>
+                                </label>
                                 );
                               })}
                             </div>
@@ -890,15 +890,15 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                               Tout désélectionner
                             </button>
                             
-                          </div>
+                        </div>
                           
                           <div className="text-sm text-orange-700">
                             {(() => {
                               const nombreCreneaux = Object.values(disponibilites).reduce((acc, creneaux) => acc + creneaux.length, 0);
                               return nombreCreneaux > 0 ? `${nombreCreneaux} créneaux sélectionnés` : 'Aucun créneau sélectionné';
                             })()}
-                          </div>
-                        </div>
+                      </div>
+                              </div>
 
                         {/* BOUTON ENREGISTRER (EXACTEMENT COMME LES PROFS) */}
                         <div className="flex justify-center pt-6">
@@ -921,7 +921,7 @@ Salle_Machine_01,Mercredi 15h30 - 18h30,Vendredi 08h30 - 11h30`;
                               )}
                             </div>
                           </button>
-                        </div>
+                      </div>
                       </div>
                     </div>
                   )}

@@ -6,7 +6,7 @@ import '../models/comptable.dart';
 import '../models/vigile.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.18.245:3832/api';
+  static const String baseUrl = 'http://192.168.139.65:3832/api';
 
   Future<Map<String, String>> get _headers async {
     final prefs = await SharedPreferences.getInstance();
@@ -379,6 +379,63 @@ class ApiService {
       return List<Map<String, dynamic>>.from(data['historique']);
     } else {
       throw Exception('Erreur lors de la récupération de l\'historique');
+    }
+  }
+
+  // ===== FONCTIONS ÉTUDIANT =====
+
+  // Récupérer l'emploi du temps de l'étudiant
+  Future<Map<String, dynamic>> getEmploiDuTempsEtudiant() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/mobile/etudiant/emploi-du-temps'),
+      headers: await _headers,
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur lors de la récupération de l\'emploi du temps');
+    }
+  }
+
+  // Envoyer une demande de présence
+  Future<Map<String, dynamic>> envoyerDemandePresence({
+    required String coursId,
+    required String emploiDuTempsId,
+    required String dateCours,
+    String? justification,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/mobile/etudiant/demande-presence'),
+      headers: await _headers,
+      body: jsonEncode({
+        'cours_id': coursId,
+        'emploi_du_temps_id': emploiDuTempsId,
+        'date_cours': dateCours,
+        'justification': justification,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      final error = jsonDecode(response.body);
+      throw Exception(
+          error['message'] ?? 'Erreur lors de l\'envoi de la demande');
+    }
+  }
+
+  // Récupérer le profil étudiant
+  Future<Map<String, dynamic>> getProfilEtudiant() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/mobile/etudiant/profil'),
+      headers: await _headers,
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur lors de la récupération du profil');
     }
   }
 }

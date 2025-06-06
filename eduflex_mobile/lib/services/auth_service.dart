@@ -41,6 +41,26 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  // ✅ AJOUT : Fonction statique pour récupérer l'utilisateur actuel
+  static Future<Map<String, dynamic>?> getCurrentUser() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      final userType = prefs.getString('user_type');
+      final userData = prefs.getString('user_data');
+
+      if (token != null && userType != null && userData != null) {
+        final userJson = jsonDecode(userData);
+        userJson['type'] = userType;
+        return userJson;
+      }
+      return null;
+    } catch (e) {
+      print('Erreur getCurrentUser: $e');
+      return null;
+    }
+  }
+
   // Vérifier l'état d'authentification au démarrage
   Future<void> checkAuthStatus() async {
     _isLoading = true;
@@ -90,6 +110,12 @@ class AuthService extends ChangeNotifier {
     try {
       final response = await _apiService.loginEtudiant(matricule, motDePasse);
 
+      // ✅ AJOUT : Sauvegarder les données utilisateur
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', response['token']);
+      await prefs.setString('user_type', 'etudiant');
+      await prefs.setString('user_data', jsonEncode(response['user']));
+
       _etudiant = Etudiant.fromJson(response['user']);
       _isAuthenticated = true;
       _userType = 'etudiant';
@@ -112,6 +138,12 @@ class AuthService extends ChangeNotifier {
     try {
       final response = await _apiService.loginComptable(email, motDePasse);
 
+      // ✅ AJOUT : Sauvegarder les données utilisateur
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', response['token']);
+      await prefs.setString('user_type', 'comptable');
+      await prefs.setString('user_data', jsonEncode(response['user']));
+
       _comptable = Comptable.fromJson(response['user']);
       _isAuthenticated = true;
       _userType = 'comptable';
@@ -133,6 +165,12 @@ class AuthService extends ChangeNotifier {
 
     try {
       final response = await _apiService.loginVigile(telephone, codeAcces);
+
+      // ✅ AJOUT : Sauvegarder les données utilisateur
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', response['token']);
+      await prefs.setString('user_type', 'vigile');
+      await prefs.setString('user_data', jsonEncode(response['user']));
 
       _vigile = Vigile.fromJson(response['user']);
       _isAuthenticated = true;

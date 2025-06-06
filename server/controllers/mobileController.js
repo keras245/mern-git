@@ -131,12 +131,6 @@ exports.loginEtudiant = async (req, res) => {
       return res.status(401).json({ message: 'Matricule ou mot de passe incorrect' });
     }
     
-    if (etudiant.statut_compte !== 'valide') {
-      return res.status(403).json({ 
-        message: 'Votre compte est en attente de validation par le chef de classe' 
-      });
-    }
-    
     const token = jwt.sign(
       { 
         id: etudiant._id, 
@@ -862,6 +856,218 @@ exports.rejeterPresence = async (req, res) => {
       message: 'Erreur serveur lors du rejet',
       error: error.message
     });
+  }
+};
+
+// ===== FONCTIONS ÉTUDIANT =====
+
+// Récupérer l'emploi du temps de l'étudiant
+exports.getEmploiDuTempsEtudiant = async (req, res) => {
+  try {
+    const etudiant_id = req.user.id;
+    
+    console.log('🔍 Récupération emploi du temps pour étudiant:', etudiant_id);
+    
+    // Récupérer l'étudiant avec son programme
+    const etudiant = await Etudiant.findById(etudiant_id)
+      .populate('programme_id', 'nom licence semestre');
+    
+    if (!etudiant) {
+      return res.status(404).json({ message: 'Étudiant non trouvé' });
+    }
+    
+    console.log('👤 Étudiant trouvé:', {
+      nom: etudiant.nom,
+      programme: etudiant.programme_id?.nom,
+      groupe: etudiant.groupe
+    });
+    
+    // ✅ CORRECTION : Utiliser le bon modèle EmploiDuTemps avec seances
+    const emploiDuTemps = await EmploiDuTemps.findOne({
+      programme: etudiant.programme_id._id,
+      groupe: etudiant.groupe,
+      statut: 'actif'
+    })
+    .populate({
+      path: 'seances.cours',
+      select: 'nom_matiere duree'
+    })
+    .populate({
+      path: 'seances.professeur',
+      select: 'nom prenom'
+    })
+    .populate({
+      path: 'seances.salle',
+      select: 'nom batiment'
+    });
+    
+    console.log('📅 Emploi du temps trouvé:', emploiDuTemps ? 'Oui' : 'Non');
+    
+    if (!emploiDuTemps || !emploiDuTemps.seances || emploiDuTemps.seances.length === 0) {
+      console.log('❌ Aucune séance trouvée');
+      return res.json({
+        etudiant: {
+          nom: etudiant.nom,
+          prenom: etudiant.prenom,
+          programme: etudiant.programme_id.nom,
+          groupe: etudiant.groupe
+        },
+        emploi_du_temps: []
+      });
+    }
+    
+    // ✅ TRANSFORMATION des seances en format attendu par le mobile
+    const coursTransformes = emploiDuTemps.seances.map(seance => {
+      console.log('🎯 Transformation seance:', {
+        cours: seance.cours?.nom_matiere,
+        professeur: seance.professeur?.nom,
+        salle: seance.salle?.nom,
+        jour: seance.jour,
+        creneau: seance.creneau
+      });
+      
+      return {
+        _id: seance._id,
+        cours_id: {
+          _id: seance.cours?._id || '',
+          nom: seance.cours?.nom_matiere || 'Cours non défini'
+        },
+        professeur_id: {
+          _id: seance.professeur?._id || '',
+          nom: seance.professeur?.nom || '',
+          prenom: seance.professeur?.prenom || '',
+          nom_complet: seance.professeur ? `${seance.professeur.prenom} ${seance.professeur.nom}` : 'Professeur non défini'
+        },
+        salle_id: {
+          _id: seance.salle?._id || '',
+          nom: seance.salle?.nom || 'Salle non définie'
+        },
+        jour: seance.jour.toLowerCase(),
+        creneau: seance.creneau,
+        heure_debut: seance.creneau.split(' - ')[0] || '',
+        heure_fin: seance.creneau.split(' - ')[1] || ''
+      };
+    });
+    
+    console.log('📚 Nombre de cours transformés:', coursTransformes.length);
+    console.log('📚 Premier cours exemple:', coursTransformes[0]);
+    
+    res.json({
+      etudiant: {
+        nom: etudiant.nom,
+        prenom: etudiant.prenom,
+        programme: etudiant.programme_id.nom,
+        groupe: etudiant.groupe
+      },
+      emploi_du_temps: coursTransformes
+    });
+    
+  } catch (error) {
+    console.error('Erreur récupération emploi du temps étudiant:', error);
+    res.status(500).json({ 
+      message: 'Erreur serveur',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Envoyer une demande de présence
+exports.envoyerDemandePresence = async (req, res) => {
+  try {
+    const etudiant_id = req.user.id;
+    const { cours_id, emploi_du_temps_id, date_cours, justification } = req.body;
+    
+    // Vérifier que l'étudiant existe et qu'il a accès à la faculté
+    const etudiant = await Etudiant.findById(etudiant_id);
+    if (!etudiant) {
+      return res.status(404).json({ message: 'Étudiant non trouvé' });
+    }
+    
+    // Vérifier si l'étudiant est entré dans la faculté aujourd'hui
+    const aujourd_hui = new Date();
+    aujourd_hui.setHours(0, 0, 0, 0);
+    
+    const acces_aujourd_hui = await AccesEntree.findOne({
+      etudiant_id: etudiant_id,
+      autorisation: true,
+      createdAt: { $gte: aujourd_hui }
+    });
+    
+    if (!acces_aujourd_hui) {
+      return res.status(403).json({ 
+        message: 'Vous devez d\'abord scanner votre QR code à l\'entrée de la faculté' 
+      });
+    }
+    
+    // Vérifier qu'il n'y a pas déjà une demande pour ce cours
+    const demandeExistante = await PresenceEtudiant.findOne({
+      etudiant_id,
+      cours_id,
+      date_cours: new Date(date_cours)
+    });
+    
+    if (demandeExistante) {
+      return res.status(400).json({ 
+        message: 'Vous avez déjà envoyé une demande pour ce cours' 
+      });
+    }
+    
+    // Créer la demande de présence
+    const presence = new PresenceEtudiant({
+      etudiant_id,
+      cours_id,
+      emploi_du_temps_id,
+      date_cours: new Date(date_cours),
+      jour: new Date(date_cours).toLocaleDateString('fr-FR', { weekday: 'long' }),
+      creneau: `${new Date().getHours()}h${String(new Date().getMinutes()).padStart(2, '0')}`,
+      est_entre_fac: true,
+      remarques: justification
+    });
+    
+    await presence.save();
+    
+    const presencePopulee = await PresenceEtudiant.findById(presence._id)
+      .populate('cours_id', 'nom')
+      .populate('etudiant_id', 'nom prenom matricule');
+    
+    res.status(201).json({
+      message: 'Demande de présence envoyée avec succès',
+      presence: presencePopulee
+    });
+    
+  } catch (error) {
+    console.error('Erreur envoi demande présence:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+
+// Récupérer le profil de l'étudiant
+exports.getProfilEtudiant = async (req, res) => {
+  try {
+    const etudiant_id = req.user.id;
+    
+    const etudiant = await Etudiant.findById(etudiant_id)
+      .populate('programme_id', 'nom licence semestre')
+      .select('-mot_de_passe');
+    
+    if (!etudiant) {
+      return res.status(404).json({ message: 'Étudiant non trouvé' });
+    }
+    
+    // Récupérer les dernières présences
+    const presences = await PresenceEtudiant.find({ etudiant_id })
+      .populate('cours_id', 'nom')
+      .sort({ createdAt: -1 })
+      .limit(5);
+    
+    res.json({
+      etudiant,
+      dernieres_presences: presences
+    });
+    
+  } catch (error) {
+    console.error('Erreur récupération profil étudiant:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
   }
 };
 
