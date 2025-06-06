@@ -1,0 +1,287 @@
+{
+    "info": {
+      "name": "App Mobile - Tests Backend",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+      {
+        "key": "baseUrl",
+        "value": "http://localhost:3832/api"
+      },
+      {
+        "key": "token_etudiant",
+        "value": ""
+      },
+      {
+        "key": "token_comptable",
+        "value": ""
+      },
+      {
+        "key": "token_vigile",
+        "value": ""
+      }
+    ],
+    "item": [
+      {
+        "name": "1. Créer Comptable",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"nom\": \"Diallo\",\n  \"prenom\": \"Fatou\",\n  \"email\": \"fatou.diallo@fac.sn\",\n  \"telephone\": \"771234567\",\n  \"mot_de_passe\": \"comptable123\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/mobile/test/comptable",
+            "host": ["{{baseUrl}}"],
+            "path": ["mobile", "test", "comptable"]
+          }
+        }
+      },
+      {
+        "name": "2. Créer Vigile",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"nom\": \"Fall\",\n  \"prenom\": \"Moussa\",\n  \"telephone\": \"771111111\",\n  \"code_acces\": \"1234\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/mobile/test/vigile",
+            "host": ["{{baseUrl}}"],
+            "path": ["mobile", "test", "vigile"]
+          }
+        }
+      },
+      {
+        "name": "3. Créer Étudiant",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"matricule\": \"ETU2024001\",\n  \"nom\": \"Ndiaye\",\n  \"prenom\": \"Aminata\",\n  \"email\": \"aminata.ndiaye@etud.fac.sn\",\n  \"telephone\": \"772345678\",\n  \"mot_de_passe\": \"etudiant123\",\n  \"programme_id\": \"METTRE_ID_PROGRAMME_ICI\",\n  \"groupe\": 1\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/mobile/test/etudiant",
+            "host": ["{{baseUrl}}"],
+            "path": ["mobile", "test", "etudiant"]
+          }
+        }
+      },
+      {
+        "name": "4. Login Comptable",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"fatou.diallo@fac.sn\",\n  \"mot_de_passe\": \"comptable123\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/mobile/login/comptable",
+            "host": ["{{baseUrl}}"],
+            "path": ["mobile", "login", "comptable"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.to.have.status(200)) {",
+                "    const response = pm.response.json();",
+                "    pm.collectionVariables.set('token_comptable', response.token);",
+                "}"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "5. Login Vigile",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"telephone\": \"771111111\",\n  \"code_acces\": \"1234\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/mobile/login/vigile",
+            "host": ["{{baseUrl}}"],
+            "path": ["mobile", "login", "vigile"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.to.have.status(200)) {",
+                "    const response = pm.response.json();",
+                "    pm.collectionVariables.set('token_vigile', response.token);",
+                "}"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "6. Valider Étudiant",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"etudiant_id\": \"METTRE_ID_ETUDIANT_ICI\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/mobile/test/valider-etudiant",
+            "host": ["{{baseUrl}}"],
+            "path": ["mobile", "test", "valider-etudiant"]
+          }
+        }
+      },
+      {
+        "name": "7. Login Étudiant",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"matricule\": \"ETU2024001\",\n  \"mot_de_passe\": \"etudiant123\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/mobile/login/etudiant",
+            "host": ["{{baseUrl}}"],
+            "path": ["mobile", "login", "etudiant"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.to.have.status(200)) {",
+                "    const response = pm.response.json();",
+                "    pm.collectionVariables.set('token_etudiant', response.token);",
+                "}"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "8. Enregistrer Paiement",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Authorization",
+              "value": "Bearer {{token_comptable}}"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"etudiant_id\": \"METTRE_ID_ETUDIANT_ICI\",\n  \"montant_paye\": 800000,\n  \"montant_total_requis\": 1000000,\n  \"type_paiement\": \"scolarite\",\n  \"remarques\": \"Paiement en 2 tranches\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/mobile/comptable/paiement",
+            "host": ["{{baseUrl}}"],
+            "path": ["mobile", "comptable", "paiement"]
+          }
+        }
+      },
+      {
+        "name": "9. Scanner QR (Autorisé)",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Authorization",
+              "value": "Bearer {{token_vigile}}"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"qr_code\": \"METTRE_QR_CODE_ETUDIANT_ICI\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/mobile/vigile/scan-qr",
+            "host": ["{{baseUrl}}"],
+            "path": ["mobile", "vigile", "scan-qr"]
+          }
+        }
+      },
+      {
+        "name": "10. Scanner QR Invalide",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Authorization",
+              "value": "Bearer {{token_vigile}}"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"qr_code\": \"QR_INEXISTANT_123\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/mobile/vigile/scan-qr",
+            "host": ["{{baseUrl}}"],
+            "path": ["mobile", "vigile", "scan-qr"]
+          }
+        }
+      }
+    ]
+  }

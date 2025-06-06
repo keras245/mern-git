@@ -14,6 +14,23 @@ app.set('trust proxy', true);
 // Connexion à la base de données
 connexionDB();
 
+// ✅ NOUVEAU : Route de test pour l'app mobile
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Serveur EduFlex API en ligne',
+    status: 'OK',
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/test', (req, res) => {
+  res.json({ 
+    message: 'Test de connexion réussi',
+    status: 'OK',
+    version: '1.0.0'
+  });
+});
+
 // Routes
 const adminRoutes = require('./routes/administrateurRoutes');
 app.use('/api/administrateurs', adminRoutes);
@@ -49,8 +66,14 @@ app.use('/api/notifications', notificationRoutes);
 const sessionRoutes = require('./routes/sessionRoutes');
 app.use('/api/sessions', sessionRoutes);
 
+// ✅ NOUVEAU : Routes mobile
+const mobileRoutes = require('./routes/mobileRoutes');
+app.use('/api/mobile', mobileRoutes);
+
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);
+  console.log(`API disponible sur http://localhost:${PORT}`);
+  console.log(`Test mobile: http://192.168.18.245:${PORT}/test`);
 });
 
 
