@@ -23,10 +23,10 @@ class _ProfilEtudiantScreenState extends State<ProfilEtudiantScreen> {
     try {
       final apiService = ApiService();
       final data = await apiService.getProfilEtudiant();
-      
+
       print('🔍 Données profil reçues:');
       print(data);
-      
+
       setState(() {
         profil = data;
         isLoading = false;
