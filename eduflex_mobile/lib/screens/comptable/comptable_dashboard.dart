@@ -7,6 +7,8 @@ import '../../models/etudiant.dart';
 import 'gestion_paiements.dart';
 import 'gestion_utilisateurs.dart';
 
+/**Dernier commit sur git c'est l'ajout de la bonne deconnexion */
+
 class ComptableDashboard extends StatefulWidget {
   @override
   _ComptableDashboardState createState() => _ComptableDashboardState();

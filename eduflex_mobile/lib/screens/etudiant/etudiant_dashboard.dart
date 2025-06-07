@@ -7,6 +7,8 @@ import 'qr_code_screen.dart';
 import 'demande_presence_screen.dart';
 import 'profil_etudiant_screen.dart';
 
+/**Dernier commit sur git c'est l'ajout de la bonne deconnexion */
+
 class EtudiantDashboard extends StatefulWidget {
   @override
   _EtudiantDashboardState createState() => _EtudiantDashboardState();

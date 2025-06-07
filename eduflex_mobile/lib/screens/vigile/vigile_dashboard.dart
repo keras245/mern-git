@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../utils/constants.dart';
 
+/**Dernier commit sur git c'est l'ajout de la bonne deconnexion */
+
 class VigileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
