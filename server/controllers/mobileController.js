@@ -397,6 +397,7 @@ exports.getEtudiants = async (req, res) => {
 exports.scanQRCode = async (req, res) => {
   try {
     const { qr_code } = req.body;
+    const vigileId = req.user.id; // ID du vigile connecté
 
     if (!qr_code) {
       return res.status(400).json({
@@ -405,33 +406,48 @@ exports.scanQRCode = async (req, res) => {
       });
     }
 
+    console.log(`🔍 Scan QR: ${qr_code} par vigile: ${vigileId}`);
+
     // Chercher l'étudiant avec ce QR code
     const etudiant = await Etudiant.findOne({ qr_code }).populate('programme_id');
 
     if (!etudiant) {
+      console.log('❌ QR code introuvable');
       return res.status(404).json({
         success: false,
-        message: 'QR code invalide'
+        acces_autorise: false,
+        message: 'QR code invalide',
+        etudiant: null
       });
     }
+
+    console.log(`👤 Étudiant trouvé: ${etudiant.prenom} ${etudiant.nom}`);
+    console.log(`💰 Paiement: ${etudiant.pourcentage_paiement}% / ${etudiant.pourcentage_paiement_seuil}%`);
 
     // Vérifier le paiement
     const paiementValide = etudiant.pourcentage_paiement >= etudiant.pourcentage_paiement_seuil;
 
-    // Enregistrer l'accès
+    console.log(`✅ Accès ${paiementValide ? 'AUTORISÉ' : 'REFUSÉ'}`);
+
+    // Enregistrer l'accès avec les bons champs
     const acces = new AccesEntree({
       etudiant_id: etudiant._id,
-      date_entree: new Date(),
-      statut_acces: paiementValide ? 'autorise' : 'refuse',
-      raison: paiementValide ? 'Paiement conforme' : 'Paiement insuffisant'
+      vigile_id: vigileId,
+      qr_code_scanne: qr_code,
+      autorisation: paiementValide,
+      pourcentage_paiement: etudiant.pourcentage_paiement,
+      localisation: 'porte_principale',
+      motif_refus: paiementValide ? null : 'Paiement insuffisant'
     });
 
     await acces.save();
+    console.log(`📝 Accès enregistré: ${acces._id}`);
 
-    // Mettre à jour la dernière entrée
+    // Mettre à jour la dernière entrée si autorisé
     if (paiementValide) {
       etudiant.derniere_entree_fac = new Date();
       await etudiant.save();
+      console.log(`🏫 Dernière entrée mise à jour`);
     }
 
     res.json({
@@ -449,10 +465,12 @@ exports.scanQRCode = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur scan QR code:', error);
+    console.error('❌ Erreur scan QR code:', error);
     res.status(500).json({
       success: false,
-      message: 'Erreur serveur'
+      acces_autorise: false,
+      message: 'Erreur serveur lors du scan',
+      etudiant: null
     });
   }
 };
@@ -633,24 +651,57 @@ exports.supprimerVigile = async (req, res) => {
 
 exports.getHistoriqueAcces = async (req, res) => {
   try {
-    const vigile_id = req.user.id;
-    
-    const historique = await AccesEntree.find({ vigile_id })
-      .populate('etudiant_id', 'nom prenom matricule programme_id')
-      .populate({
-        path: 'etudiant_id',
-        populate: {
-          path: 'programme_id',
-          select: 'nom licence'
-        }
-      })
-      .sort({ createdAt: -1 })
-      .limit(50);
+    const vigileId = req.user.id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
 
-    res.json({ historique });
+    console.log(`📋 Récupération historique vigile: ${vigileId}`);
+
+    const historique = await AccesEntree.find({ vigile_id: vigileId })
+      .populate('etudiant_id', 'nom prenom matricule')
+      .populate('vigile_id', 'nom prenom')
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip(skip);
+
+    const total = await AccesEntree.countDocuments({ vigile_id: vigileId });
+
+    // Formater les données
+    const historiqueFormate = historique.map(acces => ({
+      id: acces._id,
+      date: acces.createdAt,
+      etudiant: {
+        nom: acces.etudiant_id?.nom || 'Inconnu',
+        prenom: acces.etudiant_id?.prenom || 'Inconnu',
+        matricule: acces.etudiant_id?.matricule || 'N/A'
+      },
+      qr_code: acces.qr_code_scanne,
+      autorisation: acces.autorisation,
+      pourcentage_paiement: acces.pourcentage_paiement,
+      localisation: acces.localisation,
+      motif_refus: acces.motif_refus
+    }));
+
+    console.log(`✅ ${historiqueFormate.length} entrées récupérées`);
+
+    res.json({
+      success: true,
+      historique: historiqueFormate,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+
   } catch (error) {
-    console.error('Erreur récupération historique:', error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    console.error('❌ Erreur récupération historique:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur serveur lors de la récupération de l\'historique'
+    });
   }
 };
 

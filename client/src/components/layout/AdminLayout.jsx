@@ -113,8 +113,8 @@ export default function AdminLayout() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Link
-                  to={item.path}
+            <Link
+              to={item.path}
                   className={`group relative flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
                     isActive
                       ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 text-blue-600 dark:text-blue-400 shadow-md'
@@ -148,11 +148,11 @@ export default function AdminLayout() {
                         exit={{ opacity: 0, x: -10 }}
                         className="ml-4 font-medium"
                       >
-                        {item.title}
+              {item.title}
                       </motion.span>
                     )}
                   </AnimatePresence>
-                </Link>
+            </Link>
               </motion.div>
             );
           })}
@@ -160,9 +160,9 @@ export default function AdminLayout() {
 
         {/* Section Profil AVEC MODE SOMBRE */}
         <div className="p-4 border-t border-gray-100 dark:border-gray-700 mt-auto">
-          <AnimatePresence>
+              <AnimatePresence>
             {!isCollapsed ? (
-              <motion.div
+                  <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -177,8 +177,8 @@ export default function AdminLayout() {
                       {user.prenom} {user.nom}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Administrateur</p>
-                  </div>
-                </div>
+            </div>
+          </div>
 
                 <div className="space-y-1">
                   <button
@@ -205,8 +205,8 @@ export default function AdminLayout() {
                   <LogOut size={20} />
                 </button>
               </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+            </AnimatePresence>
         </div>
       </motion.aside>
 
@@ -273,18 +273,18 @@ export default function AdminLayout() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <div className="text-right">
+                <div className="text-right">
                     <p className="text-sm font-medium text-gray-900 dark:text-white">{user.nom} {user.prenom}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">Administrateur</p>
-                  </div>
-                  <div className="relative">
-                    <img
-                      src={user.photo || "/images/user.png"}
-                      alt="Profile"
+                </div>
+                <div className="relative">
+            <img
+                    src={user.photo || "/images/user.png"}
+                    alt="Profile"
                       className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-400 transition-colors duration-200"
-                    />
+            />
                     <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
-                  </div>
+                </div>
                 </motion.button>
 
                 {/* Menu déroulant profil AVEC MODE SOMBRE */}

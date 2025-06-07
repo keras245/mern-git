@@ -6,7 +6,7 @@ import '../models/comptable.dart';
 import '../models/vigile.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.139.65:3832/api';
+  static const String baseUrl = 'http://192.168.30.253:3832/api';
 
   Future<Map<String, String>> get _headers async {
     final prefs = await SharedPreferences.getInstance();

@@ -7,8 +7,6 @@ import '../../models/etudiant.dart';
 import 'gestion_paiements.dart';
 import 'gestion_utilisateurs.dart';
 
-/**Dernier commit sur git c'est l'ajout de la bonne deconnexion */
-
 class ComptableDashboard extends StatefulWidget {
   @override
   _ComptableDashboardState createState() => _ComptableDashboardState();
@@ -91,7 +89,7 @@ class _ComptableDashboardState extends State<ComptableDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Salut $nom !',
+                  prenom.isNotEmpty ? 'Salut $prenom !' : 'Salut $nom !',
                   style: AppTextStyles.headingMedium.copyWith(
                     color: AppColors.white,
                   ),
@@ -206,14 +204,14 @@ class _ComptableDashboardState extends State<ComptableDashboard> {
             label: 'Paiements',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.admin_panel_settings_rounded),
+            icon: Icon(Icons.people_rounded),
             activeIcon: Container(
               padding: EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: AppColors.comptable.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(Icons.admin_panel_settings_rounded),
+              child: Icon(Icons.people_rounded),
             ),
             label: 'Gestion',
           ),
@@ -249,8 +247,8 @@ class _ComptableDashboardState extends State<ComptableDashboard> {
 
                 try {
                   await AuthService().logout();
-                  Navigator.of(context)
-                      .pushNamedAndRemoveUntil('/login', (route) => false);
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/role-selection', (route) => false);
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -279,6 +277,7 @@ class _ComptableDashboardState extends State<ComptableDashboard> {
   }
 }
 
+// 🏠 ÉCRAN D'ACCUEIL COMPTABLE
 class ComptableHomeScreen extends StatefulWidget {
   @override
   _ComptableHomeScreenState createState() => _ComptableHomeScreenState();
@@ -420,71 +419,82 @@ class _ComptableHomeScreenState extends State<ComptableHomeScreen> {
               ],
             ),
           ),
+
           SizedBox(height: AppSizes.xl),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Actions Rapides',
-                style: AppTextStyles.headingMedium.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.gray800,
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppSizes.sm,
-                  vertical: AppSizes.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.comptable.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(AppSizes.radiusSm),
-                ),
-                child: Text(
-                  'Gestion',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.comptable,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
+
+          Text(
+            'Actions Rapides',
+            style: AppTextStyles.headingMedium.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.gray800,
+            ),
           ),
           SizedBox(height: AppSizes.lg),
-          Row(
+
+          // Actions Grid
+          GridView.count(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            mainAxisSpacing: AppSizes.md,
+            crossAxisSpacing: AppSizes.md,
+            childAspectRatio: 1.2,
             children: [
-              Expanded(
-                child: _buildModernActionCard(
-                  title: 'Paiements',
-                  subtitle: 'Gestion des paiements',
-                  icon: Icons.payment_rounded,
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.success,
-                      AppColors.success.withOpacity(0.7)
-                    ],
-                  ),
-                  onTap: () {
-                    _navigateToTab(1);
-                  },
+              _buildModernActionCard(
+                title: 'Nouveau Paiement',
+                subtitle: 'Enregistrer un paiement',
+                icon: Icons.add_card_rounded,
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.success,
+                    AppColors.success.withOpacity(0.7)
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+                onTap: () => _navigateToTab(1),
               ),
-              SizedBox(width: AppSizes.md),
-              Expanded(
-                child: _buildModernActionCard(
-                  title: 'Gestion',
-                  subtitle: 'Utilisateurs & rôles',
-                  icon: Icons.admin_panel_settings_rounded,
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.warning,
-                      AppColors.warning.withOpacity(0.7)
-                    ],
-                  ),
-                  onTap: () {
-                    _navigateToTab(2);
-                  },
+              _buildModernActionCard(
+                title: 'Rechercher',
+                subtitle: 'Trouver un étudiant',
+                icon: Icons.search_rounded,
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary500,
+                    AppColors.primary500.withOpacity(0.7)
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+                onTap: () => _navigateToTab(1),
+              ),
+              _buildModernActionCard(
+                title: 'Gestion',
+                subtitle: 'Gérer les utilisateurs',
+                icon: Icons.people_rounded,
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.comptable,
+                    AppColors.comptable.withOpacity(0.7)
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                onTap: () => _navigateToTab(2),
+              ),
+              _buildModernActionCard(
+                title: 'Statistiques',
+                subtitle: 'Voir les rapports',
+                icon: Icons.bar_chart_rounded,
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.warning,
+                    AppColors.warning.withOpacity(0.7)
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                onTap: () => _navigateToTab(1),
               ),
             ],
           ),
@@ -500,55 +510,52 @@ class _ComptableHomeScreenState extends State<ComptableHomeScreen> {
     required Gradient gradient,
     required VoidCallback onTap,
   }) {
-    return Material(
-      color: Colors.transparent,
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSizes.radiusXl),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+        borderRadius: BorderRadius.circular(AppSizes.radiusXl),
         child: Container(
-          padding: EdgeInsets.all(AppSizes.lg),
           decoration: BoxDecoration(
             gradient: gradient,
-            borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-            boxShadow: [
-              BoxShadow(
-                color: gradient.colors.first.withOpacity(0.3),
-                blurRadius: 12,
-                offset: Offset(0, 6),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(AppSizes.radiusXl),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: AppColors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(25),
+          child: Padding(
+            padding: EdgeInsets.all(AppSizes.lg),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Icon(icon, color: AppColors.white, size: 24),
                 ),
-                child: Icon(icon, color: AppColors.white, size: 24),
-              ),
-              SizedBox(height: AppSizes.md),
-              Text(
-                title,
-                style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                SizedBox(height: AppSizes.md),
+                Text(
+                  title,
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: AppColors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: AppSizes.xs),
-              Text(
-                subtitle,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.white.withOpacity(0.9),
+                SizedBox(height: AppSizes.xs),
+                Text(
+                  subtitle,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.white.withOpacity(0.9),
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

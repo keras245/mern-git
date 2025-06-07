@@ -1,119 +1,104 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
+import 'utils/constants.dart';
 import 'screens/auth/role_selection_screen.dart';
+import 'screens/etudiant/etudiant_dashboard.dart';
 import 'screens/comptable/comptable_dashboard.dart';
 import 'screens/vigile/vigile_dashboard.dart';
-import 'screens/etudiant/etudiant_dashboard.dart';
-import 'screens/auth/login_screen.dart';
-import 'navigation/comptable_navigator.dart';
-import 'navigation/vigile_navigator.dart';
-import 'navigation/etudiant_navigator.dart';
-import 'utils/constants.dart';
 
 void main() {
-  runApp(MyApp());
+  print('🚀 [MAIN] Démarrage EduFlex');
+
+  if (kIsWeb) {
+    print('🌐 [MAIN] Mode Web');
+  }
+
+  runApp(EduFlexApp());
 }
 
-class MyApp extends StatelessWidget {
+class EduFlexApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => AuthService(),
+    print('🏗️ [APP] Construction app');
+
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthService()),
+      ],
       child: MaterialApp(
-        title: 'EduFlex Mobile',
+        title: 'EduFlex',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.blue,
-          primaryColor: AppColors.primary500,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.primary500,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-          fontFamily: 'System', // Utilise la police système
+          fontFamily: 'Roboto',
         ),
-        home: AuthCheck(),
+        home: AppNavigator(),
         routes: {
-          '/login': (context) => RoleSelectionScreen(),
-          '/comptable': (context) => ComptableNavigator(),
-          '/vigile': (context) => VigileNavigator(),
-          '/etudiant': (context) => EtudiantNavigator(),
+          '/role-selection': (context) => RoleSelectionScreen(),
+          '/etudiant': (context) => EtudiantDashboard(),
+          '/comptable': (context) => ComptableDashboard(),
+          '/vigile': (context) => VigileScreen(),
         },
-        debugShowCheckedModeBanner: false,
       ),
     );
   }
 }
 
-class AuthCheck extends StatefulWidget {
-  @override
-  _AuthCheckState createState() => _AuthCheckState();
-}
-
-class _AuthCheckState extends State<AuthCheck> {
-  @override
-  void initState() {
-    super.initState();
-    _checkAuthStatus();
-  }
-
-  _checkAuthStatus() async {
-    try {
-      final user = await AuthService.getCurrentUser();
-      if (user != null) {
-        String route;
-        switch (user['type']) {
-          case 'comptable':
-            route = '/comptable';
-            break;
-          case 'vigile':
-            route = '/vigile';
-            break;
-          case 'etudiant':
-            route = '/etudiant';
-            break;
-          default:
-            route = '/login';
-        }
-        Navigator.of(context).pushReplacementNamed(route);
-      } else {
-        Navigator.of(context).pushReplacementNamed('/login');
-      }
-    } catch (e) {
-      Navigator.of(context).pushReplacementNamed('/login');
-    }
-  }
-
+class AppNavigator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: AppColors.primaryGradient,
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '🎓',
-                style: TextStyle(fontSize: 80),
+    print('📍 [NAVIGATOR] Build');
+
+    return Consumer<AuthService>(
+      builder: (context, authService, child) {
+        print(
+            '🔍 [NAVIGATOR] Auth state - Loading: ${authService.isLoading}, Authenticated: ${authService.isAuthenticated}, Type: ${authService.userType}');
+
+        // Chargement (uniquement pendant les connexions)
+        if (authService.isLoading) {
+          print('⏳ [NAVIGATOR] Mode chargement');
+          return Scaffold(
+            backgroundColor: AppColors.white,
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: AppColors.primary500),
+                  SizedBox(height: AppSizes.lg),
+                  Text(
+                    'Connexion...',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.gray600,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: AppSizes.lg),
-              Text(
-                'EduFlex',
-                style: AppTextStyles.headingLarge.copyWith(
-                  color: AppColors.white,
-                ),
-              ),
-              SizedBox(height: AppSizes.md),
-              CircularProgressIndicator(
-                color: AppColors.white,
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
+          );
+        }
+
+        // Non authentifié = sélection des rôles
+        if (!authService.isAuthenticated) {
+          print('👤 [NAVIGATOR] Non authentifié -> Sélection rôles');
+          return RoleSelectionScreen();
+        }
+
+        // Authentifié = redirection selon le rôle
+        print('✅ [NAVIGATOR] Authentifié -> Rôle: ${authService.userType}');
+        switch (authService.userType) {
+          case 'etudiant':
+            return EtudiantDashboard();
+          case 'comptable':
+            return ComptableDashboard();
+          case 'vigile':
+            return VigileScreen();
+          default:
+            print('❓ [NAVIGATOR] Rôle inconnu, retour sélection');
+            return RoleSelectionScreen();
+        }
+      },
     );
   }
 }

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../../utils/constants.dart';
 import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
@@ -25,10 +23,10 @@ class _ProfilEtudiantScreenState extends State<ProfilEtudiantScreen> {
     try {
       final apiService = ApiService();
       final data = await apiService.getProfilEtudiant();
-
+      
       print('🔍 Données profil reçues:');
       print(data);
-
+      
       setState(() {
         profil = data;
         isLoading = false;
@@ -44,15 +42,42 @@ class _ProfilEtudiantScreenState extends State<ProfilEtudiantScreen> {
 
   _logout() async {
     try {
+      print('🔄 [LOGOUT_ETUDIANT] Début de la déconnexion...');
+
       await AuthService().logout();
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors de la déconnexion'),
-          backgroundColor: AppColors.danger,
-        ),
+      print('✅ [LOGOUT_ETUDIANT] Déconnexion AuthService réussie');
+
+      if (!mounted) {
+        print('⚠️ [LOGOUT_ETUDIANT] Widget démonté, arrêt de la navigation');
+        return;
+      }
+
+      print('🔄 [LOGOUT_ETUDIANT] Redirection vers /role-selection...');
+
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/role-selection',
+        (route) => false,
       );
+
+      print('✅ [LOGOUT_ETUDIANT] Redirection réussie');
+    } catch (e) {
+      print('❌ [LOGOUT_ETUDIANT] Erreur lors de la déconnexion: $e');
+      print('📝 [LOGOUT_ETUDIANT] Stack trace: ${StackTrace.current}');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur de déconnexion: ${e.toString()}'),
+            backgroundColor: AppColors.danger,
+            duration: Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Réessayer',
+              textColor: AppColors.white,
+              onPressed: _logout,
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -63,6 +88,8 @@ class _ProfilEtudiantScreenState extends State<ProfilEtudiantScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('🔄 [PROFIL_ETUDIANT] Build - isLoading: $isLoading, error: $error');
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Mon Profil'),
@@ -71,8 +98,12 @@ class _ProfilEtudiantScreenState extends State<ProfilEtudiantScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            onPressed: _logout,
+            onPressed: () {
+              print('🔄 [PROFIL_ETUDIANT] Clic sur bouton déconnexion');
+              _logout();
+            },
             icon: Icon(Icons.logout),
+            tooltip: 'Se déconnecter',
           ),
         ],
       ),
@@ -89,7 +120,21 @@ class _ProfilEtudiantScreenState extends State<ProfilEtudiantScreen> {
           ),
         ),
         child: isLoading
-            ? Center(child: CircularProgressIndicator(color: AppColors.white))
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: AppColors.white),
+                    SizedBox(height: AppSizes.md),
+                    Text(
+                      'Chargement du profil...',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              )
             : error != null
                 ? _buildError()
                 : _buildProfil(),
@@ -110,14 +155,21 @@ class _ProfilEtudiantScreenState extends State<ProfilEtudiantScreen> {
               SizedBox(height: AppSizes.md),
               Text('Erreur de chargement', style: AppTextStyles.headingSmall),
               SizedBox(height: AppSizes.sm),
-              Text(error!,
-                  style: AppTextStyles.bodySmall, textAlign: TextAlign.center),
+              Text(
+                error!,
+                style: AppTextStyles.bodySmall,
+                textAlign: TextAlign.center,
+              ),
               SizedBox(height: AppSizes.md),
               ElevatedButton(
-                onPressed: _loadProfil,
+                onPressed: () {
+                  print('🔄 [PROFIL_ETUDIANT] Clic sur Réessayer');
+                  _loadProfil();
+                },
                 child: Text('Réessayer'),
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.etudiant),
+                  backgroundColor: AppColors.etudiant,
+                ),
               ),
             ],
           ),

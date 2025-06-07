@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../utils/constants.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
 import 'emploi_du_temps_screen.dart';
 import 'qr_code_screen.dart';
-import 'demande_presence_screen.dart';
 import 'profil_etudiant_screen.dart';
-
-/**Dernier commit sur git c'est l'ajout de la bonne deconnexion */
+import 'demande_presence_screen.dart';
 
 class EtudiantDashboard extends StatefulWidget {
   @override
@@ -15,39 +14,21 @@ class EtudiantDashboard extends StatefulWidget {
 }
 
 class _EtudiantDashboardState extends State<EtudiantDashboard> {
-  Map<String, dynamic>? userData;
-  bool isLoading = true;
-  String? error;
+  int _selectedIndex = 0;
+  final ApiService _apiService = ApiService();
 
-  @override
-  void initState() {
-    super.initState();
-    _loadUserData();
-  }
-
-  _loadUserData() async {
-    try {
-      final apiService = ApiService();
-      final data = await apiService.getProfilEtudiant();
-
-      print('🔍 Données reçues du backend:');
-      print(data);
-
-      setState(() {
-        userData = data['etudiant'];
-        isLoading = false;
-      });
-    } catch (e) {
-      print('❌ Erreur chargement données: $e');
-      setState(() {
-        error = e.toString();
-        isLoading = false;
-      });
-    }
-  }
+  final List<Widget> _pages = [
+    EtudiantHomeScreen(),
+    EmploiDuTempsScreen(),
+    QRCodeScreen(),
+    ProfilEtudiantScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
+    final etudiant = authService.etudiant;
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -61,51 +42,33 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
           ),
         ),
         child: SafeArea(
-          child: isLoading
-              ? Center(child: CircularProgressIndicator(color: AppColors.white))
-              : error != null
-                  ? _buildError()
-                  : Column(
-                      children: [
-                        _buildHeader(),
-                        _buildDateTimeCard(),
-                        Expanded(child: _buildContent()),
-                      ],
-                    ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildError() {
-    return Center(
-      child: Card(
-        margin: EdgeInsets.all(AppSizes.lg),
-        child: Padding(
-          padding: EdgeInsets.all(AppSizes.lg),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error, color: AppColors.danger, size: 48),
-              SizedBox(height: AppSizes.md),
-              Text('Erreur de chargement', style: AppTextStyles.headingSmall),
-              SizedBox(height: AppSizes.sm),
-              Text(error!, style: AppTextStyles.bodySmall),
-              SizedBox(height: AppSizes.md),
-              ElevatedButton(
-                onPressed: _loadUserData,
-                child: Text('Réessayer'),
+              _buildHeader(etudiant),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.gray50,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(AppSizes.radiusXl),
+                      topRight: Radius.circular(AppSizes.radiusXl),
+                    ),
+                  ),
+                  child: _pages[_selectedIndex],
+                ),
               ),
             ],
           ),
         ),
       ),
+      bottomNavigationBar: _buildBottomNavigation(),
     );
   }
 
-  Widget _buildHeader() {
-    final nom = userData?['nom']?.toString() ?? 'Étudiant';
-    final programme = userData?['programme_id'];
+  Widget _buildHeader(dynamic etudiant) {
+    final nom = etudiant?.nom ?? 'Étudiant';
+    final prenom = etudiant?.prenom ?? '';
+    final matricule = etudiant?.matricule ?? '';
 
     return Container(
       padding: EdgeInsets.all(AppSizes.lg),
@@ -128,13 +91,15 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Salut $nom !',
+                  prenom.isNotEmpty && nom.isNotEmpty
+                      ? 'Salut $prenom !'
+                      : 'Salut $nom !',
                   style: AppTextStyles.headingMedium.copyWith(
                     color: AppColors.white,
                   ),
                 ),
                 Text(
-                  _buildProgrammeComplet(programme),
+                  'Matricule: $matricule',
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.white.withOpacity(0.8),
                   ),
@@ -142,13 +107,263 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
               ],
             ),
           ),
-          IconButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => ProfilEtudiantScreen()),
-            ),
-            icon: Icon(Icons.person, color: AppColors.white),
+          PopupMenuButton<String>(
+            icon: Icon(Icons.account_circle_rounded, color: AppColors.white),
+            onSelected: (value) {
+              if (value == 'logout') {
+                _handleLogout(context);
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem(
+                value: 'profile',
+                child: Row(
+                  children: [
+                    Icon(Icons.person_rounded, color: AppColors.gray600),
+                    SizedBox(width: AppSizes.sm),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          prenom.isNotEmpty && nom.isNotEmpty
+                              ? '$prenom $nom'
+                              : 'Étudiant',
+                          style: AppTextStyles.labelMedium,
+                        ),
+                        Text(
+                          matricule,
+                          style: AppTextStyles.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout_rounded, color: AppColors.danger),
+                    SizedBox(width: AppSizes.sm),
+                    Text('Déconnexion'),
+                  ],
+                ),
+              ),
+            ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigation() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gray200.withOpacity(0.5),
+            blurRadius: 10,
+            offset: Offset(0, -5),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) => setState(() => _selectedIndex = index),
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: AppColors.etudiant,
+        unselectedItemColor: AppColors.gray400,
+        backgroundColor: AppColors.white,
+        elevation: 0,
+        selectedLabelStyle:
+            TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: TextStyle(fontSize: 11),
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_rounded),
+            activeIcon: Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.etudiant.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.dashboard_rounded),
+            ),
+            label: 'Accueil',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.schedule_rounded),
+            activeIcon: Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.etudiant.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.schedule_rounded),
+            ),
+            label: 'Planning',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.qr_code_rounded),
+            activeIcon: Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.etudiant.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.qr_code_rounded),
+            ),
+            label: 'QR Code',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_rounded),
+            activeIcon: Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.etudiant.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.person_rounded),
+            ),
+            label: 'Profil',
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.logout_rounded, color: AppColors.danger),
+              SizedBox(width: AppSizes.sm),
+              Text('Déconnexion'),
+            ],
+          ),
+          content: Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+
+                try {
+                  await AuthService().logout();
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/role-selection', (route) => false);
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Erreur lors de la déconnexion'),
+                      backgroundColor: AppColors.danger,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.danger,
+                foregroundColor: AppColors.white,
+              ),
+              child: Text('Déconnexion'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// 🏠 ÉCRAN D'ACCUEIL ÉTUDIANT
+class EtudiantHomeScreen extends StatefulWidget {
+  @override
+  _EtudiantHomeScreenState createState() => _EtudiantHomeScreenState();
+}
+
+class _EtudiantHomeScreenState extends State<EtudiantHomeScreen> {
+  Map<String, dynamic>? userData;
+  bool isLoading = true;
+  String? error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  _loadUserData() async {
+    try {
+      final apiService = ApiService();
+      final data = await apiService.getProfilEtudiant();
+
+      setState(() {
+        userData = data['etudiant'];
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        error = e.toString();
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return Center(
+          child: CircularProgressIndicator(color: AppColors.etudiant));
+    }
+
+    if (error != null) {
+      return Center(
+        child: Card(
+          margin: EdgeInsets.all(AppSizes.lg),
+          child: Padding(
+            padding: EdgeInsets.all(AppSizes.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error, color: AppColors.danger, size: 48),
+                SizedBox(height: AppSizes.md),
+                Text('Erreur de chargement', style: AppTextStyles.headingSmall),
+                SizedBox(height: AppSizes.sm),
+                Text(error!, style: AppTextStyles.bodySmall),
+                SizedBox(height: AppSizes.md),
+                ElevatedButton(
+                  onPressed: _loadUserData,
+                  child: Text('Réessayer'),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.etudiant),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(AppSizes.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildDateTimeCard(),
+          SizedBox(height: AppSizes.xl),
+          _buildFunctionalityGrid(),
+          SizedBox(height: AppSizes.xl),
+          _buildQuickInfo(),
         ],
       ),
     );
@@ -156,54 +371,162 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
 
   Widget _buildDateTimeCard() {
     final now = DateTime.now();
-
     final dateString =
         '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
     final timeString =
         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: AppSizes.lg),
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+      width: double.infinity,
+      padding: EdgeInsets.all(AppSizes.xl),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.etudiant,
+            AppColors.etudiant.withOpacity(0.8),
+            AppColors.etudiant.withOpacity(0.6),
+          ],
         ),
-        child: Container(
-          padding: EdgeInsets.all(AppSizes.md),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+        borderRadius: BorderRadius.circular(AppSizes.radiusXl),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.etudiant.withOpacity(0.3),
+            blurRadius: 20,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Column(
             children: [
-              Column(
-                children: [
-                  Icon(Icons.calendar_today,
-                      color: AppColors.etudiant, size: 20),
-                  SizedBox(height: 4),
-                  Text(
-                    dateString,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+              Icon(Icons.calendar_today, color: AppColors.white, size: 24),
+              SizedBox(height: AppSizes.sm),
+              Text(
+                'Date',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.white.withOpacity(0.8),
+                ),
               ),
+              Text(
+                dateString,
+                style: AppTextStyles.headingSmall.copyWith(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          Container(
+              width: 1, height: 60, color: AppColors.white.withOpacity(0.3)),
+          Column(
+            children: [
+              Icon(Icons.access_time, color: AppColors.white, size: 24),
+              SizedBox(height: AppSizes.sm),
+              Text(
+                'Heure',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.white.withOpacity(0.8),
+                ),
+              ),
+              Text(
+                timeString,
+                style: AppTextStyles.headingSmall.copyWith(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFunctionalityGrid() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Actions Rapides',
+          style: AppTextStyles.headingMedium.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppColors.gray800,
+          ),
+        ),
+        SizedBox(height: AppSizes.lg),
+        _buildActionCard(
+          title: 'Emploi du temps',
+          subtitle: 'Consulter mes cours',
+          icon: Icons.schedule_rounded,
+          color: AppColors.primary500,
+          onTap: () => _navigateToTab(1),
+        ),
+        SizedBox(height: AppSizes.md),
+        _buildActionCard(
+          title: 'Mon QR Code',
+          subtitle: 'Code d\'accès à la faculté',
+          icon: Icons.qr_code_rounded,
+          color: AppColors.success,
+          onTap: () => _navigateToTab(2),
+        ),
+        SizedBox(height: AppSizes.md),
+        _buildActionCard(
+          title: 'Déclaration Présence',
+          subtitle: 'Signaler ma présence en cours',
+          icon: Icons.check_circle_rounded,
+          color: AppColors.warning,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => DemandePresenceScreen()),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+        child: Container(
+          padding: EdgeInsets.all(AppSizes.lg),
+          child: Row(
+            children: [
               Container(
-                width: 1,
-                height: 40,
-                color: AppColors.gray300,
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 24),
               ),
-              Column(
-                children: [
-                  Icon(Icons.access_time, color: AppColors.etudiant, size: 20),
-                  SizedBox(height: 4),
-                  Text(
-                    timeString,
-                    style: AppTextStyles.headingSmall.copyWith(
-                      color: AppColors.etudiant,
-                    ),
-                  ),
-                ],
+              SizedBox(width: AppSizes.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: AppTextStyles.headingSmall),
+                    Text(subtitle, style: AppTextStyles.bodySmall),
+                  ],
+                ),
               ),
+              Icon(Icons.arrow_forward_ios, color: AppColors.gray400, size: 16),
             ],
           ),
         ),
@@ -211,141 +534,12 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
     );
   }
 
-  String _buildProgrammeComplet(dynamic programme) {
-    if (programme == null) return 'Programme';
-
-    final nom = programme['nom']?.toString() ?? 'Programme';
-    final licence = programme['licence'];
-    final semestre = programme['semestre'];
-
-    if (licence != null && semestre != null) {
-      return '$nom Licence $licence Semestre $semestre';
-    }
-
-    return nom;
-  }
-
-  Widget _buildContent() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.gray50,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(AppSizes.radiusXl),
-          topRight: Radius.circular(AppSizes.radiusXl),
-        ),
-      ),
-      child: SingleChildScrollView(
-        padding: EdgeInsets.all(AppSizes.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: AppSizes.md),
-            Text(
-              'Mes Fonctionnalités',
-              style: AppTextStyles.headingMedium,
-            ),
-            SizedBox(height: AppSizes.lg),
-            _buildFunctionalityGrid(),
-            SizedBox(height: AppSizes.xl),
-            _buildQuickInfo(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFunctionalityGrid() {
-    final functionalities = [
-      {
-        'title': 'Emploi du temps',
-        'subtitle': 'Consulter mes cours',
-        'icon': Icons.schedule,
-        'color': AppColors.primary500,
-        'onTap': () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => EmploiDuTempsScreen()),
-            ),
-      },
-      {
-        'title': 'Mon QR Code',
-        'subtitle': 'Code d\'accès',
-        'icon': Icons.qr_code,
-        'color': AppColors.success,
-        'onTap': () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => QRCodeScreen()),
-            ),
-      },
-      {
-        'title': 'Déclaration Présence',
-        'subtitle': 'Signaler ma présence',
-        'icon': Icons.check_circle,
-        'color': AppColors.warning,
-        'onTap': () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => DemandePresenceScreen()),
-            ),
-      },
-    ];
-
-    return Column(
-      children: functionalities.map((func) {
-        return Container(
-          margin: EdgeInsets.only(bottom: AppSizes.md),
-          child: Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-            ),
-            child: InkWell(
-              onTap: func['onTap'] as VoidCallback,
-              borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-              child: Container(
-                padding: EdgeInsets.all(AppSizes.lg),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: (func['color'] as Color).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        func['icon'] as IconData,
-                        color: func['color'] as Color,
-                        size: 24,
-                      ),
-                    ),
-                    SizedBox(width: AppSizes.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            func['title'] as String,
-                            style: AppTextStyles.headingSmall,
-                          ),
-                          Text(
-                            func['subtitle'] as String,
-                            style: AppTextStyles.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: AppColors.gray400,
-                      size: 16,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
+  void _navigateToTab(int index) {
+    final dashboard =
+        context.findAncestorStateOfType<_EtudiantDashboardState>();
+    dashboard?.setState(() {
+      dashboard._selectedIndex = index;
+    });
   }
 
   Widget _buildQuickInfo() {
@@ -353,58 +547,65 @@ class _EtudiantDashboardState extends State<EtudiantDashboard> {
     final programme = userData?['programme_id'];
     final groupe = userData?['groupe']?.toString() ?? 'N/A';
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-      ),
-      child: Container(
-        padding: EdgeInsets.all(AppSizes.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Informations Rapides',
-              style: AppTextStyles.headingSmall,
-            ),
-            SizedBox(height: AppSizes.md),
-            Row(
-              children: [
-                Icon(Icons.school, color: AppColors.etudiant, size: 20),
-                SizedBox(width: AppSizes.sm),
-                Text(
-                  'Matricule: $matricule',
-                  style: AppTextStyles.bodyMedium,
-                ),
-              ],
-            ),
-            SizedBox(height: AppSizes.sm),
-            Row(
-              children: [
-                Icon(Icons.book, color: AppColors.etudiant, size: 20),
-                SizedBox(width: AppSizes.sm),
-                Expanded(
-                  child: Text(
-                    'Programme: ${_buildProgrammeComplet(programme)}',
-                    style: AppTextStyles.bodyMedium,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: AppSizes.sm),
-            Row(
-              children: [
-                Icon(Icons.group, color: AppColors.etudiant, size: 20),
-                SizedBox(width: AppSizes.sm),
-                Text(
-                  'Groupe: $groupe',
-                  style: AppTextStyles.bodyMedium,
-                ),
-              ],
-            ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Mes Informations',
+          style: AppTextStyles.headingMedium.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppColors.gray800,
+          ),
         ),
+        SizedBox(height: AppSizes.lg),
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+          ),
+          child: Container(
+            padding: EdgeInsets.all(AppSizes.lg),
+            child: Column(
+              children: [
+                _buildInfoRow(Icons.school, 'Matricule', matricule),
+                _buildInfoRow(
+                    Icons.book, 'Programme', _buildProgrammeComplet(programme)),
+                _buildInfoRow(Icons.group, 'Groupe', groupe),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: AppSizes.sm),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.etudiant, size: 20),
+          SizedBox(width: AppSizes.sm),
+          Expanded(
+            child: Text(
+              '$label: $value',
+              style: AppTextStyles.bodyMedium,
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  String _buildProgrammeComplet(dynamic programme) {
+    if (programme == null) return 'Programme non défini';
+    final nom = programme['nom']?.toString() ?? 'Programme';
+    final licence = programme['licence'];
+    final semestre = programme['semestre'];
+
+    if (licence != null && semestre != null) {
+      return '$nom L$licence S$semestre';
+    }
+    return nom;
   }
 }
